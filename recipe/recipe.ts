@@ -1,21 +1,39 @@
 import { Ingredient } from "./ingredient";
 
  export class Recipe {
+<<<<<<< HEAD
     private name: string = "Unnamed";
     private ingredients: Ingredient[] = [];
 
     public getJSON(): string {
         let data: Dictionary<any> = {};
         data[this.name] = this.getIngredientsData();
+=======
+    name: string = "Unnamed";
+    ingredients: Ingredient[] = [];
+
+    public getJSON(): string {
+        let data: Dictionary<string> = {
+            "name": this.getIngiredentsJson()
+        }
+>>>>>>> e2ae8ad (Added setters + first recipe unit tests)
 
         return JSON.stringify(data);
     }
 
+<<<<<<< HEAD
     private getIngredientsData(): Dictionary<any> {
         let data: Dictionary<any> = {};
 
         for (let i = 0; i < this.ingredients.length; i++){
             let ingredient: Ingredient = this.ingredients[i];
+=======
+    private getIngiredentsJson(): string {
+        let data: Dictionary<string> = {};
+
+        for (let i = 0; i++; i < this.ingredients.length){
+            let ingredent: Ingredient = this.ingredients[i];
+>>>>>>> e2ae8ad (Added setters + first recipe unit tests)
 
             data[ingredient.getName()] = ingredient.getData();
         }
@@ -33,9 +51,15 @@ import { Ingredient } from "./ingredient";
 
     public setName(name: string){
         if (name == "") return;
+<<<<<<< HEAD
 
         this.name = name;
     }
 
     public getName(): string { return this.name }
+=======
+        
+        this.name = name;
+    }
+>>>>>>> e2ae8ad (Added setters + first recipe unit tests)
 }
