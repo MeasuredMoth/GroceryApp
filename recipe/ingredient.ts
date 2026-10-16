@@ -5,9 +5,9 @@ export enum quantityFormats {
 }
 
 export class Ingredient {
-    name: string = "Unnamed";
-    quantity: number = -1;
-    format: quantityFormats = quantityFormats.METRIC;
+    private name: string = "Unnamed";
+    private quantity: number = -1;
+    private format: quantityFormats = quantityFormats.METRIC;
 
     public getJSON(): string {
         return JSON.stringify(this.getData());
@@ -27,13 +27,19 @@ export class Ingredient {
 
         this.name = name;
     }
+    
+    public getName(): string { return this.name }
 
     public setQuantity(quantity: number){
         this.quantity = quantity;
     }
 
+    public getQuantity(): number { return this.quantity }
+
     public setFormat(format: quantityFormats){
         this.format = format;
     }
+
+    public getFormat(): quantityFormats { return this.format }
 }
 

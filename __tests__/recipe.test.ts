@@ -6,7 +6,7 @@ test("Changing name of Recipe.", () => {
 
     recipe.setName("Pie");
 
-    expect(recipe.name).toBe("Pie")
+    expect(recipe.getName()).toBe("Pie")
 });
 
 test("Setting name of Recipe to nothing.", () => {
@@ -15,7 +15,7 @@ test("Setting name of Recipe to nothing.", () => {
     recipe.setName("Pie");
     recipe.setName("");
 
-    expect(recipe.name).toBe("Pie");
+    expect(recipe.getName()).toBe("Pie");
 })
 
 test("Adding ingredent to Recipe.", () => {
@@ -39,7 +39,7 @@ test("Getting JSON back from Recipe", () => {
     recipe.addIngredient(apple);
 
     let jsonCompare: Dictionary<any> = {}
-    jsonCompare[recipe.name] = {
+    jsonCompare[recipe.getName()] = {
          "Apple": {"quantity": 1, "format": quantityFormats.LITERAL}
     }
 
