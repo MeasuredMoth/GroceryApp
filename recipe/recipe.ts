@@ -5,23 +5,22 @@ import { Ingredient } from "./ingredient";
     ingredients: Ingredient[] = [];
 
     public getJSON(): string {
-        let data: Dictionary<string> = {
-            "name": this.getIngiredentsJson()
-        }
+        let data: Dictionary<any> = {};
+        data[this.name] = this.getIngredientsData();
 
         return JSON.stringify(data);
     }
 
-    private getIngiredentsJson(): string {
-        let data: Dictionary<string> = {};
+    private getIngredientsData(): Dictionary<any> {
+        let data: Dictionary<any> = {};
 
-        for (let i = 0; i++; i < this.ingredients.length){
-            let ingredent: Ingredient = this.ingredients[i];
+        for (let i = 0; i < this.ingredients.length; i++){
+            let ingredient: Ingredient = this.ingredients[i];
 
-            data[ingredent.name] = ingredent.getJSON();
+            data[ingredient.name] = ingredient.getData();
         }
 
-        return JSON.stringify(data)
+        return data
     }
 
     public addIngredient(ingredient: Ingredient){
@@ -34,7 +33,7 @@ import { Ingredient } from "./ingredient";
 
     public setName(name: string){
         if (name == "") return;
-        
+
         this.name = name;
     }
 }
