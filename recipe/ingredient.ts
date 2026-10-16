@@ -1,4 +1,4 @@
-enum quantityFormats {
+export enum quantityFormats {
     METRIC,
     IMPERIAL,
     LITERAL
@@ -10,12 +10,16 @@ export class Ingredient {
     format: quantityFormats = quantityFormats.METRIC;
 
     public getJSON(): string {
-        let data = {
+        return JSON.stringify(this.getData());
+    }
+
+    public getData(): Dictionary<any> {
+        let data: Dictionary<any> = {
             "quantity": this.quantity,
             "format": this.format,
         }
 
-        return JSON.stringify(data);
+        return data
     }
 
     public setName(name: string){
