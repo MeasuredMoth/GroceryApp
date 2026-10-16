@@ -1,8 +1,8 @@
 import { Ingredient } from "./ingredient";
 
  export class Recipe {
-    name: string = "Unnamed";
-    ingredients: Ingredient[] = [];
+    private name: string = "Unnamed";
+    private ingredients: Ingredient[] = [];
 
     public getJSON(): string {
         let data: Dictionary<any> = {};
@@ -17,7 +17,7 @@ import { Ingredient } from "./ingredient";
         for (let i = 0; i < this.ingredients.length; i++){
             let ingredient: Ingredient = this.ingredients[i];
 
-            data[ingredient.name] = ingredient.getData();
+            data[ingredient.getName()] = ingredient.getData();
         }
 
         return data
@@ -36,4 +36,6 @@ import { Ingredient } from "./ingredient";
 
         this.name = name;
     }
+
+    public getName(): string { return this.name }
 }
