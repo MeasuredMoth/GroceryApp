@@ -1,25 +1,28 @@
 
 import { Tabs } from 'expo-router';
+import { Colors } from '@/constants/Colors';
 import Feather from '@expo/vector-icons/Feather';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import Entypo from '@expo/vector-icons/Entypo';
 import AntDesign from '@expo/vector-icons/AntDesign';
+
+const ICON_SIZE = 26;
 
 const DashBoardLayout = () => {
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#084828',
-        tabBarInactiveTintColor: '#86929d',
+        tabBarActiveTintColor: Colors.primaryDark,
+        tabBarInactiveTintColor: Colors.textMuted,
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color, size }) => (
-            <Feather name="home" size={size} color={color} />
+          tabBarIcon: ({color}) => (
+            <Feather name="home" size={ICON_SIZE} color={color} />
           ),
         }}
       />
@@ -28,8 +31,8 @@ const DashBoardLayout = () => {
         name="mealplan"
         options={{
           title: 'Meal Plan',
-          tabBarIcon: ({ color, size }) => (
-            <FontAwesome name="calendar-o" size={size} color={color} />
+          tabBarIcon: ({color}) => (
+            <FontAwesome name="calendar-o" size={ICON_SIZE} color={color} />
           ),
         }}
       />
@@ -38,8 +41,8 @@ const DashBoardLayout = () => {
         name="recipes"
         options={{
           title: 'Recipes',
-          tabBarIcon: ({ color, size }) => (
-            <Entypo name="magnifying-glass" size={size} color={color} />
+          tabBarIcon: ({color}) => (
+            <Entypo name="magnifying-glass" size={ICON_SIZE} color={color} />
           ),
         }}
       />
@@ -48,8 +51,8 @@ const DashBoardLayout = () => {
         name="ingredients"
         options={{
           title: 'Ingredients',
-          tabBarIcon: ({ color, size }) => (
-            <AntDesign name="database" size={size} color={color} />
+          tabBarIcon: ({color}) => (
+            <AntDesign name="database" size={ICON_SIZE} color={color} />
           ),
         }}
       />
@@ -58,8 +61,8 @@ const DashBoardLayout = () => {
         name="shoppinglist"
         options={{
           title: 'Shopping List',
-          tabBarIcon: ({ color, size }) => (
-            <AntDesign name="shopping-cart" size={size} color={color} />
+          tabBarIcon: ({color}) => (
+            <AntDesign name="shopping-cart" size={ICON_SIZE} color={color} />
           ),
         }}
       />
