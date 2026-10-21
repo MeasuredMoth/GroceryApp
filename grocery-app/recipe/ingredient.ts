@@ -1,3 +1,5 @@
+import { Dictionary } from "../types";
+
 export enum quantityFormats {
     METRIC,
     IMPERIAL,
