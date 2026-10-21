@@ -15,6 +15,9 @@ const DashBoardLayout = () => {
         headerShown: false,
         tabBarActiveTintColor: Colors.primaryDark,
         tabBarInactiveTintColor: Colors.textMuted,
+        tabBarLabelPosition: 'below-icon',
+        tabBarLabelStyle: {fontSize: 12},
+        tabBarStyle: {height: 64, paddingTop: 6}
       }}
     >
       <Tabs.Screen
