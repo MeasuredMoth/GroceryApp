@@ -1,6 +1,7 @@
 import { Text, View, StyleSheet, TextInput, FlatList } from "react-native";
 import Header from "@/components/header";
 import IngredientRow from "@/components/ingredientRow"
+import { Ingredient, quantityFormats } from "../../../recipe/ingredient";
 
 
 
