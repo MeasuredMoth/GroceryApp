@@ -3,11 +3,11 @@ import { Text, View, StyleSheet, Pressable } from "react-native";
 import Entypo from '@expo/vector-icons/Entypo'; //website for vector icons: https://icons.expo.fyi/Index
 
 type HeaderProps = {
-    userName: string;
+    textHeader: string;
 }
 
 {/*Logo and name on the top left */}
-export default function Header({userName} : HeaderProps) {
+export default function Header({textHeader} : HeaderProps) {
 
     return (
       <View style={styles.container}>
@@ -16,16 +16,12 @@ export default function Header({userName} : HeaderProps) {
             <View style={styles.brand}>
           
             <Entypo name="leaf" size={24} color="#2E7D4F" />
-            <Text style={styles.brandName}>GroceryMeal</Text>
+            <Text style={styles.brandName}>{textHeader}</Text>
             </View>
             
               <Pressable style={styles.profileButton}></Pressable>
 
         </View>
-
-
-        <Text style={styles.greeting}>Good morning, {userName}!</Text>
-        <Text style={styles.tagline}>Healthy meals. Less waste.</Text>
 
       </View> 
     )
