@@ -10,10 +10,6 @@ import { File, Paths } from 'expo-file-system';
 // make recipes.json file
 const recipeFile = new File(Paths.document, 'recipes.json');
 
-export function saveRecipe(item) {
-  recipeFile.write(item.getJSON()); // write the recipe in the recipeFile
-}
-
 // Load receipe
 export function loadRecipe() {
   if (!recipeFile.exists) {
@@ -23,11 +19,22 @@ export function loadRecipe() {
   return JSON.parse(recipeFile.textSync()); // turns the file into javascript
 }
 
+export function saveRecipe(item) {
+  const recipes = loadRecipe(); // get recipe data
+  recipes.push(JSON.parse(item.getJSON())); // push the recipes into the array  
+
+
+  recipeFile.write(JSON.stringify(recipes, null, 2)); // write the recipe array in the recipeFile
+}
+
 //Ingredient
 const ingredientFile = new File(Paths.document, 'ingredients.json');
 
 export function saveIngredient(item) {
-  ingredientFile.write(item.getJSON());
+  const ingredients = loadIngredient();
+  ingredients.push(JSON.parse(item.getJSON()));
+
+  ingredientFile.write(JSON.stringify(ingredients, null, 2));
 }
 
 
@@ -63,4 +70,22 @@ export function loadPantry() {
 // chatGPT code ends here.
 */
 
+//10/21 Changes:
+ //This is my first project handling JSON file, so I used chatGPT.
+// I changed the saveRecipe and saveIngredient functions. Previously, it overwrote the code into the JSON file. Now, it adds the array in the JSON file. Both functions was generated with chatGPT. 
 
+/*
+export function saveRecipe(item) {
+  const recipes = loadRecipe();
+  recipes.push(JSON.parse(item.getJSON()));
+
+  recipeFile.write(JSON.stringify(recipes, null, 2));
+}
+
+export function saveIngredient(item) {
+  const ingredients = loadIngredient();
+  ingredients.push(JSON.parse(item.getJSON()));
+
+  ingredientFile.write(JSON.stringify(ingredients, null, 2));
+}
+*/
