@@ -51,7 +51,7 @@ const DashBoardLayout = () => {
       />
 
       <Tabs.Screen
-        name="ingredients"
+        name="ingredientsTab"
         options={{
           title: 'Ingredients',
           tabBarIcon: ({color}) => (
