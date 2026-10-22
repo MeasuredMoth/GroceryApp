@@ -1,7 +1,7 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
-import { Ingredient, quantityFormats } from "../../../recipe/ingredient";
+import { Ingredient } from "../../recipe/ingredient";
 
 type IngredientRowProps = {
   ingredient: Ingredient;
@@ -12,10 +12,11 @@ export default function IngredientRow( {ingredient}: IngredientRowProps ) {
     <Pressable style={styles.row}>
       <View style={styles.info}>
         <Text style={styles.name}>{ingredient.getName()}</Text>
+        <Text style={styles.details}>{ingredient.getQuantityString()}</Text>
       </View>
 
         {/* <Text style={styles.details}>
-          {ingredient.category} · {ingredient.kcal} kcal / 100 g
+          {ingredient.category}   {ingredient.kcal} kcal / 100 g
         </Text> */}
 {/*       
       
