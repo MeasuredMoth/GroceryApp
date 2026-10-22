@@ -11,7 +11,7 @@ export default function IngredientsTab() {
 
   return (
     <View>
-        <Header headerText= "Ingredients"/>
+        <Header textHeader= "Ingredients"/>
 
         <FlatList 
         data={DATA}

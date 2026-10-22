@@ -9,9 +9,7 @@ export default function Index() {
   
   return (
     <View>
-        <Header textHeader= "GroceryMeal" /> 
-        <Text style={styles.greeting}>Good morning, {userName}!</Text>
-        <Text style={styles.tagline}>Healthy meals. Less waste.</Text>
+        <Header textHeader= "GroceryMeal" firstSubheading={`Good morning, ${userName}`} secondSubheading="Healthy meals. Less waste." /> 
     </View>
   );
 }
