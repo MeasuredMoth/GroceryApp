@@ -90,4 +90,8 @@ export class Ingredient {
         ingredient.setQuantity(quantity);
         return ingredient;
     }
+
+    public getQuantityString(): string {
+    return formatQuantity(this.quantity);
+    }
 }
