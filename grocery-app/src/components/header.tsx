@@ -4,10 +4,12 @@ import Entypo from '@expo/vector-icons/Entypo'; //website for vector icons: http
 
 type HeaderProps = {
     textHeader: string;
+    firstSubheading ?: string;
+    secondSubheading ?: string;
 }
 
 {/*Logo and name on the top left */}
-export default function Header({textHeader} : HeaderProps) {
+export default function Header({textHeader, firstSubheading, secondSubheading} : HeaderProps) {
 
     return (
       <View style={styles.container}>
@@ -22,6 +24,9 @@ export default function Header({textHeader} : HeaderProps) {
               <Pressable style={styles.profileButton}></Pressable>
 
         </View>
+
+          {firstSubheading ? <Text style={styles.greeting}>{firstSubheading}</Text> : null}
+          {secondSubheading ? <Text style={styles.tagline}>{secondSubheading}</Text> : null }
 
       </View> 
     )
