@@ -14,17 +14,6 @@ export class MealPlan {
         this.addRecipes(recipes);
     }
 
-    public setName(name: string){
-        if (name == "")
-            return;
-
-        this.name = name;
-    }
-
-    public getName(){
-        return this.name;
-    }
-
     public appendRecipe(recipe: Recipe) {
         this.recipes.push(recipe);
     }
@@ -63,4 +52,13 @@ export class MealPlan {
 
         return data;
     }
+
+    public setName(name: string){
+        if (name == "")
+            return;
+
+        this.name = name;
+    }
+
+    public getName(){ return this.name; }
 }

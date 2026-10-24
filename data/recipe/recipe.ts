@@ -1,4 +1,4 @@
-import { Ingredient } from "data/recipe/ingredient";
+import { Ingredient, ingredientType } from "data/recipe/ingredient";
 import { Dictionary } from "data/types";
 
  export class Recipe {
@@ -14,6 +14,7 @@ import { Dictionary } from "data/types";
     public getJSON(): string {
         let data: Dictionary<any> = {};
 <<<<<<< HEAD
+<<<<<<< HEAD
         data[this.name] = this.getIngredientsData();
 =======
     name: string = "Unnamed";
@@ -25,6 +26,9 @@ import { Dictionary } from "data/types";
         }
 >>>>>>> e2ae8ad (Added setters + first recipe unit tests)
 =======
+=======
+
+>>>>>>> ba0f552 (Added ingredient types)
         data[this.name] = this.getData();
 >>>>>>> 2685ca7 (WIP constructors and ingredientTypes)
 
@@ -73,6 +77,16 @@ import { Dictionary } from "data/types";
 
     public getIngredients(): Ingredient[]{
         return this.ingredients;
+    }
+
+    public getIngredientTypes(): ingredientType[]{
+        let data: ingredientType[] = []
+
+        this.getIngredients().forEach((value: Ingredient) => {
+            data.push(value.getType());
+        });
+
+        return data;
     }
 
     public setName(name: string){

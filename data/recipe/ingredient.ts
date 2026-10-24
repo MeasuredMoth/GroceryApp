@@ -24,6 +24,7 @@ export interface Quantity {
     unit: Unit;
 }
 
+<<<<<<< HEAD
 export function isUnit(value: string): value is Unit {
     return (UNITS as readonly string[]).includes(value);
 }
@@ -42,6 +43,16 @@ export function parseQuantity(input: string): Quantity | null {
 
 export function formatQuantity(q: Quantity): string {
     return `${q.amount} ${q.unit}`;
+=======
+export enum ingredientType {
+    GRAIN,
+    CARB,
+    PROTIEN,
+    FAT,
+    VEGETABLE,
+    FRUIT,
+    SEASONING,
+>>>>>>> ba0f552 (Added ingredient types)
 }
 
 export class Ingredient {
@@ -51,12 +62,18 @@ export class Ingredient {
 =======
     private quantity: number = -1;
     private format: quantityFormats = quantityFormats.METRIC;
-    // TODO: Add tags for type of category aka: Protien, Carb, Fats ect.
+    private ingTyp: ingredientType = ingredientType.GRAIN;
 
-    constructor(name: string = "", quantity: number = -1, format: quantityFormats = quantityFormats.LITERAL){
+    constructor(
+        name: string = "", 
+        quantity: number = -1, 
+        format: quantityFormats = quantityFormats.LITERAL, 
+        ingType: ingredientType = ingredientType.GRAIN
+    ) {
         this.setName(name);
         this.setQuantity(quantity);
         this.setFormat(format);
+        this.setType(ingType);
     }
 >>>>>>> f95010d (Actually added constructors to objects)
 
@@ -75,6 +92,7 @@ export class Ingredient {
         let data: Dictionary<any> = {
             "quantity": this.quantity,
             "format": this.format,
+            "type": this.ingTyp,
         };
 
         return data;
@@ -99,6 +117,7 @@ export class Ingredient {
 
     public getQuantity(): Quantity { return { ...this.quantity } }
 
+<<<<<<< HEAD
     public getSystem(): UnitSystem { return UNIT_SYSTEM[this.quantity.unit] }
 
     public toString(): string {
@@ -114,6 +133,16 @@ export class Ingredient {
     }
 =======
     public getFormat(): quantityFormats { return this.format };
+=======
+    public setFormat(format: quantityFormats) { this.format = format; }
+        
+    public getFormat(): quantityFormats { return this.format; }
+
+    public setType(ingTyp: ingredientType) { this.ingTyp = ingTyp; }
+
+    public getType(): ingredientType { return this.ingTyp; }
+    
+>>>>>>> ba0f552 (Added ingredient types)
 }
 >>>>>>> 623ab66 (Changed to root based imports)
 

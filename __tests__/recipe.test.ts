@@ -5,11 +5,15 @@ import { Recipe } from "../recipe/recipe";
 =======
 import { Dictionary } from "data/types";
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { Ingredient, quantityFormats } from "../data/recipe/ingredient";
 import { Recipe } from "../data/recipe/recipe";
 >>>>>>> f76cf9a (Init cleanup of file directories to be root focused)
 =======
 import { Ingredient, quantityFormats } from "data/recipe/ingredient";
+=======
+import { Ingredient, ingredientType, quantityFormats } from "data/recipe/ingredient";
+>>>>>>> ba0f552 (Added ingredient types)
 import { Recipe } from "data/recipe/recipe";
 >>>>>>> 623ab66 (Changed to root based imports)
 
@@ -51,25 +55,38 @@ test("Adding ingredent to Recipe.", () => {
 })
 
 test("Getting JSON back from Recipe", () => {
-    let recipe = new Recipe();
-    let apple = new Ingredient();
-    apple.setName("Apple");
-    apple.setQuantity(1);
-    apple.setFormat(quantityFormats.LITERAL);
+    let apple = new Ingredient("Apple", 1, quantityFormats.LITERAL, ingredientType.FRUIT);
 
-    recipe.setName("Pie");
+    let recipe = new Recipe("Pie");
+
     recipe.appendIngredient(apple);
 
     let jsonCompare: Dictionary<any> = {}
     jsonCompare[recipe.getName()] = {
-         "Apple": {"quantity": 1, "format": quantityFormats.LITERAL}
+         "Apple": {
+            "quantity": 1, 
+            "format": quantityFormats.LITERAL,
+            "type": ingredientType.FRUIT
+        }
     }
 
     let data = recipe.getJSON()
 
     expect(JSON.parse(data)).toStrictEqual(jsonCompare);
+<<<<<<< HEAD
 =======
     
     expect(recipe.name).toBe("Pie");
 >>>>>>> e2ae8ad (Added setters + first recipe unit tests)
+=======
+})
+
+test("Getting recipe types from Recipe's Ingredients", () => {
+    let recipe = new Recipe("Chicken And Rice", [
+        new Ingredient("Chicken", 1, 0, ingredientType.PROTIEN),
+        new Ingredient("Rice", 1, 0, ingredientType.CARB),
+    ])
+
+    expect(recipe.getIngredientTypes()).toStrictEqual([ingredientType.PROTIEN, ingredientType.CARB]);
+>>>>>>> ba0f552 (Added ingredient types)
 })

@@ -1,4 +1,4 @@
-import { Ingredient, quantityFormats } from "data/recipe/ingredient";
+import { Ingredient, ingredientType, quantityFormats } from "data/recipe/ingredient";
 import { MealPlan } from "data/recipe/meal-plan"
 import { Recipe } from "data/recipe/recipe";
 
@@ -18,9 +18,16 @@ test("Setting name of MealPlan to nothing", () => {
 
 test("Adding recipes to meal plan.", () => {
     let recipes: Recipe[] = [
-        new Recipe("Cooked Chicken", [new Ingredient("Chicken", 1, quantityFormats.LITERAL)]),
-        new Recipe("Cooked Rice", [new Ingredient("Rice", 100, quantityFormats.METRIC)]),
-        new Recipe("Apple Pie", [new Ingredient("Flour", 0.5, quantityFormats.IMPERIAL), new Ingredient("Apple", 1, quantityFormats.LITERAL)])
+        new Recipe("Cooked Chicken", [
+            new Ingredient("Chicken", 1, quantityFormats.LITERAL, ingredientType.PROTIEN)
+        ]),
+        new Recipe("Cooked Rice", [
+            new Ingredient("Rice", 100, quantityFormats.METRIC, ingredientType.CARB)
+        ]),
+        new Recipe("Apple Pie", [
+            new Ingredient("Flour", 0.5, quantityFormats.IMPERIAL, ingredientType.CARB), 
+            new Ingredient("Apple", 1, quantityFormats.LITERAL, ingredientType.FRUIT)
+        ])
     ]
 
     let plan = new MealPlan("Week", recipes);
@@ -30,23 +37,27 @@ test("Adding recipes to meal plan.", () => {
             "Cooked Chicken": {
                 "Chicken": {
                     "quantity": 1,
-                    "format": quantityFormats.LITERAL
+                    "format": quantityFormats.LITERAL,
+                    "type": ingredientType.PROTIEN
                 },
             },
             "Cooked Rice": {
                 "Rice": {
                     "quantity": 100,
-                    "format": quantityFormats.METRIC
+                    "format": quantityFormats.METRIC,
+                    "type": ingredientType.CARB
                 },
             },
             "Apple Pie": {
                 "Flour": {
                     "quantity": 0.5,
                     "format": quantityFormats.IMPERIAL,
+                    "type": ingredientType.CARB
                 },
                 "Apple": {
                     "quantity": 1,
-                    "format": quantityFormats.LITERAL
+                    "format": quantityFormats.LITERAL,
+                    "type": ingredientType.FRUIT
                 }
             }
         }
