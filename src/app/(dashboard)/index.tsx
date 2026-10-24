@@ -1,7 +1,6 @@
 import Header from "@/components/header";
 import { Colors } from "@/constants/Colors";
 import { scheduleTestNotification, setupNotifications } from "@/notifications/notifications";
-import { Link } from "expo-router";
 import { useState } from "react";
 import { Text, View, StyleSheet, TextInput, Pressable } from "react-native";
 
