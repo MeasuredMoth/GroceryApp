@@ -6,7 +6,7 @@ export enum quantityFormats {
     LITERAL
 }
 
-export enum ingredientTypes {
+export enum ingredientType {
     GRAIN,
     CARB,
     PROTIEN,
@@ -20,12 +20,18 @@ export class Ingredient {
     private name: string = "Unnamed";
     private quantity: number = -1;
     private format: quantityFormats = quantityFormats.METRIC;
-    // TODO: Add tags for type of category aka: Protien, Carb, Fats ect.
+    private ingTyp: ingredientType = ingredientType.GRAIN;
 
-    constructor(name: string = "", quantity: number = -1, format: quantityFormats = quantityFormats.LITERAL){
+    constructor(
+        name: string = "", 
+        quantity: number = -1, 
+        format: quantityFormats = quantityFormats.LITERAL, 
+        ingType: ingredientType = ingredientType.GRAIN
+    ) {
         this.setName(name);
         this.setQuantity(quantity);
         this.setFormat(format);
+        this.setType(ingType);
     }
 
     public getJSON(): string {
@@ -36,6 +42,7 @@ export class Ingredient {
         let data: Dictionary<any> = {
             "quantity": this.quantity,
             "format": this.format,
+            "type": this.ingTyp,
         };
 
         return data;
@@ -58,10 +65,13 @@ export class Ingredient {
 
     public getQuantity(): number { return this.quantity }
 
-    public setFormat(format: quantityFormats){
-        this.format = format;
-    }
+    public setFormat(format: quantityFormats) { this.format = format; }
+        
+    public getFormat(): quantityFormats { return this.format; }
 
-    public getFormat(): quantityFormats { return this.format };
+    public setType(ingTyp: ingredientType) { this.ingTyp = ingTyp; }
+
+    public getType(): ingredientType { return this.ingTyp; }
+    
 }
 

@@ -1,4 +1,4 @@
-import { Ingredient } from "data/recipe/ingredient";
+import { Ingredient, ingredientType } from "data/recipe/ingredient";
 import { Dictionary } from "data/types";
 
  export class Recipe {
@@ -12,6 +12,7 @@ import { Dictionary } from "data/types";
 
     public getJSON(): string {
         let data: Dictionary<any> = {};
+
         data[this.name] = this.getData();
 
         return JSON.stringify(data);
@@ -43,6 +44,16 @@ import { Dictionary } from "data/types";
 
     public getIngredients(): Ingredient[]{
         return this.ingredients;
+    }
+
+    public getIngredientTypes(): ingredientType[]{
+        let data: ingredientType[] = []
+
+        this.getIngredients().forEach((value: Ingredient) => {
+            data.push(value.getType());
+        });
+
+        return data;
     }
 
     public setName(name: string){
