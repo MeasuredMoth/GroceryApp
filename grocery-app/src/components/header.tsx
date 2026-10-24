@@ -1,6 +1,8 @@
 import { Text, View, StyleSheet, Pressable } from "react-native";
 
 import Entypo from '@expo/vector-icons/Entypo'; //website for vector icons: https://icons.expo.fyi/Index
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { Colors } from "@/constants/Colors";
 
 type HeaderProps = {
     textHeader: string;
@@ -21,7 +23,9 @@ export default function Header({textHeader, firstSubheading, secondSubheading} :
             <Text style={styles.brandName}>{textHeader}</Text>
             </View>
             
-              <Pressable style={styles.profileButton}></Pressable>
+              <Pressable style={styles.profileButton}>
+                <Ionicons name="person-outline" size={24} color={Colors.primaryDark} />
+              </Pressable>
 
         </View>
 
@@ -63,7 +67,7 @@ const styles = StyleSheet.create({
   greeting: {
     fontSize: 26,
     fontWeight: '700',
-    color: '#0d3332',
+    color: '#0f4d3a',
     marginTop: 8,
   },
   tagline: {
