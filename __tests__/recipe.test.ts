@@ -1,6 +1,12 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { Ingredient, quantityFormats } from "../recipe/ingredient";
 import { Recipe } from "../recipe/recipe";
+=======
+import { Dictionary } from "data/types";
+import { Ingredient, quantityFormats } from "../data/recipe/ingredient";
+import { Recipe } from "../data/recipe/recipe";
+>>>>>>> f76cf9a (Init cleanup of file directories to be root focused)
 
 test("Changing name of Recipe.", () => {
 =======
