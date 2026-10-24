@@ -4,10 +4,27 @@ export enum quantityFormats {
     LITERAL
 }
 
+export enum ingredientTypes {
+    GRAIN,
+    CARB,
+    PROTIEN,
+    FAT,
+    VEGETABLE,
+    FRUIT,
+    SEASONING,
+}
+
 export class Ingredient {
     private name: string = "Unnamed";
     private quantity: number = -1;
     private format: quantityFormats = quantityFormats.METRIC;
+    // TODO: Add tags for type of category aka: Protien, Carb, Fats ect.
+
+    Ingredient(name: string, quantity: number, format: quantityFormats){
+        this.setName(name);
+        this.setQuantity(quantity);
+        this.setFormat(format);
+    }
 
     public getJSON(): string {
         return JSON.stringify(this.getData());
@@ -31,6 +48,9 @@ export class Ingredient {
     public getName(): string { return this.name }
 
     public setQuantity(quantity: number){
+        if (quantity <= 0)
+            return;
+
         this.quantity = quantity;
     }
 

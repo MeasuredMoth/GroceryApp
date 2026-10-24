@@ -5,8 +5,14 @@ import { Ingredient } from "./ingredient";
     private name: string = "Unnamed";
     private ingredients: Ingredient[] = [];
 
+    Recipe(name: string, ingredients: Ingredient[] = []){
+        this.setName(name);
+        this.addIngredients(ingredients);
+    }
+
     public getJSON(): string {
         let data: Dictionary<any> = {};
+<<<<<<< HEAD
         data[this.name] = this.getIngredientsData();
 =======
     name: string = "Unnamed";
@@ -17,11 +23,21 @@ import { Ingredient } from "./ingredient";
             "name": this.getIngiredentsJson()
         }
 >>>>>>> e2ae8ad (Added setters + first recipe unit tests)
+=======
+        data[this.name] = this.getData();
+>>>>>>> 2685ca7 (WIP constructors and ingredientTypes)
 
         return JSON.stringify(data);
     }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+    public getData(): Dictionary<any> {
+        return this.getIngredientsData()
+    }
+
+>>>>>>> 2685ca7 (WIP constructors and ingredientTypes)
     private getIngredientsData(): Dictionary<any> {
         let data: Dictionary<any> = {};
 
@@ -43,6 +59,12 @@ import { Ingredient } from "./ingredient";
 
     public addIngredient(ingredient: Ingredient){
         this.ingredients.push(ingredient)
+    }
+
+    public addIngredients(ingredients: Ingredient[]){
+        ingredients.forEach((value: Ingredient) => {
+            this.ingredients.push(value);
+        })
     }
 
     public getIngredients(): Ingredient[]{
