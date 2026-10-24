@@ -53,11 +53,20 @@ export class Ingredient {
     }
 
     public getData(): Dictionary<any> {
+<<<<<<< HEAD
         return {
             name: this.name,
             quantity: this.quantity,
             system: this.getSystem(),
         };
+=======
+        let data: Dictionary<any> = {
+            "quantity": this.quantity,
+            "format": this.format,
+        };
+
+        return data;
+>>>>>>> 623ab66 (Changed to root based imports)
     }
 
     public setName(name: string) {
@@ -84,12 +93,17 @@ export class Ingredient {
         return `${formatQuantity(this.quantity)} ${this.name}`;
     }
 
+<<<<<<< HEAD
     public static createIngredient(name: string, quantity: Quantity | string): Ingredient {
         const ingredient = new Ingredient();
         ingredient.setName(name);
         ingredient.setQuantity(quantity);
         return ingredient;
     }
+=======
+    public getFormat(): quantityFormats { return this.format };
+}
+>>>>>>> 623ab66 (Changed to root based imports)
 
     public getQuantityString(): string {
     return formatQuantity(this.quantity);

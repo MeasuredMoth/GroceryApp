@@ -1,5 +1,5 @@
-import { MealPlan } from "../recipe/meal-plan"
-import { Recipe } from "../recipe/recipe";
+import { MealPlan } from "data/recipe/meal-plan"
+import { Recipe } from "data/recipe/recipe";
 
 test("Setting name of MealPlan", () => {
     let plan = new MealPlan()

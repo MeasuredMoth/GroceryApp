@@ -4,9 +4,14 @@ import { Ingredient, quantityFormats } from "../recipe/ingredient";
 import { Recipe } from "../recipe/recipe";
 =======
 import { Dictionary } from "data/types";
+<<<<<<< HEAD
 import { Ingredient, quantityFormats } from "../data/recipe/ingredient";
 import { Recipe } from "../data/recipe/recipe";
 >>>>>>> f76cf9a (Init cleanup of file directories to be root focused)
+=======
+import { Ingredient, quantityFormats } from "data/recipe/ingredient";
+import { Recipe } from "data/recipe/recipe";
+>>>>>>> 623ab66 (Changed to root based imports)
 
 test("Changing name of Recipe.", () => {
 =======
@@ -38,9 +43,9 @@ test("Setting name of Recipe to nothing.", () => {
 test("Adding ingredent to Recipe.", () => {
     let recipe = new Recipe();
 
-    recipe.addIngredient(new Ingredient());
-    recipe.addIngredient(new Ingredient());
-    recipe.addIngredient(new Ingredient());
+    recipe.appendIngredient(new Ingredient());
+    recipe.appendIngredient(new Ingredient());
+    recipe.appendIngredient(new Ingredient());
 
     expect(recipe.getIngredients().length).toBe(3);
 })
@@ -53,7 +58,7 @@ test("Getting JSON back from Recipe", () => {
     apple.setFormat(quantityFormats.LITERAL);
 
     recipe.setName("Pie");
-    recipe.addIngredient(apple);
+    recipe.appendIngredient(apple);
 
     let jsonCompare: Dictionary<any> = {}
     jsonCompare[recipe.getName()] = {

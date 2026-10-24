@@ -1,4 +1,4 @@
-import { Ingredient } from "./ingredient";
+import { Ingredient } from "data/recipe/ingredient";
 import { Dictionary } from "data/types";
 
  export class Recipe {
@@ -35,13 +35,14 @@ import { Dictionary } from "data/types";
 <<<<<<< HEAD
 =======
     public getData(): Dictionary<any> {
-        return this.getIngredientsData()
+        return this.getIngredientsData();
     }
 
 >>>>>>> 2685ca7 (WIP constructors and ingredientTypes)
     private getIngredientsData(): Dictionary<any> {
         let data: Dictionary<any> = {};
 
+<<<<<<< HEAD
         for (let i = 0; i < this.ingredients.length; i++){
             let ingredient: Ingredient = this.ingredients[i];
 =======
@@ -51,20 +52,22 @@ import { Dictionary } from "data/types";
         for (let i = 0; i++; i < this.ingredients.length){
             let ingredent: Ingredient = this.ingredients[i];
 >>>>>>> e2ae8ad (Added setters + first recipe unit tests)
+=======
+        this.ingredients.forEach((value: Ingredient) => {
+            data[value.getName()] = value.getData();
+        })
+>>>>>>> 623ab66 (Changed to root based imports)
 
-            data[ingredient.getName()] = ingredient.getData();
-        }
-
-        return data
+        return data;
     }
 
-    public addIngredient(ingredient: Ingredient){
-        this.ingredients.push(ingredient)
+    public appendIngredient(ingredient: Ingredient){
+        this.ingredients.push(ingredient);
     }
 
     public addIngredients(ingredients: Ingredient[]){
         ingredients.forEach((value: Ingredient) => {
-            this.ingredients.push(value);
+            this.appendIngredient(value);
         })
     }
 
@@ -79,10 +82,14 @@ import { Dictionary } from "data/types";
         this.name = name;
     }
 
+<<<<<<< HEAD
     public getName(): string { return this.name }
 =======
         
         this.name = name;
     }
 >>>>>>> e2ae8ad (Added setters + first recipe unit tests)
+=======
+    public getName(): string { return this.name };
+>>>>>>> 623ab66 (Changed to root based imports)
 }
