@@ -1,4 +1,4 @@
-import { Ingredient } from "./ingredient";
+import { Ingredient } from "data/recipe/ingredient";
 import { Dictionary } from "data/types";
 
  export class Recipe {
@@ -18,28 +18,26 @@ import { Dictionary } from "data/types";
     }
 
     public getData(): Dictionary<any> {
-        return this.getIngredientsData()
+        return this.getIngredientsData();
     }
 
     private getIngredientsData(): Dictionary<any> {
         let data: Dictionary<any> = {};
 
-        for (let i = 0; i < this.ingredients.length; i++){
-            let ingredient: Ingredient = this.ingredients[i];
+        this.ingredients.forEach((value: Ingredient) => {
+            data[value.getName()] = value.getData();
+        })
 
-            data[ingredient.getName()] = ingredient.getData();
-        }
-
-        return data
+        return data;
     }
 
-    public addIngredient(ingredient: Ingredient){
-        this.ingredients.push(ingredient)
+    public appendIngredient(ingredient: Ingredient){
+        this.ingredients.push(ingredient);
     }
 
     public addIngredients(ingredients: Ingredient[]){
         ingredients.forEach((value: Ingredient) => {
-            this.ingredients.push(value);
+            this.appendIngredient(value);
         })
     }
 
@@ -53,5 +51,5 @@ import { Dictionary } from "data/types";
         this.name = name;
     }
 
-    public getName(): string { return this.name }
+    public getName(): string { return this.name };
 }

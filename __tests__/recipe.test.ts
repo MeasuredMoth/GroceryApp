@@ -1,6 +1,6 @@
 import { Dictionary } from "data/types";
-import { Ingredient, quantityFormats } from "../data/recipe/ingredient";
-import { Recipe } from "../data/recipe/recipe";
+import { Ingredient, quantityFormats } from "data/recipe/ingredient";
+import { Recipe } from "data/recipe/recipe";
 
 test("Changing name of Recipe.", () => {
     let recipe = new Recipe();
@@ -22,9 +22,9 @@ test("Setting name of Recipe to nothing.", () => {
 test("Adding ingredent to Recipe.", () => {
     let recipe = new Recipe();
 
-    recipe.addIngredient(new Ingredient());
-    recipe.addIngredient(new Ingredient());
-    recipe.addIngredient(new Ingredient());
+    recipe.appendIngredient(new Ingredient());
+    recipe.appendIngredient(new Ingredient());
+    recipe.appendIngredient(new Ingredient());
 
     expect(recipe.getIngredients().length).toBe(3);
 })
@@ -37,7 +37,7 @@ test("Getting JSON back from Recipe", () => {
     apple.setFormat(quantityFormats.LITERAL);
 
     recipe.setName("Pie");
-    recipe.addIngredient(apple);
+    recipe.appendIngredient(apple);
 
     let jsonCompare: Dictionary<any> = {}
     jsonCompare[recipe.getName()] = {

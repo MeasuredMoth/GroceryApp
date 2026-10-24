@@ -36,9 +36,9 @@ export class Ingredient {
         let data: Dictionary<any> = {
             "quantity": this.quantity,
             "format": this.format,
-        }
+        };
 
-        return data
+        return data;
     }
 
     public setName(name: string){
@@ -62,6 +62,6 @@ export class Ingredient {
         this.format = format;
     }
 
-    public getFormat(): quantityFormats { return this.format }
+    public getFormat(): quantityFormats { return this.format };
 }
 
