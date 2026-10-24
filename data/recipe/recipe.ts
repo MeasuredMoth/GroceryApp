@@ -5,7 +5,7 @@ import { Dictionary } from "data/types";
     private name: string = "Unnamed";
     private ingredients: Ingredient[] = [];
 
-    Recipe(name: string, ingredients: Ingredient[] = []){
+    constructor(name: string = "", ingredients: Ingredient[] = []){
         this.setName(name);
         this.addIngredients(ingredients);
     }

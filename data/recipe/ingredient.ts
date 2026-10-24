@@ -22,7 +22,7 @@ export class Ingredient {
     private format: quantityFormats = quantityFormats.METRIC;
     // TODO: Add tags for type of category aka: Protien, Carb, Fats ect.
 
-    Ingredient(name: string, quantity: number, format: quantityFormats){
+    constructor(name: string = "", quantity: number = -1, format: quantityFormats = quantityFormats.LITERAL){
         this.setName(name);
         this.setQuantity(quantity);
         this.setFormat(format);
