@@ -1,3 +1,4 @@
+import { Dictionary } from "data/types";
 import { Recipe } from "./recipe";
 
 export class MealPlan {

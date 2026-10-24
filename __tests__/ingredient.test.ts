@@ -1,4 +1,4 @@
-import { Ingredient } from "../recipe/ingredient"
+import { Ingredient } from "../data/recipe/ingredient"
 
 test("Setting name of ingredient", () => {
     let ingredient = new Ingredient();
