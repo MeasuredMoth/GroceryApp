@@ -7,8 +7,13 @@ import { Recipe } from "data/recipe/recipe";
 
 export class MealPlan {
     private name: string = "Unnamed";
-    private meals: Recipe[] = []
+    private recipes: Recipe[] = []
     
+    constructor(name: string = "", recipes: Recipe[] = []){
+        this.setName(name);
+        this.addRecipes(recipes);
+    }
+
     public setName(name: string){
         if (name == "")
             return;
@@ -20,29 +25,42 @@ export class MealPlan {
         return this.name;
     }
 
-    public addRecipe(recipe: Recipe) {
-        this.meals.push(recipe);
+    public appendRecipe(recipe: Recipe) {
+        this.recipes.push(recipe);
+    }
+
+    public addRecipes(recipes: Recipe[]) {
+        recipes.forEach((value: Recipe) => {
+            this.appendRecipe(value);
+        })
     }
 
     public removeRecipe(index: number) {
-        if (index < 0 || index > this.meals.length)
+        if (index < 0 || index > this.recipes.length)
             return;
 
-        this.meals.splice(index, 1)
+        this.recipes.splice(index, 1)
+    }
+
+    public getRecipes() {
+        return this.recipes;
     }
 
     public getJSON(){
         let data: Dictionary<any> = {};
+
         data[this.name] = this.getData();
+
+        return JSON.stringify(data);
     }
 
     public getData(){
         let data: Dictionary<any> = {};
 
-        for (let i = 0; i < this.meals.length; i++){
-            let recipe = this.meals[i];
+        this.recipes.forEach((value: Recipe) => {
+            data[value.getName()] = value.getData();
+        })
 
-            data[recipe.getName()] = recipe.getData();
-        }
+        return data;
     }
 }

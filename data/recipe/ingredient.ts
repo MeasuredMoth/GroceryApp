@@ -46,7 +46,19 @@ export function formatQuantity(q: Quantity): string {
 
 export class Ingredient {
     private name: string = "Unnamed";
+<<<<<<< HEAD
     private quantity: Quantity = { amount: 1, unit: "g" };
+=======
+    private quantity: number = -1;
+    private format: quantityFormats = quantityFormats.METRIC;
+    // TODO: Add tags for type of category aka: Protien, Carb, Fats ect.
+
+    constructor(name: string = "", quantity: number = -1, format: quantityFormats = quantityFormats.LITERAL){
+        this.setName(name);
+        this.setQuantity(quantity);
+        this.setFormat(format);
+    }
+>>>>>>> f95010d (Actually added constructors to objects)
 
     public getJSON(): string {
         return JSON.stringify(this.getData());
