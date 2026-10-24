@@ -1,5 +1,6 @@
-import { Ingredient, quantityFormats } from "../recipe/ingredient";
-import { Recipe } from "../recipe/recipe";
+import { Dictionary } from "data/types";
+import { Ingredient, quantityFormats } from "../data/recipe/ingredient";
+import { Recipe } from "../data/recipe/recipe";
 
 test("Changing name of Recipe.", () => {
     let recipe = new Recipe();

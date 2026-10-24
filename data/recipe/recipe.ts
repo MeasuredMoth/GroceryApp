@@ -1,5 +1,5 @@
 import { Ingredient } from "./ingredient";
-import { Dictionary } from "../types";
+import { Dictionary } from "data/types";
 
  export class Recipe {
     private name: string = "Unnamed";
