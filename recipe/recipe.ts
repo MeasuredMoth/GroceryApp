@@ -4,11 +4,20 @@ import { Ingredient } from "./ingredient";
     private name: string = "Unnamed";
     private ingredients: Ingredient[] = [];
 
+    Recipe(name: string, ingredients: Ingredient[] = []){
+        this.setName(name);
+        this.addIngredients(ingredients);
+    }
+
     public getJSON(): string {
         let data: Dictionary<any> = {};
-        data[this.name] = this.getIngredientsData();
+        data[this.name] = this.getData();
 
         return JSON.stringify(data);
+    }
+
+    public getData(): Dictionary<any> {
+        return this.getIngredientsData()
     }
 
     private getIngredientsData(): Dictionary<any> {
@@ -25,6 +34,12 @@ import { Ingredient } from "./ingredient";
 
     public addIngredient(ingredient: Ingredient){
         this.ingredients.push(ingredient)
+    }
+
+    public addIngredients(ingredients: Ingredient[]){
+        ingredients.forEach((value: Ingredient) => {
+            this.ingredients.push(value);
+        })
     }
 
     public getIngredients(): Ingredient[]{
