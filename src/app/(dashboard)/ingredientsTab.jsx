@@ -28,6 +28,8 @@ export default function IngredientsTab() {
           firstSubheading="Your ingredient database"
           secondSubheading="Save nutrition, prices and details once. Reuse them in every recipe."
         />
+      </View>
+      <View style={styles.addRow}>
         <Pressable style={styles.addButton} onPress={() => {}}>
           <Ionicons name="add" size={20} color="white" />
           <Text style={styles.addLabel}>Add ingredient</Text>
@@ -74,4 +76,6 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   addLabel: { color: "white", fontWeight: "600" },
+  addRow: { alignItems: "flex-end", paddingHorizontal: 16, marginTop: 8 },
+  headerContainer: { paddingHorizontal: 16 },
 });
