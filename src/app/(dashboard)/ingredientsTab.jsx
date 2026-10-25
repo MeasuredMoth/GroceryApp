@@ -6,6 +6,7 @@ import IngredientsListHeader from "@/components/ingredientListHeader";
 import SearchAndFilters from "@/components/searchAndFilters";
 import { ingredients } from "@/data/ingredientsData";
 import { Ionicons } from "@expo/vector-icons";
+import Screen from "@/components/Screen";
 
 const CATEGORIES = ["All items", "Proteins", "Carbs", "Vegetables", "Dairy", "Other"];
 
@@ -19,7 +20,7 @@ export default function IngredientsTab() {
   );
 
   return (
-    <View style={styles.screen}>
+    <Screen>
       {/* Fixed (non-scrolling) area */}
       <View style={styles.headerContainer}>
         <Header
@@ -51,7 +52,7 @@ export default function IngredientsTab() {
         contentContainerStyle={{ padding: 16, gap: 12 }}
         keyboardShouldPersistTaps="handled"
       />
-    </View>
+    </Screen>
   );
 }
 
