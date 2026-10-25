@@ -1,4 +1,4 @@
-import { Dictionary } from "data/types";
+import { Dictionary } from "../types";
 
 export const UNITS = [
     // metric
