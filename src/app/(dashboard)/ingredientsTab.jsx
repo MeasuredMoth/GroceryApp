@@ -27,13 +27,13 @@ export default function IngredientsTab() {
           textHeader="Ingredients"
           firstSubheading="Your ingredient database"
           secondSubheading="Save nutrition, prices and details once. Reuse them in every recipe."
-        />
-      </View>
-      <View style={styles.addRow}>
-        <Pressable style={styles.addButton} onPress={() => {}}>
+          action={
+                 <Pressable style={styles.addButton} onPress={() => {}}>
           <Ionicons name="add" size={20} color="white" />
           <Text style={styles.addLabel}>Add ingredient</Text>
         </Pressable>
+          }
+        />
       </View>
 
       <SearchAndFilters
