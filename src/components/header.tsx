@@ -3,15 +3,17 @@ import { Text, View, StyleSheet, Pressable } from "react-native";
 import Entypo from '@expo/vector-icons/Entypo'; //website for vector icons: https://icons.expo.fyi/Index
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Colors } from "@/constants/Colors";
+import { ReactNode } from "react";
 
 type HeaderProps = {
     textHeader: string;
     firstSubheading ?: string;
     secondSubheading ?: string;
+    action?: ReactNode;       //Optional element to be displayed on the right
 }
 
 {/*Logo and name on the top left */}
-export default function Header({textHeader, firstSubheading, secondSubheading} : HeaderProps) {
+export default function Header({textHeader, firstSubheading, secondSubheading, action} : HeaderProps) {
 
     return (
       <View style={styles.container}>
@@ -26,13 +28,16 @@ export default function Header({textHeader, firstSubheading, secondSubheading} :
               <Pressable style={styles.profileButton}>
                 <Ionicons name="person-outline" size={24} color={Colors.primaryDark} />
               </Pressable>
+              </View>
 
-        </View>
-
+         <View style={styles.subheadingRow}>
+        <View style={styles.subheadingText}>
           {firstSubheading ? <Text style={styles.greeting}>{firstSubheading}</Text> : null}
-          {secondSubheading ? <Text style={styles.tagline}>{secondSubheading}</Text> : null }
-
-      </View> 
+          {secondSubheading ? <Text style={styles.tagline}>{secondSubheading}</Text> : null}
+        </View>
+        {action}
+        </View>
+      </View>
     )
 }
 
@@ -74,4 +79,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#6B7A72',
   },
+  subheadingRow: {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",   // centers the button against both lines of text
+  gap: 12,
+},
+subheadingText: {
+  flex: 1,                // lets the text take the remaining space and wrap if needed
+  gap: 6,
+},
 });
