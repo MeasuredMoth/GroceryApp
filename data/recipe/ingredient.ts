@@ -1,4 +1,4 @@
-import { Dictionary } from "../types";
+import { Dictionary } from "data/types";
 
 export enum quantityFormats {
     METRIC,
