@@ -15,12 +15,6 @@
     "**/*.ts",
     "**/*.tsx",
     ".expo/types/**/*.ts",
-<<<<<<< HEAD
-    "expo-env.d.ts",
-  ],
-}
-=======
     "expo-env.d.ts"
   ]
 }
->>>>>>> 3ede441 (Added data in src folder and modified tsconfig.json)

@@ -25,30 +25,15 @@ export default function Index() {
   };
 
   return (
-<<<<<<< HEAD
-    <View>
-<<<<<<< HEAD
-        <Header textHeader= "GroceryMeal" firstSubheading={`Good morning, ${userName}`} secondSubheading="Healthy meals. Less waste." /> 
-=======
-        <Header textHeader= "GroceryMeal" />
-        <Text style={styles.greeting}>Good morning, {userName}!</Text>
-        <Text style={styles.tagline}>Healthy meals. Less waste.</Text>
-=======
     <Screen>
     <Header textHeader= "GroceryMeal" firstSubheading={`Good morning, ${userName}`} secondSubheading="Healthy meals. Less waste." /> 
 
->>>>>>> d6904ca (Replaced wrapper view with more flexible SafeAreaView (Screen component))
 
         <Pressable style={styles.testButton} onPress={sendTestNotification}>
           <Text style={styles.testButtonText}>Send test notification</Text>
         </Pressable>
         {notificationStatus !== "" && <Text style={styles.tagline}>{notificationStatus}</Text>}
-<<<<<<< HEAD
->>>>>>> 5c7495e (Add test local notification and commit package.json)
-    </View>
-=======
     </Screen>
->>>>>>> d6904ca (Replaced wrapper view with more flexible SafeAreaView (Screen component))
   );
 }
 

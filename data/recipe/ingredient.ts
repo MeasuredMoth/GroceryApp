@@ -24,7 +24,6 @@ export interface Quantity {
     unit: Unit;
 }
 
-<<<<<<< HEAD
 export function isUnit(value: string): value is Unit {
     return (UNITS as readonly string[]).includes(value);
 }
@@ -43,60 +42,22 @@ export function parseQuantity(input: string): Quantity | null {
 
 export function formatQuantity(q: Quantity): string {
     return `${q.amount} ${q.unit}`;
-=======
-export enum ingredientType {
-    GRAIN,
-    CARB,
-    PROTIEN,
-    FAT,
-    VEGETABLE,
-    FRUIT,
-    SEASONING,
->>>>>>> ba0f552 (Added ingredient types)
 }
 
 export class Ingredient {
     private name: string = "Unnamed";
-<<<<<<< HEAD
     private quantity: Quantity = { amount: 1, unit: "g" };
-=======
-    private quantity: number = -1;
-    private format: quantityFormats = quantityFormats.METRIC;
-    private ingTyp: ingredientType = ingredientType.GRAIN;
-
-    constructor(
-        name: string = "", 
-        quantity: number = -1, 
-        format: quantityFormats = quantityFormats.LITERAL, 
-        ingType: ingredientType = ingredientType.GRAIN
-    ) {
-        this.setName(name);
-        this.setQuantity(quantity);
-        this.setFormat(format);
-        this.setType(ingType);
-    }
->>>>>>> f95010d (Actually added constructors to objects)
 
     public getJSON(): string {
         return JSON.stringify(this.getData());
     }
 
     public getData(): Dictionary<any> {
-<<<<<<< HEAD
         return {
             name: this.name,
             quantity: this.quantity,
             system: this.getSystem(),
         };
-=======
-        let data: Dictionary<any> = {
-            "quantity": this.quantity,
-            "format": this.format,
-            "type": this.ingTyp,
-        };
-
-        return data;
->>>>>>> 623ab66 (Changed to root based imports)
     }
 
     public setName(name: string) {
@@ -117,34 +78,18 @@ export class Ingredient {
 
     public getQuantity(): Quantity { return { ...this.quantity } }
 
-<<<<<<< HEAD
     public getSystem(): UnitSystem { return UNIT_SYSTEM[this.quantity.unit] }
 
     public toString(): string {
         return `${formatQuantity(this.quantity)} ${this.name}`;
     }
 
-<<<<<<< HEAD
     public static createIngredient(name: string, quantity: Quantity | string): Ingredient {
         const ingredient = new Ingredient();
         ingredient.setName(name);
         ingredient.setQuantity(quantity);
         return ingredient;
     }
-=======
-    public getFormat(): quantityFormats { return this.format };
-=======
-    public setFormat(format: quantityFormats) { this.format = format; }
-        
-    public getFormat(): quantityFormats { return this.format; }
-
-    public setType(ingTyp: ingredientType) { this.ingTyp = ingTyp; }
-
-    public getType(): ingredientType { return this.ingTyp; }
-    
->>>>>>> ba0f552 (Added ingredient types)
-}
->>>>>>> 623ab66 (Changed to root based imports)
 
     public getQuantityString(): string {
     return formatQuantity(this.quantity);

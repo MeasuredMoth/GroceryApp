@@ -1,4 +1,4 @@
-import { Ingredient } from "../../recipe/ingredient";
+import { Ingredient } from "../../data/recipe/ingredient";
 
 
 export const ingredients: Ingredient[] = [
