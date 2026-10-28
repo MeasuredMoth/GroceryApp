@@ -8,6 +8,7 @@ interface Props {
   categories: string[];
   category: string;
   onCategoryChange: (category: string) => void;
+  placeholder?: string;
 }
 
 export default function SearchAndFilters({
@@ -17,6 +18,7 @@ export default function SearchAndFilters({
   categories,
   category,
   onCategoryChange,
+  placeholder,
 }: Props) {
   return (
     <View style={styles.container}>
@@ -27,7 +29,7 @@ export default function SearchAndFilters({
             style={styles.searchInput}
             value={search}
             onChangeText={onSearchChange}
-            placeholder="Search ingredients"
+            placeholder= {placeholder}
           />
         </View>
 

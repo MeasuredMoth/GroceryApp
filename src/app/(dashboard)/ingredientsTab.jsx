@@ -43,6 +43,7 @@ export default function IngredientsTab() {
         categories={CATEGORIES}
         category={category}
         onCategoryChange={setCategory}
+        placeholder="Search ingredients"
       />
 
       {/* Only this scrolls */}
