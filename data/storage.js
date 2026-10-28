@@ -1,7 +1,7 @@
 // This file stores the .json files for the app.
 
 import { Ingredient } from "./recipe/ingredient.ts"
-import { Recipe } from "./recipe/recipe.tx"
+import { Recipe } from "./recipe/recipe.ts"
 
 // import File and Paths from expo
 import { File, Paths } from 'expo-file-system';
