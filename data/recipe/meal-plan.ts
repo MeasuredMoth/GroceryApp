@@ -1,64 +1,46 @@
-<<<<<<< HEAD
+import { Dictionary } from "../types";
 import { Recipe } from "./recipe";
-=======
-import { Dictionary } from "data/types";
-import { Recipe } from "data/recipe/recipe";
->>>>>>> 623ab66 (Changed to root based imports)
 
 export class MealPlan {
-    private name: string = "Unnamed";
-    private recipes: Recipe[] = []
-    
-    constructor(name: string = "", recipes: Recipe[] = []){
+    private name = "Unnamed";
+    private recipes: Recipe[] = [];
+
+    constructor(name = "", recipes: Recipe[] = []) {
         this.setName(name);
         this.addRecipes(recipes);
     }
 
-    public appendRecipe(recipe: Recipe) {
+    public addRecipe(recipe: Recipe): void {
         this.recipes.push(recipe);
     }
 
-    public addRecipes(recipes: Recipe[]) {
-        recipes.forEach((value: Recipe) => {
-            this.appendRecipe(value);
-        })
+    public addRecipes(recipes: Recipe[]): void {
+        recipes.forEach(r => this.addRecipe(r));
     }
 
-    public removeRecipe(index: number) {
-        if (index < 0 || index > this.recipes.length)
-            return;
-
-        this.recipes.splice(index, 1)
+    public removeRecipe(index: number): void {
+        if (index < 0 || index >= this.recipes.length) return;
+        this.recipes.splice(index, 1);
     }
 
-    public getRecipes() {
+    public getRecipes(): readonly Recipe[] {
         return this.recipes;
     }
 
-    public getJSON(){
-        let data: Dictionary<any> = {};
-
-        data[this.name] = this.getData();
-
-        return JSON.stringify(data);
-    }
-
-    public getData(){
-        let data: Dictionary<any> = {};
-
-        this.recipes.forEach((value: Recipe) => {
-            data[value.getName()] = value.getData();
-        })
-
+    public getData(): Dictionary<any> {
+        const data: Dictionary<any> = {};
+        this.recipes.forEach(r => data[r.getName()] = r.getData());
         return data;
     }
 
-    public setName(name: string){
-        if (name == "")
-            return;
+    public getJSON(): string {
+        return JSON.stringify({ [this.name]: this.getData() });
+    }
 
+    public setName(name: string): void {
+        if (name.trim() === "") return;
         this.name = name;
     }
 
-    public getName(){ return this.name; }
+    public getName(): string { return this.name; }
 }

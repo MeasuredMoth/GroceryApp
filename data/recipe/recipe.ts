@@ -1,15 +1,13 @@
+import { Dictionary } from "../types";
 import { Ingredient } from "./ingredient";
 
  export class Recipe {
     private name: string = "Unnamed";
     private ingredients: Ingredient[] = [];
 
-    public getJSON(): string {
-        let data: Dictionary<any> = {};
-        data[this.name] = this.getIngredientsData();
-
-        return JSON.stringify(data);
-    }
+ public getJSON(): string {
+    return JSON.stringify({ [this.name]: this.getData() });
+}
 
     private getIngredientsData(): Dictionary<any> {
         let data: Dictionary<any> = {};
@@ -38,4 +36,13 @@ import { Ingredient } from "./ingredient";
     }
 
     public getName(): string { return this.name }
+
+    // Recipe
+public getData(): Dictionary<any> {
+    const data: Dictionary<any> = {};
+    this.ingredients.forEach(i => data[i.getName()] = i.getData());
+    return data;
+}
+
+
 }
