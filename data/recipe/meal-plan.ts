@@ -1,9 +1,5 @@
-<<<<<<< HEAD
-import { Recipe } from "./recipe";
-=======
 import { Dictionary } from "data/types";
 import { Recipe } from "data/recipe/recipe";
->>>>>>> 623ab66 (Changed to root based imports)
 
 export class MealPlan {
     private name: string = "Unnamed";

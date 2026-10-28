@@ -1,4 +1,4 @@
-import { Dictionary } from "../types";
+import { Dictionary } from "data/types";
 
 export const UNITS = [
     // metric
@@ -44,9 +44,36 @@ export function formatQuantity(q: Quantity): string {
     return `${q.amount} ${q.unit}`;
 }
 
+export enum quantityFormats {
+    METRIC,
+    IMPERIAL,
+    LITERAL
+}
+
+export enum ingredientType {
+    GRAIN,
+    CARB,
+    PROTIEN,
+    FAT,
+    VEGETABLE,
+    FRUIT,
+    SEASONING,
+}
+
 export class Ingredient {
     private name: string = "Unnamed";
     private quantity: Quantity = { amount: 1, unit: "g" };
+    private ingTyp: ingredientType = ingredientType.GRAIN;
+
+    constructor(
+        name: string = "", 
+        quantity: Quantity = {amount: 1, unit: "g"},
+        ingType: ingredientType = ingredientType.GRAIN
+    ) {
+        this.setName(name);
+        this.setType(ingType);
+        this.setQuantity(quantity);
+    }
 
     public getJSON(): string {
         return JSON.stringify(this.getData());
@@ -54,8 +81,8 @@ export class Ingredient {
 
     public getData(): Dictionary<any> {
         return {
-            name: this.name,
             quantity: this.quantity,
+            type: this.getType(),
             system: this.getSystem(),
         };
     }
@@ -92,6 +119,11 @@ export class Ingredient {
     }
 
     public getQuantityString(): string {
-    return formatQuantity(this.quantity);
+        return formatQuantity(this.quantity);
     }
+
+    public setType(ingTyp: ingredientType) { this.ingTyp = ingTyp; }
+
+    public getType(): ingredientType { return this.ingTyp; }
+    
 }
