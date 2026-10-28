@@ -1,30 +1,26 @@
-import { Ingredient } from "../data/recipe/ingredient"
+import { Ingredient } from "data/recipe/ingredient"
 
 test("Setting name of ingredient", () => {
-    let ingredient = new Ingredient();
-
-    ingredient.setName("Flour");
+    let ingredient = new Ingredient("Flour");
 
     expect(ingredient.getName()).toBe("Flour");
 })
 
 test("Setting name of Ingredient to nothing", () => {
-    let ingredient = new Ingredient();
+    let ingredient = new Ingredient("Flour");
 
-    ingredient.setName("Flour");
     ingredient.setName("");
 
     expect(ingredient.getName()).toBe("Flour");
 })
 
 test("Getting JSON back from Ingredient", () => {
-    let ingredient = new Ingredient();
-
-    ingredient.setName("Flour");
+    let ingredient = new Ingredient("Flour");
 
     let jsonCompare = {
         "quantity": ingredient.getQuantity(),
-        "format": ingredient.getFormat()
+        "format": ingredient.getFormat(),
+        "type": ingredient.getType(),
     }
 
     let data = ingredient.getJSON();
