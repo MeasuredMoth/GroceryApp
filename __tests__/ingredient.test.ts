@@ -19,8 +19,8 @@ test("Getting JSON back from Ingredient", () => {
 
     let jsonCompare = {
         "quantity": ingredient.getQuantity(),
-        "format": ingredient.getFormat(),
-        "type": ingredient.getType(),
+        "system": ingredient.getSystem(),
+        "type": ingredient.getType()
     }
 
     let data = ingredient.getJSON();

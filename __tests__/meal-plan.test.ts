@@ -19,14 +19,14 @@ test("Setting name of MealPlan to nothing", () => {
 test("Adding recipes to meal plan.", () => {
     let recipes: Recipe[] = [
         new Recipe("Cooked Chicken", [
-            new Ingredient("Chicken", 1, quantityFormats.LITERAL, ingredientType.PROTIEN)
+            new Ingredient("Chicken", {amount: 1, unit: "piece"}, ingredientType.PROTIEN)
         ]),
         new Recipe("Cooked Rice", [
-            new Ingredient("Rice", 100, quantityFormats.METRIC, ingredientType.CARB)
+            new Ingredient("Rice", {amount: 100, unit: "g"}, ingredientType.CARB)
         ]),
         new Recipe("Apple Pie", [
-            new Ingredient("Flour", 0.5, quantityFormats.IMPERIAL, ingredientType.CARB), 
-            new Ingredient("Apple", 1, quantityFormats.LITERAL, ingredientType.FRUIT)
+            new Ingredient("Flour", {amount: 1, unit: "kg"}, ingredientType.CARB), 
+            new Ingredient("Apple", {amount: 100, unit: "g"},ingredientType.FRUIT)
         ])
     ]
 
@@ -36,28 +36,28 @@ test("Adding recipes to meal plan.", () => {
         "Week": {
             "Cooked Chicken": {
                 "Chicken": {
-                    "quantity": 1,
-                    "format": quantityFormats.LITERAL,
-                    "type": ingredientType.PROTIEN
+                    "quantity": {amount: 1, unit: "piece"},
+                    "type": ingredientType.PROTIEN,
+                    "system": "literal",
                 },
             },
             "Cooked Rice": {
                 "Rice": {
-                    "quantity": 100,
-                    "format": quantityFormats.METRIC,
-                    "type": ingredientType.CARB
+                    "quantity": {amount: 100, unit: "g"},
+                    "type": ingredientType.CARB,
+                    "system": "metric",
                 },
             },
             "Apple Pie": {
                 "Flour": {
-                    "quantity": 0.5,
-                    "format": quantityFormats.IMPERIAL,
-                    "type": ingredientType.CARB
+                    "quantity": {amount: 1, unit: "kg"},
+                    "type": ingredientType.CARB,
+                    "system": "metric",
                 },
                 "Apple": {
-                    "quantity": 1,
-                    "format": quantityFormats.LITERAL,
-                    "type": ingredientType.FRUIT
+                    "quantity": {amount: 100, unit: "g"},
+                    "type": ingredientType.FRUIT,
+                    "system": "metric",
                 }
             }
         }
