@@ -30,6 +30,7 @@ export default function SearchAndFilters({
             value={search}
             onChangeText={onSearchChange}
             placeholder= {placeholder}
+            placeholderTextColor="#7a8a84"
           />
         </View>
 
