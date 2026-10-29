@@ -19,13 +19,13 @@ const CHIP_COLORS: Record<RecipeCategory, { bg: string; text: string }> = {
 
 export default function RecipeCard({ recipe, onPress, onMenuPress }: Props) {
   const chip = CHIP_COLORS[recipe.getCategory()];
-  const uri = recipe.getImageUri();
+  const image = recipe.getImage();
 
   return (
     // pressable image on the outer left (currently does nothing on press)
     <Pressable style={styles.card} onPress={() => onPress?.(recipe)}>   
-      {uri ? (
-        <Image source={{ uri }} style={styles.image} />
+      {image ? (
+        <Image source={image} style={styles.image} />
       ) : (
         <View style={[styles.image, styles.imagePlaceholder]}>
           <Ionicons name="restaurant-outline" size={24} color={Colors.textMuted} />

@@ -1,12 +1,13 @@
 import { Dictionary } from "../types";
 import { Ingredient } from "./ingredient";
+import { ImageSourcePropType } from "react-native";
 
 export interface RecipeOptions {
     category?: RecipeCategory;
     // kcal?: number;
     // servings?: number;
     // servingUnit?: string;
-    imageUri?: string;
+    image?: ImageSourcePropType;
 }
 
 let nextId = 1; //we need this id as a key for the flatlist inside recipesTab
@@ -18,7 +19,7 @@ export type RecipeCategory = "Breakfast" | "Lunch" | "Dinner" | "Snack" | "Desse
     private name: string = "Unnamed";
     private ingredients: Ingredient[] = [];
     private category: RecipeCategory = "Dinner"; //added category for each type of meal
-    private imageUri?: string; //For images of the recipes
+    private image?: ImageSourcePropType; //For images of the recipes
 
         constructor(name = "", options: RecipeOptions = {}) {
         this.setName(name);
@@ -26,7 +27,7 @@ export type RecipeCategory = "Breakfast" | "Lunch" | "Dinner" | "Snack" | "Desse
         // this.kcal = options.kcal ?? this.kcal;
         // this.servings = options.servings ?? this.servings;
         // this.servingUnit = options.servingUnit ?? this.servingUnit;
-         this.imageUri = options.imageUri;
+        this.image = options.image;
     }
 
 
@@ -36,7 +37,7 @@ export type RecipeCategory = "Breakfast" | "Lunch" | "Dinner" | "Snack" | "Desse
 
     public getCategory() { return this.category; } 
 
-    public getImageUri() { return this.imageUri; }
+    public getImage(): ImageSourcePropType | undefined { return this.image; }
 
     public getId(): string { return this.id; }
 
