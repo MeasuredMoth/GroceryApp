@@ -1,6 +1,7 @@
 import { Dictionary } from "../types";
-import { Ingredient } from "./ingredient";
+import { Ingredient, ingredientType } from "./ingredient";
 import { ImageSourcePropType } from "react-native";
+
 
 export interface RecipeOptions {
     category?: RecipeCategory;
@@ -41,12 +42,28 @@ export type RecipeCategory = "Breakfast" | "Lunch" | "Dinner" | "Snack" | "Desse
 
     public getId(): string { return this.id; }
 
-    public addIngredient(ingredient: Ingredient){
-        this.ingredients.push(ingredient)
+    public appendIngredient(ingredient: Ingredient){
+        this.ingredients.push(ingredient);
+    }
+
+    public addIngredients(ingredients: Ingredient[]){
+        ingredients.forEach((value: Ingredient) => {
+            this.appendIngredient(value);
+        })
     }
 
     public getIngredients(): Ingredient[]{
         return this.ingredients;
+    }
+
+    public getIngredientTypes(): ingredientType[]{
+        let data: ingredientType[] = []
+
+        this.getIngredients().forEach((value: Ingredient) => {
+            data.push(value.getType());
+        });
+
+        return data;
     }
 
     public setName(name: string){
