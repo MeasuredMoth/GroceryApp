@@ -43,6 +43,7 @@ export default function IngredientsTab() {
         categories={CATEGORIES}
         category={category}
         onCategoryChange={setCategory}
+        placeholder="Search ingredients"
       />
 
       {/* Only this scrolls */}
@@ -60,12 +61,7 @@ export default function IngredientsTab() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  headerContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 16,
-  },
+headerContainer: { paddingHorizontal: 16, paddingBottom: 12 },
   addButton: {
     flexDirection: "row",
     alignItems: "center",
