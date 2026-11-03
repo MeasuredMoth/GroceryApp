@@ -57,6 +57,14 @@ export class Pantry {
         return data;
     }
 
+    public changeIngredientAmount(name: string, amount: number){
+        let ingredient = this.getIngredientByName(name);
+        if (!(ingredient instanceof Ingredient))
+            return;
+
+        ingredient.setQuantityAmount(amount);
+    }
+
     public loadFromJSON(data: string){
         let dataObject: Dictionary<any> = JSON.parse(data)
 

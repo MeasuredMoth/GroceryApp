@@ -27,3 +27,11 @@ test("Getting JSON back from Ingredient", () => {
 
     expect(JSON.parse(data)).toStrictEqual(jsonCompare);
 })
+
+test("Change ingredient amount.", () => {
+    let ingredient = new Ingredient("Apple", { amount: 3, unit: "piece" });
+
+    ingredient.setQuantityAmount(100);
+
+    expect(ingredient.getQuantity().amount).toBe(100);
+})

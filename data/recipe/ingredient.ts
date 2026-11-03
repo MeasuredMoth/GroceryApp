@@ -103,6 +103,10 @@ export class Ingredient {
         this.quantity = { amount: q.amount, unit: q.unit };
     }
 
+    public setQuantityAmount(amount: number){
+        this.quantity.amount = amount;
+    }
+
     public getQuantity(): Quantity { return { ...this.quantity } }
 
     public getSystem(): UnitSystem { return UNIT_SYSTEM[this.quantity.unit] }

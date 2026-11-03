@@ -100,3 +100,12 @@ test("Loading Ingredient by JSON.", () => {
     expect(pantry.getIngredientByIndex(1)?.getSystem()).toBe("imperial");
     expect(pantry.getIngredientByIndex(2)?.getName()).toBe("Carrot");
 })
+
+test("Changing amount of ingredient.", () => {
+    let pantry = new Pantry();
+
+    pantry.addIngredient(new Ingredient("Apple", { amount: 1, unit: "piece"}));
+    pantry.changeIngredientAmount("Apple", 5);
+
+    expect(pantry.getIngredientByName("Apple")?.getQuantity().amount).toBe(5);
+})
