@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet } from "react-native";
-import Svg, { Circle } from "react-native-svg";
+import Svg, { Circle, G } from "react-native-svg";
 import { Colors } from "@/constants/Colors";
 
 export type Totals = { kcal: number; protein: number; carbs: number; fat: number };
@@ -33,22 +33,22 @@ export default function NutritionSummary({ totals, goals }: Props) {
   return (
     <View style={styles.card}>
       <View style={styles.ringWrap}>
-        <Svg width={SIZE} height={SIZE}>
-          <Circle cx={SIZE / 2} cy={SIZE / 2} r={R} stroke="#DCEFE4" strokeWidth={STROKE} fill="none" />
-          <Circle
-            cx={SIZE / 2}
-            cy={SIZE / 2}
-            r={R}
-            stroke="#0f4d3a"
-            strokeWidth={STROKE}
-            fill="none"
-            strokeLinecap="round"
-            strokeDasharray={CIRC}
-            strokeDashoffset={CIRC * (1 - progress)}
-            rotation="-90"
-            origin={`${SIZE / 2}, ${SIZE / 2}`}
-          />
-        </Svg>
+ <Svg width={SIZE} height={SIZE}>
+  <Circle cx={SIZE / 2} cy={SIZE / 2} r={R} stroke="#DCEFE4" strokeWidth={STROKE} fill="none" />
+  <G transform={`rotate(-90 ${SIZE / 2} ${SIZE / 2})`}>
+    <Circle
+      cx={SIZE / 2}
+      cy={SIZE / 2}
+      r={R}
+      stroke="#0f4d3a"
+      strokeWidth={STROKE}
+      fill="none"
+      strokeLinecap="round"
+      strokeDasharray={CIRC}
+      strokeDashoffset={CIRC * (1 - progress)}
+    />
+  </G>
+</Svg>
         <View style={styles.ringCenter}>
           <Text style={styles.kcal}>{left}</Text>
           <Text style={styles.kcalLabel}>KCAL LEFT</Text>
