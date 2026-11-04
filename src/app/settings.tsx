@@ -79,7 +79,8 @@ export default function SettingsScreen() {
   }
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+    // The automatic inset starts the content below the top bar on iOS, where the bar floats over the screen
+    <ScrollView style={styles.screen} contentContainerStyle={styles.content} contentInsetAdjustmentBehavior="automatic">
       <Text style={styles.sectionTitle}>Notifications</Text>
 
       {needsPermission && (
