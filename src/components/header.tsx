@@ -6,39 +6,39 @@ import { Colors } from "@/constants/Colors";
 import { ReactNode } from "react";
 
 type HeaderProps = {
-    textHeader: string;
-    firstSubheading ?: string;
-    secondSubheading ?: string;
-    action?: ReactNode;       //Optional element to be displayed on the right
+  textHeader: string;
+  firstSubheading?: string;
+  secondSubheading?: string;
+  action?: ReactNode;       //Optional element to be displayed on the right
 }
 
-{/*Logo and name on the top left */}
-export default function Header({textHeader, firstSubheading, secondSubheading, action} : HeaderProps) {
+{/*Logo and name on the top left */ }
+export default function Header({ textHeader, firstSubheading, secondSubheading, action }: HeaderProps) {
 
-    return (
-      <View style={styles.container}>
-        
-        <View style={styles.topRow}> 
-            <View style={styles.brand}>
-          
-            <Entypo name="leaf" size={24} color="#2E7D4F" />
-            <Text style={styles.brandName}>{textHeader}</Text>
-            </View>
-            
-              <Pressable style={styles.profileButton}>
-                <Ionicons name="person-outline" size={24} color={Colors.primaryDark} />
-              </Pressable>
-              </View>
+  return (
+    <View style={styles.container}>
 
-         <View style={styles.subheadingRow}>
+      <View style={styles.topRow}>
+        <View style={styles.brand}>
+
+          <Entypo name="leaf" size={24} color="#2E7D4F" />
+          <Text style={styles.brandName}>{textHeader}</Text>
+        </View>
+
+        <Pressable style={styles.profileButton}>
+          <Ionicons name="person-outline" size={24} color={Colors.primaryDark} />
+        </Pressable>
+      </View>
+
+      <View style={styles.subheadingRow}>
         <View style={styles.subheadingText}>
           {firstSubheading ? <Text style={styles.greeting}>{firstSubheading}</Text> : null}
           {secondSubheading ? <Text style={styles.tagline}>{secondSubheading}</Text> : null}
         </View>
-        {action}
-        </View>
+        {action ? <View style={styles.action}>{action}</View> : null}
       </View>
-    )
+    </View>
+  )
 }
 
 
@@ -53,8 +53,8 @@ const styles = StyleSheet.create({
   },
   brand: {
     flexDirection: 'row',               //In which direction items are placed (left to right in this case)
-    alignItems: 'center',               
-    gap: 8,                         
+    alignItems: 'center',
+    gap: 8,
   },
   brandName: {
     fontSize: 34,
@@ -70,23 +70,22 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   greeting: {
-    fontSize: 26,
+    fontSize: 20,          // was 26
     fontWeight: '700',
     color: '#0f4d3a',
-    marginTop: 8,
+    marginTop: 4,          // was 8
   },
   tagline: {
     fontSize: 16,
     color: '#6B7A72',
   },
   subheadingRow: {
-  flexDirection: "row",
-  justifyContent: "space-between",
-  alignItems: "center",   // centers the button against both lines of text
-  gap: 12,
-},
-subheadingText: {
-  flex: 1,                // lets the text take the remaining space and wrap if needed
-  gap: 6,
-},
+    gap: 12,               // column layout: text on top, action below
+  },
+  subheadingText: {
+    gap: 4,
+  },
+  action: {
+    alignSelf: 'flex-start',   // use 'flex-end' to push it right
+  },
 });
