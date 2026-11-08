@@ -17,7 +17,7 @@ export type Nutrition = {
 };
 export type DayPlan = Partial<Record<MealType, Recipe[]>>;
 
-// TEMP: Recipe has no nutrition fields yet. Replace with real getters later.
+// TODO: Recipe has no nutrition fields yet. Replace with real getters later.
 const nutritionOf = (_r: Recipe): Nutrition => ({
   kcal: 500,
   protein: 25,
@@ -31,7 +31,6 @@ export class MealPlan {
 
   constructor(name = "", recipes: Recipe[] = []) {
     this.setName(name);
-    this.addRecipes(recipes);
   }
 
   public static keyOf(d: Date): string {
@@ -88,7 +87,12 @@ export class MealPlan {
 
   public getData(): Dictionary<any> {
     const data: Dictionary<any> = {};
-    this.recipes.forEach((r) => (data[r.getName()] = r.getData()));
+    this.days.forEach((day, key) => {
+      data[key] = {};
+      MEAL_TYPES.forEach((m) => {
+        data[key][m] = (day[m] ?? []).map((r) => r.getData());
+      });
+    });
     return data;
   }
 

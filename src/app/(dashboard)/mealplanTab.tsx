@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useReducer, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -15,23 +15,13 @@ import NutritionSummary, { Totals } from "@/components/nutritionSummary";
 import { recipes } from "@/data/recipesData";
 import { Colors } from "@/constants/Colors";
 import { Recipe } from "../../../data/recipe/recipe";
-import { MealType, MEAL_TYPES } from "../../../data/recipe/meal-plan";
+import { MealType, MEAL_TYPES, MealPlan } from "../../../data/recipe/meal-plan";
 import MealSlot from "@/components/mealSlot";
 
 //TODO
 //transfer everything into meal plan class
 const MEALS = MEAL_TYPES;
 const GOALS: Totals = { kcal: 2200, protein: 150, carbs: 250, fat: 70 };
-
-// TEMP: Recipe no longer has nutrition fields. Replace with real getters later.
-const nutritionOf = (_r: Recipe): Totals => ({
-  kcal: 500,
-  protein: 25,
-  carbs: 60,
-  fat: 15,
-});
-
-type DayPlan = Partial<Record<MealType, Recipe[]>>;
 
 function getWeek(): Date[] {
   const today = new Date(); //returns 0 for Sunday through 6 for Saturday
@@ -44,57 +34,28 @@ function getWeek(): Date[] {
   });
 }
 
-const keyOf = (d: Date) =>
-  `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
-
 export default function MealPlanTab() {
   const week = getWeek();
   const [selected, setSelected] = useState((new Date().getDay() + 6) % 7);
-  const [plan, setPlan] = useState<Record<string, DayPlan>>({});
   const [pickerFor, setPickerFor] = useState<MealType | null>(null);
 
-  const dayKey = keyOf(week[selected]);
-  const day: DayPlan = plan[dayKey] ?? {}; //If there is nothing for the days it returns nothing
+  // MealPlan is mutable, so keep one instance and force a re-render after changes.
+  const planRef = useRef(new MealPlan("My plan"));
+  const [, rerender] = useReducer((n: number) => n + 1, 0);
+  const plan = planRef.current;
+
+  const date = week[selected];
 
   const addRecipe = (meal: MealType, recipe: Recipe) => {
-    setPlan((prev) => {
-      const current = prev[dayKey] ?? {};
-      return {
-        ...prev,
-        [dayKey]: { ...current, [meal]: [...(current[meal] ?? []), recipe] },
-      };
-    });
+    plan.addRecipe(date, meal, recipe);
     setPickerFor(null);
+    rerender();
   };
 
   const removeRecipe = (meal: MealType, recipe: Recipe) => {
-    setPlan((prev) => {
-      const current = prev[dayKey] ?? {};
-      return {
-        ...prev,
-        [dayKey]: {
-          ...current,
-          [meal]: (current[meal] ?? []).filter((r) => r !== recipe),
-        },
-      };
-    });
+    plan.removeRecipe(date, meal, recipe);
+    rerender();
   };
-
-  const sum = (list: Recipe[]): Totals =>
-    list.reduce(
-      (t, r) => {
-        const n = nutritionOf(r);
-        return {
-          kcal: t.kcal + n.kcal,
-          protein: t.protein + n.protein,
-          carbs: t.carbs + n.carbs,
-          fat: t.fat + n.fat,
-        };
-      },
-      { kcal: 0, protein: 0, carbs: 0, fat: 0 },
-    );
-
-  const totals = sum(MEALS.flatMap((m) => day[m] ?? []));
 
   return (
     <Screen>
@@ -110,7 +71,7 @@ export default function MealPlanTab() {
         keyboardShouldPersistTaps="handled"
       >
         <DaySelector days={week} selected={selected} onSelect={setSelected} />
-        <NutritionSummary totals={totals} goals={GOALS} />
+        <NutritionSummary totals={plan.getDayTotals(date)} goals={GOALS} />
 
         <Text style={styles.sectionTitle}>Planned meals</Text>
         <View style={styles.slots}>
@@ -118,8 +79,8 @@ export default function MealPlanTab() {
             <MealSlot
               key={m}
               type={m}
-              recipes={day[m] ?? []}
-              kcal={sum(day[m] ?? []).kcal}
+              recipes={[...plan.getMeal(date, m)]}
+              kcal={plan.getDayTotals(date).kcal}
               onAdd={() => setPickerFor(m)}
               onRemove={(r) => removeRecipe(m, r)}
             />
