@@ -36,64 +36,20 @@ export function ActionCard({
         pressed && styles.pressed,
       ]}
     >
-      <View style={[styles.iconCircle, { backgroundColor: accent }]}>
-        {icon}
+      <View style={styles.topRow}>
+        <View style={[styles.iconCircle, { backgroundColor: accent }]}>
+          {icon}
+        </View>
+        <Text style={[styles.chevron, { color: accent }]}>›</Text>
       </View>
 
       <View style={styles.textBlock}>
         <Text style={styles.title}>{title}</Text>
-        <Text style={styles.subtitle}>{subtitle}</Text>
+        <Text style={styles.subtitle} numberOfLines={2}>
+          {subtitle}
+        </Text>
       </View>
-
-      <Text style={[styles.chevron, { color: accent }]}>›</Text>
     </Pressable>
-  );
-}
-
-/* ---- Icons (plain Views/Text, no extra libraries) ---- */
-
-const PlusIcon = () => <Text style={iconStyles.plus}>+</Text>;
-
-const RecipeIcon = () => (
-  <View style={iconStyles.doc}>
-    <View style={iconStyles.docLine} />
-    <View style={iconStyles.docLine} />
-    <View style={[iconStyles.docLine, { width: "55%" }]} />
-  </View>
-);
-
-/* ---- The two mocked actions ---- */
-
-interface QuickActionsProps {
-  onAddIngredient?: () => void;
-  onAddRecipe?: () => void;
-}
-
-export function QuickActions({
-  onAddIngredient,
-  onAddRecipe,
-}: QuickActionsProps) {
-  return (
-    <View style={styles.row}>
-      <View style={styles.cell}>
-        <ActionCard
-          variant="green"
-          icon={<PlusIcon />}
-          title="Add ingredient"
-          subtitle="Save it to your ingredient database"
-          onPress={onAddIngredient}
-        />
-      </View>
-      <View style={styles.cell}>
-        <ActionCard
-          variant="blue"
-          icon={<RecipeIcon />}
-          title="Add recipe"
-          subtitle="Create a new recipe from your ingredients"
-          onPress={onAddRecipe}
-        />
-      </View>
-    </View>
   );
 }
 
@@ -110,12 +66,15 @@ const styles = StyleSheet.create({
     flexBasis: 260, // two per row when there's room, stacks on narrow screens
   },
   card: {
+    flexGrow: 1, // was flex: 1
+    gap: 12,
+    padding: 14,
+    borderRadius: 12,
+  },
+  topRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 16,
-    paddingVertical: 14,
-    paddingHorizontal: 18,
-    borderRadius: 12,
+    justifyContent: "space-between",
   },
   pressed: {
     opacity: 0.85,
@@ -128,7 +87,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   textBlock: {
-    flex: 1,
     gap: 2,
   },
   title: {

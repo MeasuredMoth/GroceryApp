@@ -11,15 +11,15 @@ interface DayScreenProps {
   onAdd: (meal: MealType) => void;
   onRemove: (meal: MealType, recipe: Recipe) => void;
 }
+const RELATIVE_LABELS: Record<number, string> = {
+  [-1]: "Yesterday",
+  0: "Today",
+  1: "Tomorrow",
+};
 
 export function DayScreen({ date, plan, onAdd, onRemove }: DayScreenProps) {
   const today = dayjs();
   const d = dayjs(date);
-  const RELATIVE_LABELS: Record<number, string> = {
-    [-1]: "Yesterday",
-    0: "Today",
-    1: "Tomorrow",
-  };
 
   const dayDiff = d.startOf("day").diff(today.startOf("day"), "day");
   const relativeLabel = RELATIVE_LABELS[dayDiff];

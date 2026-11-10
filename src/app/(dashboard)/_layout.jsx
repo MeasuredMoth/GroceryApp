@@ -4,10 +4,13 @@ import Feather from "@expo/vector-icons/Feather";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import Entypo from "@expo/vector-icons/Entypo";
 import AntDesign from "@expo/vector-icons/AntDesign";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const ICON_SIZE = 26;
 
 const DashBoardLayout = () => {
+  const insets = useSafeAreaInsets();
+
   return (
     <Tabs
       screenOptions={{
@@ -16,7 +19,11 @@ const DashBoardLayout = () => {
         tabBarInactiveTintColor: Colors.textMuted,
         tabBarLabelPosition: "below-icon",
         tabBarLabelStyle: { fontSize: 12 },
-        tabBarStyle: { height: 64, paddingTop: 6 },
+        tabBarStyle: {
+          height: 56 + insets.bottom,
+          paddingBottom: insets.bottom,
+          paddingTop: 6,
+        },
       }}
     >
       <Tabs.Screen

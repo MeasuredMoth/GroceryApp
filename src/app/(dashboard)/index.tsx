@@ -99,76 +99,78 @@ export default function Index() {
           firstSubheading={`Good morning, ${userName}`}
           secondSubheading="Healthy meals. Less waste."
         />
-        <View onLayout={(e) => setPageWidth(e.nativeEvent.layout.width)}>
-          {pageWidth > 0 && (
-            <FlatList
-              data={DAYS}
-              extraData={version}
-              keyExtractor={(d) => d.toISOString()}
-              horizontal
-              pagingEnabled
-              showsHorizontalScrollIndicator={false}
-              initialScrollIndex={TODAY_INDEX}
-              getItemLayout={(_, i) => ({
-                length: pageWidth,
-                offset: pageWidth * i,
-                index: i,
-              })}
-              onMomentumScrollEnd={(e) =>
-                setSelected(
-                  Math.round(e.nativeEvent.contentOffset.x / pageWidth),
-                )
-              }
-              renderItem={({ item }) => (
-                <View style={{ width: pageWidth }}>
-                  <DayScreen
-                    date={item}
-                    plan={plan}
-                    onAdd={setPickerFor}
-                    onRemove={(m, r) => removeRecipe(item, m, r)}
-                  />
-                </View>
-              )}
-            />
-          )}
+        <View style={{ marginTop: 16 }}>
+          <View onLayout={(e) => setPageWidth(e.nativeEvent.layout.width)}>
+            {pageWidth > 0 && (
+              <FlatList
+                data={DAYS}
+                extraData={version}
+                keyExtractor={(d) => d.toISOString()}
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                initialScrollIndex={TODAY_INDEX}
+                getItemLayout={(_, i) => ({
+                  length: pageWidth,
+                  offset: pageWidth * i,
+                  index: i,
+                })}
+                onMomentumScrollEnd={(e) =>
+                  setSelected(
+                    Math.round(e.nativeEvent.contentOffset.x / pageWidth),
+                  )
+                }
+                renderItem={({ item }) => (
+                  <View style={{ width: pageWidth }}>
+                    <DayScreen
+                      date={item}
+                      plan={plan}
+                      onAdd={setPickerFor}
+                      onRemove={(m, r) => removeRecipe(item, m, r)}
+                    />
+                  </View>
+                )}
+              />
+            )}
+          </View>
+
+          {/* your <Modal> goes here, unchanged, outside the pager */}
+
+          <Modal
+            visible={pickerFor !== null}
+            animationType="slide"
+            onRequestClose={() => setPickerFor(null)}
+          >
+            <Screen>
+              <Text style={[styles.sectionTitle, { padding: 16 }]}>
+                Add to {pickerFor}
+              </Text>
+              <FlatList
+                data={recipes}
+                keyExtractor={(r) => r.getId()}
+                contentContainerStyle={{ padding: 16, gap: 10 }}
+                renderItem={({ item }) => (
+                  <Pressable
+                    style={styles.pickRow}
+                    onPress={() => pickerFor && addRecipe(pickerFor, item)}
+                  >
+                    <Text style={styles.pickText}>{item.getName()}</Text>
+                  </Pressable>
+                )}
+                ListFooterComponent={
+                  <Pressable
+                    onPress={() => setPickerFor(null)}
+                    style={{ padding: 16, alignItems: "center" }}
+                  >
+                    <Text style={{ color: Colors.textMuted }}>Cancel</Text>
+                  </Pressable>
+                }
+              />
+            </Screen>
+          </Modal>
         </View>
 
-        {/* your <Modal> goes here, unchanged, outside the pager */}
-
-        <Modal
-          visible={pickerFor !== null}
-          animationType="slide"
-          onRequestClose={() => setPickerFor(null)}
-        >
-          <Screen>
-            <Text style={[styles.sectionTitle, { padding: 16 }]}>
-              Add to {pickerFor}
-            </Text>
-            <FlatList
-              data={recipes}
-              keyExtractor={(r) => r.getId()}
-              contentContainerStyle={{ padding: 16, gap: 10 }}
-              renderItem={({ item }) => (
-                <Pressable
-                  style={styles.pickRow}
-                  onPress={() => pickerFor && addRecipe(pickerFor, item)}
-                >
-                  <Text style={styles.pickText}>{item.getName()}</Text>
-                </Pressable>
-              )}
-              ListFooterComponent={
-                <Pressable
-                  onPress={() => setPickerFor(null)}
-                  style={{ padding: 16, alignItems: "center" }}
-                >
-                  <Text style={{ color: Colors.textMuted }}>Cancel</Text>
-                </Pressable>
-              }
-            />
-          </Screen>
-        </Modal>
-
-        <View style={{ flexDirection: "row", gap: 16 }}>
+        <View style={{ flexDirection: "row", gap: 16, marginTop: 16 }}>
           <View style={{ flex: 1 }}>
             <ActionCard
               title="Add ingredient"
