@@ -25,19 +25,25 @@ export default function Index() {
   };
 
   return (
-    <Screen>
-    <Header textHeader= "GroceryMeal" firstSubheading={`Good morning, ${userName}`} secondSubheading="Healthy meals. Less waste." /> 
+ <Screen>
+    <View style={styles.content}>
+      <Header
+        textHeader="GroceryMeal"
+        firstSubheading={`Good morning, ${userName}`}
+        secondSubheading="Healthy meals. Less waste."
+      />
 
-
-        <Pressable style={styles.testButton} onPress={sendTestNotification}>
-          <Text style={styles.testButtonText}>Send test notification</Text>
-        </Pressable>
-        {notificationStatus !== "" && <Text style={styles.tagline}>{notificationStatus}</Text>}
-    </Screen>
+      <Pressable style={styles.testButton} onPress={sendTestNotification}>
+        <Text style={styles.testButtonText}>Send test notification</Text>
+      </Pressable>
+      {notificationStatus !== "" && <Text style={styles.tagline}>{notificationStatus}</Text>}
+    </View>
+  </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+   content: { paddingHorizontal: 16 },
   greeting: {
     fontSize: 26,
     fontWeight: '700',
