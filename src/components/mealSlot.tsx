@@ -2,10 +2,9 @@ import { View, Text, Pressable, Image, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
 import { Recipe } from "../../data/recipe/recipe";
+import { MealType } from "../../data/recipe/meal-plan";
 
-
-export type MealType = "Breakfast" | "Lunch" | "Dinner" | "Snack";
-
+//Sets the icons for each meal type
 const ICONS: Record<MealType, keyof typeof Ionicons.glyphMap> = {
   Breakfast: "sunny-outline",
   Lunch: "restaurant-outline",
@@ -21,7 +20,13 @@ type Props = {
   onRemove: (recipe: Recipe) => void;
 };
 
-export default function MealSlot({ type, recipes, kcal, onAdd, onRemove }: Props) {
+export default function MealSlot({
+  type,
+  recipes,
+  kcal,
+  onAdd,
+  onRemove,
+}: Props) {
   return (
     <View style={styles.card}>
       <View style={styles.header}>
@@ -30,7 +35,9 @@ export default function MealSlot({ type, recipes, kcal, onAdd, onRemove }: Props
         </View>
         <View style={styles.titleBlock}>
           <Text style={styles.title}>{type}</Text>
-          <Text style={styles.sub}>{recipes.length ? `${kcal} kcal` : "Nothing planned"}</Text>
+          <Text style={styles.sub}>
+            {recipes.length ? `${kcal} kcal` : "Nothing planned"}
+          </Text>
         </View>
         <Pressable style={styles.addButton} onPress={onAdd} hitSlop={8}>
           <Ionicons name="add" size={20} color="white" />
@@ -46,7 +53,9 @@ export default function MealSlot({ type, recipes, kcal, onAdd, onRemove }: Props
             ) : (
               <View style={[styles.thumb, styles.thumbPlaceholder]} />
             )}
-            <Text style={styles.recipeName} numberOfLines={1}>{r.getName()}</Text>
+            <Text style={styles.recipeName} numberOfLines={1}>
+              {r.getName()}
+            </Text>
             <Pressable onPress={() => onRemove(r)} hitSlop={8}>
               <Ionicons name="close" size={18} color={Colors.textMuted} />
             </Pressable>
