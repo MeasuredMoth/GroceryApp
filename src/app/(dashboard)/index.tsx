@@ -16,10 +16,13 @@ import {
   TextInput,
   Pressable,
   ScrollView,
+  FlatList,
+  Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MEAL_TYPES, MealPlan, MealType } from "../../../data/recipe/meal-plan";
 import { Recipe } from "../../../data/recipe/recipe";
+import { recipes } from "@/data/recipesData";
 
 //TODO
 //Merging hometab with mealplan tab and display some of the info of the original home tab to the new one
@@ -54,12 +57,14 @@ export default function Index() {
   const date = week[selected];
 
   const addRecipe = (meal: MealType, recipe: Recipe) => {
+    //adds a recipe and refreshes
     plan.addRecipe(date, meal, recipe);
     setPickerFor(null);
     rerender();
   };
 
   const removeRecipe = (meal: MealType, recipe: Recipe) => {
+    //removes a recipe and refreshes
     plan.removeRecipe(date, meal, recipe);
     rerender();
   };
@@ -106,6 +111,39 @@ export default function Index() {
           </View>
         </ScrollView>
 
+        <Modal
+          visible={pickerFor !== null}
+          animationType="slide"
+          onRequestClose={() => setPickerFor(null)}
+        >
+          <Screen>
+            <Text style={[styles.sectionTitle, { padding: 16 }]}>
+              Add to {pickerFor}
+            </Text>
+            <FlatList
+              data={recipes}
+              keyExtractor={(r) => r.getId()}
+              contentContainerStyle={{ padding: 16, gap: 10 }}
+              renderItem={({ item }) => (
+                <Pressable
+                  style={styles.pickRow}
+                  onPress={() => pickerFor && addRecipe(pickerFor, item)}
+                >
+                  <Text style={styles.pickText}>{item.getName()}</Text>
+                </Pressable>
+              )}
+              ListFooterComponent={
+                <Pressable
+                  onPress={() => setPickerFor(null)}
+                  style={{ padding: 16, alignItems: "center" }}
+                >
+                  <Text style={{ color: Colors.textMuted }}>Cancel</Text>
+                </Pressable>
+              }
+            />
+          </Screen>
+        </Modal>
+
         {/* <Pressable style={styles.testButton} onPress={sendTestNotification}>
           <Text style={styles.testButtonText}>Send test notification</Text>
         </Pressable>
@@ -150,4 +188,11 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     backgroundColor: Colors.card,
   },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#0f4d3a",
+    paddingHorizontal: 16,
+  },
+  pickText: { fontSize: 16, color: Colors.primaryDark },
 });
