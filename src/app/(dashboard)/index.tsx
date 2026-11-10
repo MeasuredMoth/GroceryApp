@@ -23,9 +23,11 @@ import { MEAL_TYPES, MealPlan, MealType } from "../../../data/recipe/meal-plan";
 import { Recipe } from "../../../data/recipe/recipe";
 import { recipes } from "@/data/recipesData";
 import dayjs from "dayjs";
+import { ActionCard } from "@/components/actionCard";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 
 //TODO
-//Merging hometab with mealplan tab and display some of the info of the original home tab to the new one
+//Make it possible to add a new type of meal
 
 const MEALS = MEAL_TYPES;
 
@@ -145,6 +147,31 @@ export default function Index() {
             />
           </Screen>
         </Modal>
+
+        <View style={{ flexDirection: "row", gap: 16 }}>
+          <View style={{ flex: 1 }}>
+            <ActionCard
+              title="Add ingredient"
+              subtitle="Save it to your ingredient database"
+              icon={<Ionicons name="add" size={20} color="white" />}
+            />
+          </View>
+
+          <View style={{ flex: 1 }}>
+            <ActionCard
+              title="Add recipe"
+              subtitle="Create a new recipe from your ingredients"
+              icon={
+                <MaterialCommunityIcons
+                  name="file-document-edit-outline"
+                  size={20}
+                  color="white"
+                />
+              }
+              variant="blue"
+            />
+          </View>
+        </View>
 
         {/* <Pressable style={styles.testButton} onPress={sendTestNotification}>
           <Text style={styles.testButtonText}>Send test notification</Text>

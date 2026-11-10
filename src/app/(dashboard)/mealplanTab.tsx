@@ -17,6 +17,8 @@ import { Colors } from "@/constants/Colors";
 import { Recipe } from "../../../data/recipe/recipe";
 import { MealType, MEAL_TYPES, MealPlan } from "../../../data/recipe/meal-plan";
 import MealSlot from "@/components/mealSlot";
+import { ActionCard } from "@/components/actionCard";
+import { Ionicons } from "@expo/vector-icons";
 
 //TODO
 //transfer everything into meal plan class
