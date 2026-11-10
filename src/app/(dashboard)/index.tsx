@@ -19,10 +19,10 @@ import {
   FlatList,
   Modal,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { MEAL_TYPES, MealPlan, MealType } from "../../../data/recipe/meal-plan";
 import { Recipe } from "../../../data/recipe/recipe";
 import { recipes } from "@/data/recipesData";
+import dayjs from "dayjs";
 
 //TODO
 //Merging hometab with mealplan tab and display some of the info of the original home tab to the new one
@@ -46,6 +46,7 @@ export default function Index() {
   const week = getWeek();
   const [selected, setSelected] = useState((new Date().getDay() + 6) % 7);
   const [pickerFor, setPickerFor] = useState<MealType | null>(null);
+  const formattedDate = dayjs().format("dddd, MMM D"); // e.g., "Monday, 2"
 
   //to persistently store data inside mealPlan:
   const planRef = useRef(new MealPlan("My plan")); //every rerender you get the same planRef component (mutations survive)
@@ -97,6 +98,7 @@ export default function Index() {
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
         >
+          <Text style={styles.sectionTitle}>Today - {formattedDate}</Text>
           <View style={styles.slots}>
             {MEALS.map((m) => (
               <MealSlot
