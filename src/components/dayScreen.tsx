@@ -13,8 +13,19 @@ interface DayScreenProps {
 }
 
 export function DayScreen({ date, plan, onAdd, onRemove }: DayScreenProps) {
-  const isToday = dayjs(date).isSame(dayjs(), "day");
-  const title = `${isToday ? "Today - " : ""}${dayjs(date).format("dddd, MMM D")}`;
+  const today = dayjs();
+  const d = dayjs(date);
+  const RELATIVE_LABELS: Record<number, string> = {
+    [-1]: "Yesterday",
+    0: "Today",
+    1: "Tomorrow",
+  };
+
+  const dayDiff = d.startOf("day").diff(today.startOf("day"), "day");
+  const relativeLabel = RELATIVE_LABELS[dayDiff];
+
+  const formatted = d.format("dddd, MMM D");
+  const title = relativeLabel ? `${relativeLabel} - ${formatted}` : formatted;
 
   return (
     <Card>
