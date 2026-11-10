@@ -25,39 +25,43 @@ import { recipes } from "@/data/recipesData";
 import dayjs from "dayjs";
 import { ActionCard } from "@/components/actionCard";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Card } from "@/components/card";
+import { DayScreen } from "@/components/dayScreen";
 
 //TODO
-//Make it possible to add a new type of meal
 
 const MEALS = MEAL_TYPES;
 
-function getWeek(): Date[] {
-  const today = new Date(); //returns 0 for Sunday through 6 for Saturday
-  const monday = new Date(today);
-  monday.setDate(today.getDate() - ((today.getDay() + 6) % 7)); //converts it to 0 for Monday through 6 for Sunday
-  return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(monday);
-    d.setDate(monday.getDate() + i);
+function buildDays(range = 30): Date[] {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return Array.from({ length: range * 2 + 1 }, (_, i) => {
+    const d = new Date(today);
+    d.setDate(today.getDate() + i - range);
     return d;
   });
 }
 
+const DAYS = buildDays();
+const TODAY_INDEX = 30;
+
 export default function Index() {
   //  Will be changed with the user's name
   const userName = "Lorenzo";
-  const week = getWeek();
-  const [selected, setSelected] = useState((new Date().getDay() + 6) % 7);
   const [pickerFor, setPickerFor] = useState<MealType | null>(null);
-  const formattedDate = dayjs().format("dddd, MMM D"); // e.g., "Monday, 2"
+
+  const [selected, setSelected] = useState(TODAY_INDEX);
+  const [pageWidth, setPageWidth] = useState(0);
+
+  //when rerender is called, React sees that the state (number) is changed and so re-runs Index.ts and updates the changes make to mealplan with the line
+  // keep the counter this time, the list needs it (see the gotcha below)
+  const [version, rerender] = useReducer((n: number) => n + 1, 0);
+  const date = DAYS[selected];
 
   //to persistently store data inside mealPlan:
   const planRef = useRef(new MealPlan("My plan")); //every rerender you get the same planRef component (mutations survive)
 
-  //when rerender is called, React sees that the state (number) is changed and so re-runs Index.ts and updates the changes make to mealplan with the line
-  const [, rerender] = useReducer((n: number) => n + 1, 0);
-
   const plan = planRef.current; //updates the plan object with the newest one (planRef doesn't die after rerender)
-  const date = week[selected];
 
   const addRecipe = (meal: MealType, recipe: Recipe) => {
     //adds a recipe and refreshes
@@ -66,9 +70,9 @@ export default function Index() {
     rerender();
   };
 
-  const removeRecipe = (meal: MealType, recipe: Recipe) => {
+  const removeRecipe = (d: Date, meal: MealType, recipe: Recipe) => {
     //removes a recipe and refreshes
-    plan.removeRecipe(date, meal, recipe);
+    plan.removeRecipe(d, meal, recipe);
     rerender();
   };
 
@@ -95,25 +99,41 @@ export default function Index() {
           firstSubheading={`Good morning, ${userName}`}
           secondSubheading="Healthy meals. Less waste."
         />
+        <View onLayout={(e) => setPageWidth(e.nativeEvent.layout.width)}>
+          {pageWidth > 0 && (
+            <FlatList
+              data={DAYS}
+              extraData={version}
+              keyExtractor={(d) => d.toISOString()}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              initialScrollIndex={TODAY_INDEX}
+              getItemLayout={(_, i) => ({
+                length: pageWidth,
+                offset: pageWidth * i,
+                index: i,
+              })}
+              onMomentumScrollEnd={(e) =>
+                setSelected(
+                  Math.round(e.nativeEvent.contentOffset.x / pageWidth),
+                )
+              }
+              renderItem={({ item }) => (
+                <View style={{ width: pageWidth }}>
+                  <DayScreen
+                    date={item}
+                    plan={plan}
+                    onAdd={setPickerFor}
+                    onRemove={(m, r) => removeRecipe(item, m, r)}
+                  />
+                </View>
+              )}
+            />
+          )}
+        </View>
 
-        <ScrollView
-          contentContainerStyle={styles.content}
-          keyboardShouldPersistTaps="handled"
-        >
-          <Text style={styles.sectionTitle}>Today - {formattedDate}</Text>
-          <View style={styles.slots}>
-            {MEALS.map((m) => (
-              <MealSlot
-                key={m}
-                type={m}
-                recipes={[...plan.getMeal(date, m)]}
-                kcal={plan.getDayTotals(date).kcal}
-                onAdd={() => setPickerFor(m)}
-                onRemove={(r) => removeRecipe(m, r)}
-              />
-            ))}
-          </View>
-        </ScrollView>
+        {/* your <Modal> goes here, unchanged, outside the pager */}
 
         <Modal
           visible={pickerFor !== null}
