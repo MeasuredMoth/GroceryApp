@@ -27,8 +27,9 @@ import { ActionCard } from "@/components/actionCard";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Card } from "@/components/card";
 import { DayScreen } from "@/components/dayScreen";
+import { Banner } from "@/components/bannerWithButton";
 
-//TODO
+//the core job is helping someone follow and manage a plan they already have, day by day.
 
 const MEALS = MEAL_TYPES;
 
@@ -193,6 +194,14 @@ export default function Index() {
               variant="blue"
             />
           </View>
+        </View>
+
+        <View>
+          <Banner
+            title="Keep your plan up to date"
+            subtitle="Change a meal, adjust its time, or add a note."
+            buttonLabel="Edit this week"
+          />
         </View>
 
         {/* <Pressable style={styles.testButton} onPress={sendTestNotification}>

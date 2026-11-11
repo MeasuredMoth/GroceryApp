@@ -37,16 +37,6 @@ const DashBoardLayout = () => {
       />
 
       <Tabs.Screen
-        name="mealplanTab"
-        options={{
-          title: "Meal Plan",
-          tabBarIcon: ({ color }) => (
-            <FontAwesome name="calendar-o" size={ICON_SIZE} color={color} />
-          ),
-        }}
-      />
-
-      <Tabs.Screen
         name="recipesTab"
         options={{
           title: "Recipes",

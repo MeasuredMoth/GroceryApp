@@ -20,8 +20,8 @@ import MealSlot from "@/components/mealSlot";
 import { ActionCard } from "@/components/actionCard";
 import { Ionicons } from "@expo/vector-icons";
 
-//TODO
-//transfer everything into meal plan class
+/*UNUSED CLASS */
+
 const MEALS = MEAL_TYPES;
 const GOALS: Totals = { kcal: 2200, protein: 150, carbs: 250, fat: 70 };
 
