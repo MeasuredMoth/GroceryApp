@@ -1,16 +1,6 @@
-import { Dictionary } from "../types";
-import { Ingredient, ingredientType } from "./ingredient";
-import { ImageSourcePropType } from "react-native";
-
-export interface RecipeOptions {
-  category?: RecipeCategory;
-  // kcal?: number;
-  // servings?: number;
-  // servingUnit?: string;
-  image?: ImageSourcePropType;
-}
-
-let nextId = 1; //we need this id as a key for the flatlist inside recipesTab
+import type { ImageSourcePropType } from "react-native";
+import type { PlanItem } from "./meal-plan";
+import { makeId } from "../util";
 
 export type RecipeCategory =
   | "Breakfast"
@@ -19,76 +9,42 @@ export type RecipeCategory =
   | "Snack"
   | "Dessert";
 
-export class Recipe {
-  private id = `recipe-${nextId++}`; //each id is incremented as a new recipe object is instantiated
-  private name: string = "Unnamed";
-  private ingredients: Ingredient[] = [];
-  private category: RecipeCategory = "Dinner"; //added category for each type of meal
-  private image?: ImageSourcePropType; //For images of the recipes
+/**
+ * A recipe is a shortcut: a saved list of ingredients with quantities.
+ * Adding it to a meal COPIES the items (see recipeToItems), so editing the
+ * recipe later never silently changes a plan the user already set up.
+ */
+export interface Recipe {
+  id: string;
+  name: string;
+  category: RecipeCategory;
+  items: PlanItem[];
+  image?: ImageSourcePropType;
+}
 
-  constructor(name = "", options: RecipeOptions = {}) {
-    this.setName(name);
-    this.category = options.category ?? this.category;
-    // this.kcal = options.kcal ?? this.kcal;
-    // this.servings = options.servings ?? this.servings;
-    // this.servingUnit = options.servingUnit ?? this.servingUnit;
-    this.image = options.image;
-  }
+export interface RecipeOptions {
+  category?: RecipeCategory;
+  image?: ImageSourcePropType;
+  id?: string;
+}
 
-  public getJSON(): string {
-    return JSON.stringify({ [this.name]: this.getData() });
-  }
+export function createRecipe(
+  name: string,
+  items: PlanItem[] = [],
+  options: RecipeOptions = {},
+): Recipe {
+  const trimmed = name.trim();
+  if (trimmed === "") throw new Error("A recipe needs a name");
+  return {
+    id: options.id ?? makeId("recipe"),
+    name: trimmed,
+    category: options.category ?? "Dinner",
+    items,
+    image: options.image,
+  };
+}
 
-  public getCategory() {
-    return this.category;
-  }
-
-  public getImage(): ImageSourcePropType | undefined {
-    return this.image;
-  }
-
-  public getId(): string {
-    return this.id;
-  }
-
-  public appendIngredient(ingredient: Ingredient) {
-    this.ingredients.push(ingredient);
-  }
-
-  public addIngredients(ingredients: Ingredient[]) {
-    ingredients.forEach((value: Ingredient) => {
-      this.appendIngredient(value);
-    });
-  }
-
-  public getIngredients(): Ingredient[] {
-    return this.ingredients;
-  }
-
-  public getIngredientTypes(): ingredientType[] {
-    let data: ingredientType[] = [];
-
-    this.getIngredients().forEach((value: Ingredient) => {
-      data.push(value.getType());
-    });
-
-    return data;
-  }
-
-  public setName(name: string) {
-    if (name == "") return;
-
-    this.name = name;
-  }
-
-  public getName(): string {
-    return this.name;
-  }
-
-  // Recipe
-  public getData(): Dictionary<any> {
-    const data: Dictionary<any> = {};
-    this.ingredients.forEach((i) => (data[i.getName()] = i.getData()));
-    return data;
-  }
+/** Fresh copies of the recipe's items, ready to put into a Meal. */
+export function recipeToItems(recipe: Recipe): PlanItem[] {
+  return recipe.items.map((i) => ({ ...i }));
 }

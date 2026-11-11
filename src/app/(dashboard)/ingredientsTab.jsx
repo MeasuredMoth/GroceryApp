@@ -8,14 +8,21 @@ import { ingredients } from "@/data/ingredientsData";
 import { Ionicons } from "@expo/vector-icons";
 import Screen from "@/components/Screen";
 
-const CATEGORIES = ["All items", "Proteins", "Carbs", "Vegetables", "Dairy", "Other"];
+const CATEGORIES = [
+  "All items",
+  "Proteins",
+  "Carbs",
+  "Vegetables",
+  "Dairy",
+  "Other",
+];
 
 export default function IngredientsTab() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All items");
 
   const visible = ingredients.filter(
-    (i) => i.getName().toLowerCase().includes(search.toLowerCase())
+    (i) => i.getName().toLowerCase().includes(search.toLowerCase()),
     // add the category filter once Ingredient has a category field
   );
 
@@ -28,10 +35,10 @@ export default function IngredientsTab() {
           firstSubheading="Your ingredient database"
           secondSubheading="Save nutrition, prices and details once. Reuse them in every recipe."
           action={
-                 <Pressable style={styles.addButton} onPress={() => {}}>
-          <Ionicons name="add" size={20} color="white" />
-          <Text style={styles.addLabel}>Add ingredient</Text>
-        </Pressable>
+            <Pressable style={styles.addButton} onPress={() => {}}>
+              <Ionicons name="add" size={20} color="white" />
+              <Text style={styles.addLabel}>Add ingredient</Text>
+            </Pressable>
           }
         />
       </View>
@@ -61,7 +68,7 @@ export default function IngredientsTab() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-headerContainer: { paddingHorizontal: 16, paddingBottom: 12 },
+  headerContainer: { paddingHorizontal: 16, paddingBottom: 12 },
   addButton: {
     flexDirection: "row",
     alignItems: "center",
