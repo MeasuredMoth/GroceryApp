@@ -1,66 +1,46 @@
-import { Ingredient, ingredientType } from "data/recipe/ingredient";
-import { Dictionary } from "data/types";
-
- export class Recipe {
-    private name: string = "Unnamed";
-    private ingredients: Ingredient[] = [];
-
-    constructor(name: string = "", ingredients: Ingredient[] = []){
-        this.setName(name);
-        this.addIngredients(ingredients);
-    }
+import type { ImageSourcePropType } from "react-native";
+import type { PlanItem } from "./meal-plan";
+import { makeId } from "../util";
 
     public getJSON(): string {
         let data: Dictionary<any> = {};
 
-        data[this.name] = this.getData();
+/**
+ * A recipe is a shortcut: a saved list of ingredients with quantities.
+ * Adding it to a meal COPIES the items (see recipeToItems), so editing the
+ * recipe later never silently changes a plan the user already set up.
+ */
+export interface Recipe {
+  id: string;
+  name: string;
+  category: RecipeCategory;
+  items: PlanItem[];
+  image?: ImageSourcePropType;
+}
 
-        return JSON.stringify(data);
-    }
+export interface RecipeOptions {
+  category?: RecipeCategory;
+  image?: ImageSourcePropType;
+  id?: string;
+}
 
-    public getData(): Dictionary<any> {
-        return this.getIngredientsData();
-    }
+export function createRecipe(
+  name: string,
+  items: PlanItem[] = [],
+  options: RecipeOptions = {},
+): Recipe {
+  const trimmed = name.trim();
+  if (trimmed === "") throw new Error("A recipe needs a name");
+  return {
+    id: options.id ?? makeId("recipe"),
+    name: trimmed,
+    category: options.category ?? "Dinner",
+    items,
+    image: options.image,
+  };
+}
 
-    private getIngredientsData(): Dictionary<any> {
-        let data: Dictionary<any> = {};
-
-        this.ingredients.forEach((value: Ingredient) => {
-            data[value.getName()] = value.getData();
-        })
-
-        return data;
-    }
-
-    public appendIngredient(ingredient: Ingredient){
-        this.ingredients.push(ingredient);
-    }
-
-    public addIngredients(ingredients: Ingredient[]){
-        ingredients.forEach((value: Ingredient) => {
-            this.appendIngredient(value);
-        })
-    }
-
-    public getIngredients(): Ingredient[]{
-        return this.ingredients;
-    }
-
-    public getIngredientTypes(): ingredientType[]{
-        let data: ingredientType[] = []
-
-        this.getIngredients().forEach((value: Ingredient) => {
-            data.push(value.getType());
-        });
-
-        return data;
-    }
-
-    public setName(name: string){
-        if (name == "") return;
-
-        this.name = name;
-    }
-
-    public getName(): string { return this.name };
+/** Fresh copies of the recipe's items, ready to put into a Meal. */
+export function recipeToItems(recipe: Recipe): PlanItem[] {
+  return recipe.items.map((i) => ({ ...i }));
 }

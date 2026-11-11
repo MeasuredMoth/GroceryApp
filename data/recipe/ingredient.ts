@@ -1,129 +1,63 @@
-import { Dictionary } from "data/types";
+import { Quantity, Unit } from "../unit";
+import { makeId } from "../util";
 
-export const UNITS = [
-    // metric
-    "g", "kg", "ml", "l",
-    // imperial
-    "oz", "lb", "fl oz", "cup",
-    // kitchen / literal
-    "tsp", "tbsp", "pinch", "piece",
-] as const;
+// Re-exported so existing imports of Unit / Quantity / parseQuantity from "./ingredient" keep working.
+export * from "../unit";
 
-export type Unit = typeof UNITS[number];
+export type IngredientCategory =
+  | "Produce"
+  | "Dairy"
+  | "Meat"
+  | "Staples"
+  | "Other";
+export const INGREDIENT_CATEGORIES: readonly IngredientCategory[] = [
+  "Produce",
+  "Dairy",
+  "Meat",
+  "Staples",
+  "Other",
+];
 
-export type UnitSystem = "metric" | "imperial" | "literal";
-
-const UNIT_SYSTEM: Record<Unit, UnitSystem> = {
-    g: "metric", kg: "metric", ml: "metric", l: "metric",
-    oz: "imperial", lb: "imperial", "fl oz": "imperial", cup: "imperial",
-    tsp: "literal", tbsp: "literal", pinch: "literal", piece: "literal",
-};
-
-export interface Quantity {
-    amount: number;
-    unit: Unit;
+/**
+ * An ingredient is only a name plus the units it can be stored/measured in.
+ * No quantities here: those live in PlanItem, RecipeItem and PantryEntry.
+ */
+export interface Ingredient {
+  id: string;
+  name: string;
+  allowedUnits: Unit[]; // e.g. eggs: ["piece"], oats: ["g", "kg"]
+  category: IngredientCategory;
 }
 
-export function isUnit(value: string): value is Unit {
-    return (UNITS as readonly string[]).includes(value);
+export function createIngredient(
+  name: string,
+  allowedUnits: Unit[],
+  category: IngredientCategory = "Other",
+  id: string = makeId("ing"),
+): Ingredient {
+  const trimmed = name.trim();
+  if (trimmed === "") throw new Error("An ingredient needs a name");
+  if (allowedUnits.length === 0) {
+    throw new Error(`${trimmed} needs at least one allowed unit`);
+  }
+  return {
+    id,
+    name: trimmed,
+    allowedUnits: Array.from(new Set(allowedUnits)),
+    category,
+  };
 }
 
-/** Parses strings like "100 g", "1.5tbsp", "2 fl oz". Returns null if invalid. */
-export function parseQuantity(input: string): Quantity | null {
-    const match = input.trim().match(/^(\d+(?:\.\d+)?)\s*([a-zA-Z ]+)$/);
-    if (!match) return null;
-
-    const amount = parseFloat(match[1]);
-    const unit = match[2].trim().toLowerCase();
-
-    if (!isUnit(unit) || !Number.isFinite(amount) || amount <= 0) return null;
-    return { amount, unit };
+export function allowsUnit(ingredient: Ingredient, unit: Unit): boolean {
+  return ingredient.allowedUnits.includes(unit);
 }
 
-export function formatQuantity(q: Quantity): string {
-    return `${q.amount} ${q.unit}`;
-}
-
-export enum quantityFormats {
-    METRIC,
-    IMPERIAL,
-    LITERAL
-}
-
-export enum ingredientType {
-    GRAIN,
-    CARB,
-    PROTIEN,
-    FAT,
-    VEGETABLE,
-    FRUIT,
-    SEASONING,
-}
-
-export class Ingredient {
-    private name: string = "Unnamed";
-    private quantity: Quantity = { amount: 1, unit: "g" };
-    private ingTyp: ingredientType = ingredientType.GRAIN;
-
-    constructor(
-        name: string = "", 
-        quantity: Quantity = {amount: 1, unit: "g"},
-        ingType: ingredientType = ingredientType.GRAIN
-    ) {
-        this.setName(name);
-        this.setType(ingType);
-        this.setQuantity(quantity);
-    }
-
-    public getJSON(): string {
-        return JSON.stringify(this.getData());
-    }
-
-    public getData(): Dictionary<any> {
-        return {
-            quantity: this.quantity,
-            type: this.getType(),
-            system: this.getSystem(),
-        };
-    }
-
-    public setName(name: string) {
-        if (name.trim() === "") return;
-        this.name = name;
-    }
-    public getName(): string { return this.name }
-
-    /** Accepts a validated Quantity or a string like "100 g". Throws on invalid input. */
-    public setQuantity(quantity: Quantity | string) {
-        const q = typeof quantity === "string" ? parseQuantity(quantity) : quantity;
-
-        if (!q || !isUnit(q.unit) || !Number.isFinite(q.amount) || q.amount <= 0) {
-            throw new Error(`Invalid quantity: ${JSON.stringify(quantity)}`);
-        }
-        this.quantity = { amount: q.amount, unit: q.unit };
-    }
-
-    public getQuantity(): Quantity { return { ...this.quantity } }
-
-    public getSystem(): UnitSystem { return UNIT_SYSTEM[this.quantity.unit] }
-
-    public toString(): string {
-        return `${formatQuantity(this.quantity)} ${this.name}`;
-    }
-
-    public static createIngredient(name: string, quantity: Quantity | string): Ingredient {
-        const ingredient = new Ingredient();
-        ingredient.setName(name);
-        ingredient.setQuantity(quantity);
-        return ingredient;
-    }
-
-    public getQuantityString(): string {
-        return formatQuantity(this.quantity);
-    }
-
-    public setType(ingTyp: ingredientType) { this.ingTyp = ingTyp; }
-
-    public getType(): ingredientType { return this.ingTyp; }
-    
+/** True when the amount is positive and the ingredient can be measured in that unit. */
+export function isQuantityAllowed(
+  ingredient: Ingredient,
+  q: Quantity,
+): boolean {
+  return (
+    Number.isFinite(q.amount) && q.amount > 0 && allowsUnit(ingredient, q.unit)
+  );
 }
