@@ -8,7 +8,7 @@ import {
   scheduleTestNotification,
   setupNotifications,
 } from "@/notifications/notifications";
-import { useReducer, useRef, useState } from "react";
+import { useState } from "react";
 import {
   Text,
   View,
@@ -19,8 +19,18 @@ import {
   FlatList,
   Modal,
 } from "react-native";
-import { MEAL_TYPES, MealPlan, MealType } from "../../../data/recipe/meal-plan";
-import { Recipe } from "../../../data/recipe/recipe";
+import {
+  addMeal,
+  createEmptyPlan,
+  createMeal,
+  editMeal,
+  Meal,
+  MEAL_TYPES,
+  mealsFor,
+  MealType,
+  Plan,
+} from "../../../data/recipe/meal-plan";
+import { Recipe, recipeToItems } from "../../../data/recipe/recipe";
 import { recipes } from "@/data/recipesData";
 import dayjs from "dayjs";
 import { ActionCard } from "@/components/actionCard";
@@ -32,6 +42,14 @@ import { Banner } from "@/components/bannerWithButton";
 //the core job is helping someone follow and manage a plan they already have, day by day.
 
 const MEALS = MEAL_TYPES;
+
+// Time given to a meal created from the picker. Meal times become editable later.
+const DEFAULT_TIMES: Record<MealType, string> = {
+  Breakfast: "08:00",
+  Lunch: "12:30",
+  Dinner: "19:00",
+  Snack: "16:00",
+};
 
 function buildDays(range = 30): Date[] {
   const today = new Date();
@@ -54,27 +72,35 @@ export default function Index() {
   const [selected, setSelected] = useState(TODAY_INDEX);
   const [pageWidth, setPageWidth] = useState(0);
 
-  //when rerender is called, React sees that the state (number) is changed and so re-runs Index.ts and updates the changes make to mealplan with the line
-  // keep the counter this time, the list needs it (see the gotcha below)
-  const [version, rerender] = useReducer((n: number) => n + 1, 0);
   const date = DAYS[selected];
 
-  //to persistently store data inside mealPlan:
-  const planRef = useRef(new MealPlan("My plan")); //every rerender you get the same planRef component (mutations survive)
+  // The plan is plain data and every plan function returns a new Plan,
+  // so setPlan is enough to refresh the screen (no ref or rerender counter needed).
+  const [plan, setPlan] = useState<Plan>(createEmptyPlan);
 
-  const plan = planRef.current; //updates the plan object with the newest one (planRef doesn't die after rerender)
-
-  const addRecipe = (meal: MealType, recipe: Recipe) => {
-    //adds a recipe and refreshes
-    plan.addRecipe(date, meal, recipe);
+  // Adds a recipe's ingredients to the meal of that type on the selected date.
+  // TODO: ask "just this day" or "every <weekday>" instead of always using "day".
+  const addRecipe = (type: MealType, recipe: Recipe) => {
+    const items = recipeToItems(recipe);
+    setPlan((p) => {
+      const existing = mealsFor(p, date).find((m) => m.type === type);
+      return existing
+        ? editMeal(p, date, { ...existing, items: [...existing.items, ...items] }, "day")
+        : addMeal(p, date, createMeal(type, DEFAULT_TIMES[type], items), "day");
+    });
     setPickerFor(null);
-    rerender();
   };
 
-  const removeRecipe = (d: Date, meal: MealType, recipe: Recipe) => {
-    //removes a recipe and refreshes
-    plan.removeRecipe(d, meal, recipe);
-    rerender();
+  // Removes one ingredient line from a meal.
+  const removeItem = (d: Date, meal: Meal, index: number) => {
+    setPlan((p) =>
+      editMeal(
+        p,
+        d,
+        { ...meal, items: meal.items.filter((_, i) => i !== index) },
+        "day",
+      ),
+    );
   };
 
   const [notificationStatus, setNotificationStatus] = useState("");
@@ -105,7 +131,7 @@ export default function Index() {
             {pageWidth > 0 && (
               <FlatList
                 data={DAYS}
-                extraData={version}
+                extraData={plan}
                 keyExtractor={(d) => d.toISOString()}
                 horizontal
                 pagingEnabled
@@ -127,7 +153,7 @@ export default function Index() {
                       date={item}
                       plan={plan}
                       onAdd={setPickerFor}
-                      onRemove={(m, r) => removeRecipe(item, m, r)}
+                      onRemoveItem={(meal, i) => removeItem(item, meal, i)}
                     />
                   </View>
                 )}
@@ -148,14 +174,14 @@ export default function Index() {
               </Text>
               <FlatList
                 data={recipes}
-                keyExtractor={(r) => r.getId()}
+                keyExtractor={(r) => r.id}
                 contentContainerStyle={{ padding: 16, gap: 10 }}
                 renderItem={({ item }) => (
                   <Pressable
                     style={styles.pickRow}
                     onPress={() => pickerFor && addRecipe(pickerFor, item)}
                   >
-                    <Text style={styles.pickText}>{item.getName()}</Text>
+                    <Text style={styles.pickText}>{item.name}</Text>
                   </Pressable>
                 )}
                 ListFooterComponent={

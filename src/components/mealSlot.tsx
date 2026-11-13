@@ -1,8 +1,7 @@
-import { View, Text, Pressable, Image, StyleSheet } from "react-native";
+import { View, Text, Pressable, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
-import { Recipe } from "../../data/recipe/recipe";
-import { MealType } from "../../data/recipe/meal-plan";
+import { Meal, MealType } from "../../data/recipe/meal-plan";
 
 //Sets the icons for each meal type
 const ICONS: Record<MealType, keyof typeof Ionicons.glyphMap> = {
@@ -14,18 +13,20 @@ const ICONS: Record<MealType, keyof typeof Ionicons.glyphMap> = {
 
 type Props = {
   type: MealType;
-  recipes: Recipe[];
-  kcal: number;
+  meals: Meal[]; // the day's meals of this type (usually 0 or 1)
   onAdd: () => void;
-  onRemove: (recipe: Recipe) => void;
+  onRemoveItem: (meal: Meal, index: number) => void;
+  // Turns an ingredient id into a display name. Defaults to showing the id
+  // until an ingredient library exists to look names up in.
+  nameOf?: (ingredientId: string) => string;
 };
 
 export default function MealSlot({
   type,
-  recipes,
-  kcal,
+  meals,
   onAdd,
-  onRemove,
+  onRemoveItem,
+  nameOf = (id) => id,
 }: Props) {
   return (
     <View style={styles.card}>
@@ -36,7 +37,9 @@ export default function MealSlot({
         <View style={styles.titleBlock}>
           <Text style={styles.title}>{type}</Text>
           <Text style={styles.sub}>
-            {recipes.length ? `${kcal} kcal` : "Nothing planned"}
+            {meals.length
+              ? meals.map((m) => m.time).join(" · ")
+              : "Nothing planned"}
           </Text>
         </View>
         <Pressable style={styles.addButton} onPress={onAdd} hitSlop={8}>
@@ -44,24 +47,21 @@ export default function MealSlot({
         </Pressable>
       </View>
 
-      {recipes.map((r) => {
-        const image = r.getImage();
-        return (
-          <View key={r.getId()} style={styles.recipeRow}>
-            {image ? (
-              <Image source={image} style={styles.thumb} />
-            ) : (
-              <View style={[styles.thumb, styles.thumbPlaceholder]} />
-            )}
-            <Text style={styles.recipeName} numberOfLines={1}>
-              {r.getName()}
+      {meals.map((meal) =>
+        meal.items.map((item, index) => (
+          <View key={`${meal.id}-${index}`} style={styles.itemRow}>
+            <Text style={styles.itemName} numberOfLines={1}>
+              {nameOf(item.ingredientId)}
             </Text>
-            <Pressable onPress={() => onRemove(r)} hitSlop={8}>
+            <Text style={styles.itemQty}>
+              {item.amount} {item.unit}
+            </Text>
+            <Pressable onPress={() => onRemoveItem(meal, index)} hitSlop={8}>
               <Ionicons name="close" size={18} color={Colors.textMuted} />
             </Pressable>
           </View>
-        );
-      })}
+        )),
+      )}
     </View>
   );
 }
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  recipeRow: {
+  itemRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
@@ -103,7 +103,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: Colors.border,
   },
-  thumb: { width: 40, height: 40, borderRadius: 10 },
-  thumbPlaceholder: { backgroundColor: Colors.border },
-  recipeName: { flex: 1, fontSize: 15, color: Colors.primaryDark },
+  itemName: { flex: 1, fontSize: 15, color: Colors.primaryDark },
+  itemQty: { fontSize: 15, color: Colors.textMuted },
 });

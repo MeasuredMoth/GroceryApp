@@ -2,22 +2,28 @@ import { StyleSheet, Text, View } from "react-native";
 import dayjs from "dayjs";
 import { Card } from "@/components/card";
 import MealSlot from "@/components/mealSlot";
-import { MEAL_TYPES, MealPlan, MealType } from "../../data/recipe/meal-plan";
-import { Recipe } from "../../data/recipe/recipe";
+import {
+  Meal,
+  MEAL_TYPES,
+  mealsFor,
+  MealType,
+  Plan,
+} from "../../data/recipe/meal-plan";
 
 interface DayScreenProps {
   date: Date;
-  plan: MealPlan;
+  plan: Plan;
   onAdd: (meal: MealType) => void;
-  onRemove: (meal: MealType, recipe: Recipe) => void;
+  onRemoveItem: (meal: Meal, index: number) => void;
 }
+
 const RELATIVE_LABELS: Record<number, string> = {
   [-1]: "Yesterday",
   0: "Today",
   1: "Tomorrow",
 };
 
-export function DayScreen({ date, plan, onAdd, onRemove }: DayScreenProps) {
+export function DayScreen({ date, plan, onAdd, onRemoveItem }: DayScreenProps) {
   const today = dayjs();
   const d = dayjs(date);
 
@@ -27,18 +33,19 @@ export function DayScreen({ date, plan, onAdd, onRemove }: DayScreenProps) {
   const formatted = d.format("dddd, MMM D");
   const title = relativeLabel ? `${relativeLabel} - ${formatted}` : formatted;
 
+  const meals = mealsFor(plan, date);
+
   return (
     <Card>
       <Text style={styles.sectionTitle}>{title}</Text>
       <View style={styles.slots}>
-        {MEAL_TYPES.map((m) => (
+        {MEAL_TYPES.map((type) => (
           <MealSlot
-            key={m}
-            type={m}
-            recipes={[...plan.getMeal(date, m)]}
-            kcal={plan.getDayTotals(date).kcal}
-            onAdd={() => onAdd(m)}
-            onRemove={(r) => onRemove(m, r)}
+            key={type}
+            type={type}
+            meals={meals.filter((m) => m.type === type)}
+            onAdd={() => onAdd(type)}
+            onRemoveItem={onRemoveItem}
           />
         ))}
       </View>
@@ -52,6 +59,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#0f4d3a",
     paddingHorizontal: 16,
+    marginBottom: 12,
   },
   slots: { gap: 12, paddingHorizontal: 16 },
 });
