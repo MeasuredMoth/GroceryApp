@@ -37,11 +37,11 @@ const DashBoardLayout = () => {
       />
 
       <Tabs.Screen
-        name="recipesTab"
+        name="mealplanTab"
         options={{
-          title: "Recipes",
+          title: "Plan",
           tabBarIcon: ({ color }) => (
-            <Entypo name="magnifying-glass" size={ICON_SIZE} color={color} />
+            <Feather name="calendar" size={24} color={color} />
           ),
         }}
       />

@@ -22,8 +22,8 @@ export default function IngredientsTab() {
   const [category, setCategory] = useState("All items");
 
   const visible = ingredients.filter(
-    (i) => i.getName().toLowerCase().includes(search.toLowerCase()),
-    // add the category filter once Ingredient has a category field
+    (i) => i.name.toLowerCase().includes(search.toLowerCase()),
+    // Ingredient now has a category, but the chips above don't match its values yet
   );
 
   return (
@@ -56,7 +56,7 @@ export default function IngredientsTab() {
       {/* Only this scrolls */}
       <FlatList
         data={visible}
-        keyExtractor={(item) => item.getName()}
+        keyExtractor={(item) => item.id}
         renderItem={({ item }) => <IngredientRow ingredient={item} />}
         ListHeaderComponent={<IngredientsListHeader count={visible.length} />}
         contentContainerStyle={{ padding: 16, gap: 12 }}
@@ -68,7 +68,6 @@ export default function IngredientsTab() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  headerContainer: { paddingHorizontal: 16, paddingBottom: 12 },
   addButton: {
     flexDirection: "row",
     alignItems: "center",
