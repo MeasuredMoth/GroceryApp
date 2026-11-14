@@ -39,6 +39,9 @@ import { Card } from "@/components/card";
 import { DayScreen } from "@/components/dayScreen";
 import { Banner } from "@/components/bannerWithButton";
 
+
+//TODO swtich swiping to mealplan tab
+
 //the core job is helping someone follow and manage a plan they already have, day by day.
 
 const MEALS = MEAL_TYPES;
@@ -69,10 +72,9 @@ export default function Index() {
   const userName = "Lorenzo";
   const [pickerFor, setPickerFor] = useState<MealType | null>(null);
 
-  const [selected, setSelected] = useState(TODAY_INDEX);
-  const [pageWidth, setPageWidth] = useState(0);
-
-  const date = DAYS[selected];
+ const [selected, setSelected] = useState(TODAY_INDEX);
+const [pageWidth, setPageWidth] = useState(0);
+const date = DAYS[selected];
 
   // The plan is plain data and every plan function returns a new Plan,
   // so setPlan is enough to refresh the screen (no ref or rerender counter needed).
@@ -80,28 +82,21 @@ export default function Index() {
 
   // Adds a recipe's ingredients to the meal of that type on the selected date.
   // TODO: ask "just this day" or "every <weekday>" instead of always using "day".
-  const addRecipe = (type: MealType, recipe: Recipe) => {
-    const items = recipeToItems(recipe);
-    setPlan((p) => {
-      const existing = mealsFor(p, date).find((m) => m.type === type);
-      return existing
-        ? editMeal(p, date, { ...existing, items: [...existing.items, ...items] }, "day")
-        : addMeal(p, date, createMeal(type, DEFAULT_TIMES[type], items), "day");
-    });
-    setPickerFor(null);
-  };
-
-  // Removes one ingredient line from a meal.
-  const removeItem = (d: Date, meal: Meal, index: number) => {
+const addRecipe = (type: MealType, recipe: Recipe) => {
+  const items = recipeToItems(recipe);
+  setPlan((p) => {
+    const existing = mealsFor(p, date).find((m) => m.type === type);
+    return existing
+      ? editMeal(p, date, { ...existing, items: [...existing.items, ...items] }, "day")
+      : addMeal(p, date, createMeal(type, DEFAULT_TIMES[type], items), "day");
+  });
+  setPickerFor(null);
+};  const removeItem = (meal: Meal, index: number) => {
     setPlan((p) =>
-      editMeal(
-        p,
-        d,
-        { ...meal, items: meal.items.filter((_, i) => i !== index) },
-        "day",
-      ),
+      editMeal(p, date, { ...meal, items: meal.items.filter((_, i) => i !== index) }, "day"),
     );
   };
+
 
   const [notificationStatus, setNotificationStatus] = useState("");
 
@@ -120,48 +115,22 @@ export default function Index() {
 
   return (
     <Screen>
-      <View style={styles.content}>
+          <ScrollView
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+    >
         <Header
           textHeader="GroceryMeal"
           firstSubheading={`Good morning, ${userName}`}
           secondSubheading="Healthy meals. Less waste."
         />
         <View style={{ marginTop: 16 }}>
-          <View onLayout={(e) => setPageWidth(e.nativeEvent.layout.width)}>
-            {pageWidth > 0 && (
-              <FlatList
-                data={DAYS}
-                extraData={plan}
-                keyExtractor={(d) => d.toISOString()}
-                horizontal
-                pagingEnabled
-                showsHorizontalScrollIndicator={false}
-                initialScrollIndex={TODAY_INDEX}
-                getItemLayout={(_, i) => ({
-                  length: pageWidth,
-                  offset: pageWidth * i,
-                  index: i,
-                })}
-                onMomentumScrollEnd={(e) =>
-                  setSelected(
-                    Math.round(e.nativeEvent.contentOffset.x / pageWidth),
-                  )
-                }
-                renderItem={({ item }) => (
-                  <View style={{ width: pageWidth }}>
-                    <DayScreen
-                      date={item}
-                      plan={plan}
-                      onAdd={setPickerFor}
-                      onRemoveItem={(meal, i) => removeItem(item, meal, i)}
-                    />
-                  </View>
-                )}
-              />
-            )}
-          </View>
-
-          {/* your <Modal> goes here, unchanged, outside the pager */}
+                  <DayScreen
+            date={date}
+            plan={plan}
+            onAdd={setPickerFor}
+            onRemoveItem={removeItem}
+          />
 
           <Modal
             visible={pickerFor !== null}
@@ -236,7 +205,7 @@ export default function Index() {
         {notificationStatus !== "" && (
           <Text style={styles.tagline}>{notificationStatus}</Text>
         )} */}
-      </View>
+      </ScrollView>
     </Screen>
   );
 }
