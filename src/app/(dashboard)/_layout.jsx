@@ -47,9 +47,9 @@ const DashBoardLayout = () => {
       />
 
       <Tabs.Screen
-        name="ingredientsTab"
+        name="pantryTab"
         options={{
-          title: "Ingredients",
+          title: "Pantry",
           tabBarIcon: ({ color }) => (
             <AntDesign name="database" size={ICON_SIZE} color={color} />
           ),
