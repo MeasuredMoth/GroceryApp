@@ -5,16 +5,18 @@ import { makeId } from "../util";
 export * from "../unit";
 
 export type IngredientCategory =
-  | "Produce"
+  "Proteins"
+  | "Carbs"
+  | "Vegetables"
   | "Dairy"
-  | "Meat"
-  | "Staples"
+  | "Fruit"
   | "Other";
 export const INGREDIENT_CATEGORIES: readonly IngredientCategory[] = [
-  "Produce",
+   "Proteins",
+  "Carbs",
+  "Vegetables",
   "Dairy",
-  "Meat",
-  "Staples",
+  "Fruit",
   "Other",
 ];
 

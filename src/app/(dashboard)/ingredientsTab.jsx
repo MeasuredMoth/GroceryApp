@@ -14,6 +14,7 @@ const CATEGORIES = [
   "Carbs",
   "Vegetables",
   "Dairy",
+  "Fruit",
   "Other",
 ];
 
@@ -21,10 +22,11 @@ export default function IngredientsTab() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All items");
 
-  const visible = ingredients.filter(
-    (i) => i.name.toLowerCase().includes(search.toLowerCase()),
-    // Ingredient now has a category, but the chips above don't match its values yet
-  );
+const visible = ingredients.filter(
+  (i) =>
+    (category === "All items" || i.category === category) &&
+    i.name.toLowerCase().includes(search.toLowerCase()),
+);
 
   return (
     <Screen>
