@@ -24,11 +24,13 @@ import {
   createEmptyPlan,
   createMeal,
   editMeal,
+  EditScope,
   Meal,
   MEAL_TYPES,
   mealsFor,
   MealType,
   Plan,
+  weekdayOf,
 } from "../../../data/recipe/meal-plan";
 import { Recipe, recipeToItems } from "../../../data/recipe/recipe";
 import { recipes } from "@/data/recipesData";
@@ -38,6 +40,7 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Card } from "@/components/card";
 import { DayScreen } from "@/components/dayScreen";
 import { Banner } from "@/components/bannerWithButton";
+import RecipePickerModal from "@/components/recipePickerModal";
 
 
 //TODO swtich swiping to mealplan tab
@@ -82,16 +85,17 @@ const date = DAYS[selected];
 
   // Adds a recipe's ingredients to the meal of that type on the selected date.
   // TODO: ask "just this day" or "every <weekday>" instead of always using "day".
-const addRecipe = (type: MealType, recipe: Recipe) => {
+const addRecipe = (type: MealType, recipe: Recipe, scope: EditScope) => {
   const items = recipeToItems(recipe);
   setPlan((p) => {
     const existing = mealsFor(p, date).find((m) => m.type === type);
     return existing
-      ? editMeal(p, date, { ...existing, items: [...existing.items, ...items] }, "day")
-      : addMeal(p, date, createMeal(type, DEFAULT_TIMES[type], items), "day");
+      ? editMeal(p, date, { ...existing, items: [...existing.items, ...items] }, scope)
+      : addMeal(p, date, createMeal(type, DEFAULT_TIMES[type], items), scope);
   });
   setPickerFor(null);
-};  const removeItem = (meal: Meal, index: number) => {
+};
+ const removeItem = (meal: Meal, index: number) => {
     setPlan((p) =>
       editMeal(p, date, { ...meal, items: meal.items.filter((_, i) => i !== index) }, "day"),
     );
@@ -132,38 +136,12 @@ const addRecipe = (type: MealType, recipe: Recipe) => {
             onRemoveItem={removeItem}
           />
 
-          <Modal
-            visible={pickerFor !== null}
-            animationType="slide"
-            onRequestClose={() => setPickerFor(null)}
-          >
-            <Screen>
-              <Text style={[styles.sectionTitle, { padding: 16 }]}>
-                Add to {pickerFor}
-              </Text>
-              <FlatList
-                data={recipes}
-                keyExtractor={(r) => r.id}
-                contentContainerStyle={{ padding: 16, gap: 10 }}
-                renderItem={({ item }) => (
-                  <Pressable
-                    style={styles.pickRow}
-                    onPress={() => pickerFor && addRecipe(pickerFor, item)}
-                  >
-                    <Text style={styles.pickText}>{item.name}</Text>
-                  </Pressable>
-                )}
-                ListFooterComponent={
-                  <Pressable
-                    onPress={() => setPickerFor(null)}
-                    style={{ padding: 16, alignItems: "center" }}
-                  >
-                    <Text style={{ color: Colors.textMuted }}>Cancel</Text>
-                  </Pressable>
-                }
-              />
-            </Screen>
-          </Modal>
+          <RecipePickerModal
+  type={pickerFor}
+  weekday={weekdayOf(date)}
+  onPick={(r, scope) => pickerFor && addRecipe(pickerFor, r, scope)}
+  onClose={() => setPickerFor(null)}
+/>
         </View>
 
         <View style={{ flexDirection: "row", gap: 16, marginTop: 16 }}>
