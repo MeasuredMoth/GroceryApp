@@ -10,12 +10,19 @@ export default function Index() {
 
   return (
     <Screen>
-    <Header textHeader= "GroceryMeal" firstSubheading={`Good morning, ${userName}`} secondSubheading="Healthy meals. Less waste." />
+      <View style={styles.content}>
+        <Header
+          textHeader="GroceryMeal"
+          firstSubheading={`Good morning, ${userName}`}
+          secondSubheading="Healthy meals. Less waste."
+        />
+      </View>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+   content: { paddingHorizontal: 16 },
   greeting: {
     fontSize: 26,
     fontWeight: '700',
