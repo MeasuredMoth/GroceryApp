@@ -4,6 +4,7 @@ import Entypo from '@expo/vector-icons/Entypo'; //website for vector icons: http
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Colors } from "@/constants/Colors";
 import { ReactNode } from "react";
+import { Href, router } from "expo-router";
 
 type HeaderProps = {
   textHeader: string;
@@ -25,7 +26,12 @@ export default function Header({ textHeader, firstSubheading, secondSubheading, 
           <Text style={styles.brandName}>{textHeader}</Text>
         </View>
 
-        <Pressable style={styles.profileButton}>
+        <Pressable
+          style={styles.profileButton}
+          onPress={() => router.push("/settings" as Href)}
+          accessibilityRole="button"
+          accessibilityLabel="Settings"
+        >
           <Ionicons name="person-outline" size={24} color={Colors.primaryDark} />
         </Pressable>
       </View>
