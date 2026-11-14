@@ -1,60 +1,111 @@
-import { Dictionary } from "data/types";
-import { Recipe } from "data/recipe/recipe";
+import { Dictionary } from "../types";
+import { Recipe } from "./recipe";
+
+export type MealType = "Breakfast" | "Lunch" | "Dinner" | "Snack";
+export const MEAL_TYPES: readonly MealType[] = [
+  "Breakfast",
+  "Lunch",
+  "Dinner",
+  "Snack",
+];
+
+export type Nutrition = {
+  kcal: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+};
+export type DayPlan = Partial<Record<MealType, Recipe[]>>;
+
+// TODO: Recipe has no nutrition fields yet. Replace with real getters later.
+const nutritionOf = (_r: Recipe): Nutrition => ({
+  kcal: 500,
+  protein: 25,
+  carbs: 60,
+  fat: 15,
+});
 
 export class MealPlan {
-    private name: string = "Unnamed";
-    private recipes: Recipe[] = []
-    
-    constructor(name: string = "", recipes: Recipe[] = []){
-        this.setName(name);
-        this.addRecipes(recipes);
-    }
+  private name = "Unnamed";
+  private days = new Map<string, DayPlan>();
 
-    public appendRecipe(recipe: Recipe) {
-        this.recipes.push(recipe);
-    }
+  constructor(name = "", recipes: Recipe[] = []) {
+    this.setName(name);
+  }
 
-    public addRecipes(recipes: Recipe[]) {
-        recipes.forEach((value: Recipe) => {
-            this.appendRecipe(value);
-        })
-    }
+  public static keyOf(d: Date): string {
+    return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+  }
 
-    public removeRecipe(index: number) {
-        if (index < 0 || index > this.recipes.length)
-            return;
+  public addRecipe(date: Date, meal: MealType, recipe: Recipe): void {
+    const key = MealPlan.keyOf(date);
+    const day = this.days.get(key) ?? {};
+    day[meal] = [...(day[meal] ?? []), recipe];
+    this.days.set(key, day);
+  }
 
-        this.recipes.splice(index, 1)
-    }
+  public removeRecipe(date: Date, meal: MealType, recipe: Recipe): void {
+    const day = this.days.get(MealPlan.keyOf(date));
+    const list = day?.[meal];
+    if (!day || !list) return;
+    const i = list.indexOf(recipe);
+    if (i === -1) return;
+    day[meal] = list.filter((_, idx) => idx !== i); // removes only one occurrence
+  }
 
-    public getRecipes() {
-        return this.recipes;
-    }
+  public getDay(date: Date): Readonly<DayPlan> {
+    return this.days.get(MealPlan.keyOf(date)) ?? {};
+  }
 
-    public getJSON(){
-        let data: Dictionary<any> = {};
+  public getMeal(date: Date, meal: MealType): readonly Recipe[] {
+    return this.getDay(date)[meal] ?? [];
+  }
 
-        data[this.name] = this.getData();
+  public getMealTotals(date: Date, meal: MealType): Nutrition {
+    return MealPlan.sum(this.getMeal(date, meal));
+  }
 
-        return JSON.stringify(data);
-    }
+  public getDayTotals(date: Date): Nutrition {
+    const day = this.getDay(date);
+    return MealPlan.sum(MEAL_TYPES.flatMap((m) => day[m] ?? []));
+  }
 
-    public getData(){
-        let data: Dictionary<any> = {};
+  private static sum(list: readonly Recipe[]): Nutrition {
+    return list.reduce(
+      (t, r) => {
+        const n = nutritionOf(r);
+        return {
+          kcal: t.kcal + n.kcal,
+          protein: t.protein + n.protein,
+          carbs: t.carbs + n.carbs,
+          fat: t.fat + n.fat,
+        };
+      },
+      { kcal: 0, protein: 0, carbs: 0, fat: 0 },
+    );
+  }
 
-        this.recipes.forEach((value: Recipe) => {
-            data[value.getName()] = value.getData();
-        })
+  public getData(): Dictionary<any> {
+    const data: Dictionary<any> = {};
+    this.days.forEach((day, key) => {
+      data[key] = {};
+      MEAL_TYPES.forEach((m) => {
+        data[key][m] = (day[m] ?? []).map((r) => r.getData());
+      });
+    });
+    return data;
+  }
 
-        return data;
-    }
+  public getJSON(): string {
+    return JSON.stringify({ [this.name]: this.getData() });
+  }
 
-    public setName(name: string){
-        if (name == "")
-            return;
+  public setName(name: string): void {
+    if (name.trim() === "") return;
+    this.name = name;
+  }
 
-        this.name = name;
-    }
-
-    public getName(){ return this.name; }
+  public getName(): string {
+    return this.name;
+  }
 }

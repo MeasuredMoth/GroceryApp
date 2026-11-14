@@ -1,12 +1,12 @@
 import * as Notifications from "expo-notifications";
-import { applyPlan, scheduleTestNotification } from "src/notifications/notifications";
-import { loadNotificationSettings } from "src/notifications/notificationSettings";
-import { DEFAULT_SETTINGS } from "src/notifications/planner";
-import { rescheduleNotifications } from "src/notifications/reschedule";
+import { applyPlan, scheduleTestNotification } from "../src/notifications/notifications";
+import { loadNotificationSettings } from "../src/notifications/notificationSettings";
+import { DEFAULT_SETTINGS } from "../src/notifications/planner";
+import { rescheduleNotifications } from "../src/notifications/reschedule";
 
 jest.mock("react-native", () => ({ Platform: { OS: "android" } }));
 
-jest.mock("src/notifications/notificationSettings", () => ({
+jest.mock("../src/notifications/notificationSettings", () => ({
     loadNotificationSettings: jest.fn(),
 }));
 

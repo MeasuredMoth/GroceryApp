@@ -4,7 +4,7 @@ import {
     formatTime,
     planNotifications,
     sanitizeSettings,
-} from "src/notifications/planner";
+} from "../src/notifications/planner";
 
 // Wednesday, Nov 4 2026 at 10:00 local time
 const NOW = new Date(2026, 10, 4, 10, 0);
