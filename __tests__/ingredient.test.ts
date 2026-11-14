@@ -1,18 +1,21 @@
-import { Ingredient } from "data/recipe/ingredient"
+import { createIngredient, Ingredient, INGREDIENT_CATEGORIES } from "data/base/ingredient"
+import { METRIC_UNITS } from "data/util/unit";
 
-test("Setting name of ingredient", () => {
-    let ingredient = new Ingredient("Flour");
+test("Creating ingredient.", () => {
+    let ingredient: Ingredient = createIngredient("Flour", [ METRIC_UNITS.GRAM ], INGREDIENT_CATEGORIES.CARB);
 
-    expect(ingredient.getName()).toBe("Flour");
+    expect(ingredient.name).toBe("Flour");
+    expect(ingredient.allowedUnits).toStrictEqual([ METRIC_UNITS.GRAM ]);
+    expect(ingredient.ingredientCategory).toBe(INGREDIENT_CATEGORIES.CARB);
 })
 
-test("Setting name of Ingredient to nothing", () => {
-    let ingredient = new Ingredient("Flour");
-
-    ingredient.setName("");
-
-    expect(ingredient.getName()).toBe("Flour");
+test("createIngredient parameter check.", () => {
+    expect(() => createIngredient("   ", [ METRIC_UNITS.GRAM ], INGREDIENT_CATEGORIES.CARB)).toThrow(/name/);
+    expect(() => createIngredient("Flour", [], INGREDIENT_CATEGORIES.CARB)).toThrow(/allowed unit/);
 })
+
+/*
+Redone when reimplementing json
 
 test("Getting JSON back from Ingredient", () => {
     let ingredient = new Ingredient("Flour");
@@ -27,3 +30,4 @@ test("Getting JSON back from Ingredient", () => {
 
     expect(JSON.parse(data)).toStrictEqual(jsonCompare);
 })
+*/
