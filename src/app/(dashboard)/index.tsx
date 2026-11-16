@@ -41,6 +41,7 @@ import { Card } from "@/components/card";
 import { DayScreen } from "@/components/dayScreen";
 import { Banner } from "@/components/bannerWithButton";
 import RecipePickerModal from "@/components/recipePickerModal";
+import { toDateKey } from "../../../data/util";
 
 
 //TODO swtich swiping to mealplan tab
@@ -125,6 +126,19 @@ const addRecipe = (type: MealType, recipe: Recipe, scope: EditScope) => {
     setNotificationStatus("Scheduled! It will appear in 5 seconds.");
   };
 
+  const [done, setDone] = useState<Record<string, boolean>>({});
+  const doneKey = (m: Meal) => `${toDateKey(date)}:${m.id}`;
+  const isDone = (m: Meal) => !!done[doneKey(m)];
+
+  const toggleDone = (meals: Meal[]) => {
+    const allDone = meals.every(isDone);
+    setDone((prev) => {
+      const next = { ...prev };
+      meals.forEach((m) => (next[doneKey(m)] = !allDone));
+      return next;
+    });
+  };
+
   return (
     <Screen>
           <ScrollView
@@ -137,12 +151,14 @@ const addRecipe = (type: MealType, recipe: Recipe, scope: EditScope) => {
           secondSubheading="Healthy meals. Less waste."
         />
         <View style={{ marginTop: 16 }}>
-                  <DayScreen
-            date={date}
-            plan={plan}
-            onAdd={setPickerFor}
-            onRemoveItem={removeItem}
-          />
+              <DayScreen
+                date={date}
+                plan={plan}
+                onAdd={setPickerFor}
+                onRemoveItem={removeItem}
+                isDone={isDone}
+                onToggleDone={toggleDone}
+              />
 
           <RecipePickerModal
   type={pickerFor}

@@ -15,6 +15,8 @@ interface DayScreenProps {
   plan: Plan;
   onAdd: (meal: MealType) => void;
   onRemoveItem: (meal: Meal, index: number) => void;
+  isDone?: (meal: Meal) => boolean;
+  onToggleDone?: (meals: Meal[]) => void;
 }
 
 const RELATIVE_LABELS: Record<number, string> = {
@@ -23,7 +25,7 @@ const RELATIVE_LABELS: Record<number, string> = {
   1: "Tomorrow",
 };
 
-export function DayScreen({ date, plan, onAdd, onRemoveItem }: DayScreenProps) {
+export function DayScreen({ date, plan, onAdd, onRemoveItem, isDone, onToggleDone }: DayScreenProps) {
   const today = dayjs();
   const d = dayjs(date);
 
@@ -39,15 +41,20 @@ export function DayScreen({ date, plan, onAdd, onRemoveItem }: DayScreenProps) {
     <Card>
       <Text style={styles.sectionTitle}>{title}</Text>
       <View style={styles.slots}>
-        {MEAL_TYPES.map((type) => (
-          <MealSlot
-            key={type}
-            type={type}
-            meals={meals.filter((m) => m.type === type)}
-            onAdd={() => onAdd(type)}
-            onRemoveItem={onRemoveItem}
-          />
-        ))}
+        {MEAL_TYPES.map((type) => {
+  const slotMeals = meals.filter((m) => m.type === type);
+  return (
+    <MealSlot
+      key={type}
+      type={type}
+      meals={slotMeals}
+      onAdd={() => onAdd(type)}
+      onRemoveItem={onRemoveItem}
+      done={!!isDone && slotMeals.length > 0 && slotMeals.every(isDone)}
+      onToggleDone={onToggleDone && slotMeals.length > 0 ? () => onToggleDone(slotMeals) : undefined}
+    />
+  );
+})}
       </View>
     </Card>
   );

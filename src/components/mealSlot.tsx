@@ -19,6 +19,8 @@ type Props = {
   // Turns an ingredient id into a display name. Defaults to showing the id
   // until an ingredient library exists to look names up in.
   nameOf?: (ingredientId: string) => string;
+  done?: boolean;
+  onToggleDone?: () => void;
 };
 
 export default function MealSlot({
@@ -27,15 +29,26 @@ export default function MealSlot({
   onAdd,
   onRemoveItem,
   nameOf = (id) => id,
+  done,
+  onToggleDone,
 }: Props) {
   return (
     <View style={styles.card}>
       <View style={styles.header}>
+        {onToggleDone && (
+          <Pressable
+            onPress={onToggleDone}
+            hitSlop={8}
+            style={[styles.check, done && styles.checkDone]}
+          >
+            {done && <Ionicons name="checkmark" size={16} color="white" />}
+          </Pressable>
+        )}
         <View style={styles.iconCircle}>
           <Ionicons name={ICONS[type]} size={20} color="#2E7D4F" />
         </View>
         <View style={styles.titleBlock}>
-          <Text style={styles.title}>{type}</Text>
+          <Text style={[styles.title, done && styles.titleDone]}>{type}</Text>
           <Text style={styles.sub}>
             {meals.length
               ? meals.map((m) => m.time).join(" · ")
@@ -95,6 +108,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  check: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    borderWidth: 2,
+    borderColor: "#0f4d3a",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  checkDone: { backgroundColor: "#0f4d3a" },
+  titleDone: { textDecorationLine: "line-through", color: Colors.textMuted },
   itemRow: {
     flexDirection: "row",
     alignItems: "center",
