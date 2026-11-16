@@ -1,5 +1,4 @@
 import { Quantity } from "data/base/quantity";
-import { Systrace } from "react-native";
 
 const GRAM_PER_OUNCE: number = 28.34952;
 
@@ -45,10 +44,11 @@ export enum IMPERIAL_UNITS {
 
 // We do everthing in reference to ounces for simplicity
 export const ImperialConversions: Record<IMPERIAL_UNITS, number> = {
+    // Thes are all using the US imperial system, which is not 1:1 with the actual Imperial system. Idk either.
     [IMPERIAL_UNITS.OUNCE]: 1,
-    [IMPERIAL_UNITS.CUP]: 0.125,
-    [IMPERIAL_UNITS.TABLESPOON]: 2,
-    [IMPERIAL_UNITS.TEASPOON]: 6,
+    [IMPERIAL_UNITS.CUP]: 1/8,
+    [IMPERIAL_UNITS.TABLESPOON]: 1/2,
+    [IMPERIAL_UNITS.TEASPOON]: 1/6,
 }
 
 export enum LITERAL_UNITS {
@@ -72,17 +72,6 @@ export function canConvert(from: UNITS, to: UNITS): boolean {
     )
 };
 
-/** Returns null when the units can't be converted (e.g. g -> ml, piece -> g). */
-/*
-Need to rework coverting values
-
-export function convert(quantity: Quantity, to: UNITS): Quantity | null {
-  if (!canConvert(quantity.unit, to)) return null;
-  const amount = (quantity.amount * TO_BASE[q.unit]) / TO_BASE[to];
-  return { amount: Number(amount.toFixed(4)), unit: to };
-}
-*/ 
-
 /** Parses strings like "100 g", "1.5tbsp", "2 fl oz". Returns null if invalid. */
 /* 
 Do we need this? Not sure what situations we really want to go back and forth like this.
@@ -103,9 +92,9 @@ export function formatQuantity(quantity: Quantity): string { return `${quantity.
 
 export function isValidUnit(system: MEASUREMENT_SYSTEMS, unit: UNITS): boolean {  return validUnits[system].includes(unit); }
 
-export function getSystemFromUnit(unit: UNITS): MEASUREMENT_SYSTEMS  {
-    let result = Object.keys(MEASUREMENT_SYSTEMS).filter(key => isValidUnit(key as MEASUREMENT_SYSTEMS, unit))
-    return  result[0] as MEASUREMENT_SYSTEMS;
+export function getSystemFromUnit(unit: UNITS): MEASUREMENT_SYSTEMS | null  {
+    let result = Object.values(MEASUREMENT_SYSTEMS).filter(key => isValidUnit(key as MEASUREMENT_SYSTEMS, unit))
+    return  result.length > 0 ? result[0] as MEASUREMENT_SYSTEMS : null;
 }
 
 export function convertBetweenMetric(from: METRIC_UNITS, to: METRIC_UNITS, amount: number): number {

@@ -113,16 +113,16 @@ export class LiteralQuantity implements Quantity {
         let quantityResult: Quantity | null = null;
 
         if (unitSystem == MEASUREMENT_SYSTEMS.METRIC)
-            throw new Error(`Cannot convert metric unit system to type literal.`);
+            throw new Error(`Cannot convert literal quantity to type metric.`);
         if (unitSystem == MEASUREMENT_SYSTEMS.IMPERIAL)
-            throw new Error(`Cannot convert literal quantity to `)
+            throw new Error(`Cannot convert literal quantity to type imperial.`);
         if (unitSystem == MEASUREMENT_SYSTEMS.LITERAL)
-            quantityResult = createQuantity(this.amount, this.unit);
+            quantityResult = createQuantity(this.amount, unit);
         
         if (!quantityResult)
             throw new Error(`Could not create coverted quantity. ${this.unit} to ${unit}.`);
 
-        return quantityResult
+        return quantityResult;
     }
 }
 
@@ -143,6 +143,8 @@ export function createQuantity(
     if (amount <= 0)
         throw new Error(`Quantity cannot have negative/none amount.`);
     let system = getSystemFromUnit(unit);
+    if (!system)
+        throw new Error(`Couldn't get system from unit: ${unit}.`);
 
     return systemToQuantity[system](amount, unit);
 }
