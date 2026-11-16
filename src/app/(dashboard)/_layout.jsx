@@ -29,7 +29,7 @@ const DashBoardLayout = () => {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Home",
+          title: "Today",
           tabBarIcon: ({ color }) => (
             <Feather name="home" size={ICON_SIZE} color={color} />
           ),
@@ -51,8 +51,7 @@ const DashBoardLayout = () => {
         options={{
           title: "Pantry",
           tabBarIcon: ({ color }) => (
-            <AntDesign name="database" size={ICON_SIZE} color={color} />
-          ),
+            <Feather name="archive" size={24} color={color} />          ),
         }}
       />
 

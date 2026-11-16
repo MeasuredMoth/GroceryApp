@@ -44,7 +44,9 @@ import RecipePickerModal from "@/components/recipePickerModal";
 import { toDateKey } from "../../../data/util";
 
 
-//TODO swtich swiping to mealplan tab
+//TODO 
+//1. Switching from useState to a json file --> this way data can be read across the todayTab and the mealPlan tab
+//2. Removing the possibility to add ingredients or recipes from the today tab: that can only be possible in the mealplan tab
 
 //the core job is helping someone follow and manage a plan they already have, day by day.
 
