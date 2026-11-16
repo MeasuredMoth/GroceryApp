@@ -67,6 +67,12 @@ function buildDays(range = 30): Date[] {
   });
 }
 
+function greeting(hour: number): string {
+  if (hour >= 6 && hour < 12) return "Good morning";
+  if (hour >= 12 && hour < 17) return "Good afternoon";
+  return "Good evening"; 
+}
+
 const DAYS = buildDays();
 const TODAY_INDEX = 30;
 
@@ -75,10 +81,12 @@ export default function Index() {
   const userName = "Lorenzo";
   const [pickerFor, setPickerFor] = useState<MealType | null>(null);
 
- const [selected, setSelected] = useState(TODAY_INDEX);
-const [pageWidth, setPageWidth] = useState(0);
-const date = DAYS[selected];
+  const [selected, setSelected] = useState(TODAY_INDEX);
+  const [pageWidth, setPageWidth] = useState(0);
+  const date = DAYS[selected];
 
+  const greetingPhrase = greeting(dayjs().hour());
+ 
   // The plan is plain data and every plan function returns a new Plan,
   // so setPlan is enough to refresh the screen (no ref or rerender counter needed).
   const [plan, setPlan] = useState<Plan>(createEmptyPlan);
@@ -125,7 +133,7 @@ const addRecipe = (type: MealType, recipe: Recipe, scope: EditScope) => {
     >
         <Header
           textHeader="GroceryMeal"
-          firstSubheading={`Good morning, ${userName}`}
+          firstSubheading={`${greetingPhrase}, ${userName}`}
           secondSubheading="Healthy meals. Less waste."
         />
         <View style={{ marginTop: 16 }}>

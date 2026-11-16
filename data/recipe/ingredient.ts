@@ -12,7 +12,7 @@ export type IngredientCategory =
   | "Fruit"
   | "Other";
 export const INGREDIENT_CATEGORIES: readonly IngredientCategory[] = [
-   "Proteins",
+  "Proteins",
   "Carbs",
   "Vegetables",
   "Dairy",
