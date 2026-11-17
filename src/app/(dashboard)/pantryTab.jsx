@@ -7,6 +7,8 @@ import SearchAndFilters from "@/components/searchAndFilters";
 import { useAppData } from "@/storage/appStore";
 import { Ionicons } from "@expo/vector-icons";
 import Screen from "@/components/Screen";
+import Feather from "@expo/vector-icons/Feather";
+
 
 const CATEGORIES = [
   "All items",
@@ -38,8 +40,9 @@ const visible = ingredients.filter(
       {/* Fixed (non-scrolling) area */}
       <View style={styles.headerContainer}>
         <Header
+          icon={<Feather name="archive" size={24} color="#0d3332"/>}
           textHeader="Pantry"
-          firstSubheading="Your ingredient database"
+          secondSubheading="Your ingredient database"
           action={
             <Pressable style={styles.addButton} onPress={() => {}}>
               <Ionicons name="add" size={20} color="white" />

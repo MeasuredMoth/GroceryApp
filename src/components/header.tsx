@@ -5,8 +5,11 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Colors } from "@/constants/Colors";
 import { ReactNode } from "react";
 import { Href, router } from "expo-router";
+import Feather from "@expo/vector-icons/Feather";
+
 
 type HeaderProps = {
+  icon?: ReactNode;
   textHeader: string;
   firstSubheading?: string;
   secondSubheading?: string;
@@ -14,7 +17,7 @@ type HeaderProps = {
 }
 
 {/*Logo and name on the top left */ }
-export default function Header({ textHeader, firstSubheading, secondSubheading, action }: HeaderProps) {
+export default function Header({icon, textHeader, firstSubheading, secondSubheading, action }: HeaderProps) {
 
   return (
     <View style={styles.container}>
@@ -22,7 +25,7 @@ export default function Header({ textHeader, firstSubheading, secondSubheading, 
       <View style={styles.topRow}>
         <View style={styles.brand}>
 
-          <Entypo name="leaf" size={24} color="#2E7D4F" />
+          {icon}
           <Text style={styles.brandName}>{textHeader}</Text>
         </View>
 
