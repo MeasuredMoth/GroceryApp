@@ -9,7 +9,7 @@ export default function RootLayout() {
     <Stack>
       {/* To remove the title on the top bar */}
       <Stack.Screen name="(dashboard)" options={{ headerShown: false }} />
-      <Stack.Screen name="settings" options={{ title: "Settings" }} />
+      <Stack.Screen name="settings" options={{ title: "Settings", headerBackButtonDisplayMode: "minimal"}} />
     </Stack>
   );
 }

@@ -88,5 +88,5 @@ const styles = StyleSheet.create({
   },
   addLabel: { color: "white", fontWeight: "600" },
   addRow: { alignItems: "flex-end", paddingHorizontal: 16, marginTop: 8 },
-  headerContainer: { paddingHorizontal: 16 },
+  headerContainer: { paddingHorizontal: 16, paddingBottom: 8},
 });
