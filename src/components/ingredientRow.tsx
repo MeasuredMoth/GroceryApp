@@ -11,8 +11,8 @@ export default function IngredientRow( {ingredient}: IngredientRowProps ) {
   return (
     <Pressable style={styles.row}>
       <View style={styles.info}>
-        <Text style={styles.name}>{ingredient.getName()}</Text>
-        <Text style={styles.details}>{ingredient.getQuantityString()}</Text>
+        <Text style={styles.name}>{ingredient.name}</Text>
+        {/* <Text style={styles.details}>{ingredient.getQuantityString()}</Text> */}
       </View>
 
         {/* <Text style={styles.details}>

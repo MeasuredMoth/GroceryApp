@@ -4,10 +4,13 @@ import Feather from "@expo/vector-icons/Feather";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import Entypo from "@expo/vector-icons/Entypo";
 import AntDesign from "@expo/vector-icons/AntDesign";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const ICON_SIZE = 26;
 
 const DashBoardLayout = () => {
+  const insets = useSafeAreaInsets();
+
   return (
     <Tabs
       screenOptions={{
@@ -16,13 +19,17 @@ const DashBoardLayout = () => {
         tabBarInactiveTintColor: Colors.textMuted,
         tabBarLabelPosition: "below-icon",
         tabBarLabelStyle: { fontSize: 12 },
-        tabBarStyle: { height: 64, paddingTop: 6 },
+        tabBarStyle: {
+          height: 56 + insets.bottom,
+          paddingBottom: insets.bottom,
+          paddingTop: 6,
+        },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: "Home",
+          title: "Today",
           tabBarIcon: ({ color }) => (
             <Feather name="home" size={ICON_SIZE} color={color} />
           ),
@@ -32,30 +39,19 @@ const DashBoardLayout = () => {
       <Tabs.Screen
         name="mealplanTab"
         options={{
-          title: "Meal Plan",
+          title: "Plan",
           tabBarIcon: ({ color }) => (
-            <FontAwesome name="calendar-o" size={ICON_SIZE} color={color} />
+            <Feather name="calendar" size={24} color={color} />
           ),
         }}
       />
 
       <Tabs.Screen
-        name="recipesTab"
+        name="pantryTab"
         options={{
-          title: "Recipes",
+          title: "Pantry",
           tabBarIcon: ({ color }) => (
-            <Entypo name="magnifying-glass" size={ICON_SIZE} color={color} />
-          ),
-        }}
-      />
-
-      <Tabs.Screen
-        name="ingredientsTab"
-        options={{
-          title: "Ingredients",
-          tabBarIcon: ({ color }) => (
-            <AntDesign name="database" size={ICON_SIZE} color={color} />
-          ),
+            <Feather name="archive" size={24} color={color} />          ),
         }}
       />
 
