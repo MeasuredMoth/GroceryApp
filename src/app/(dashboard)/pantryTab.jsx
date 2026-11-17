@@ -25,14 +25,19 @@ const CATEGORIES = [
 //For now this lists the saved ingredients.
 
 export default function PantryTab() {
-  const { ingredients } = useAppData();
+  const { ingredients, pantry } = useAppData();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All items");
 
-const visible = ingredients.filter(
-  (i) =>
-    (category === "All items" || i.category === category) &&
-    i.name.toLowerCase().includes(search.toLowerCase()),
+  const rows = pantry.flatMap((entry) => {
+  const ingredient = ingredients.find((i) => i.id === entry.ingredientId);
+  return ingredient ? [{ entry, ingredient }] : [];
+});
+
+const visible = rows.filter(
+  ({ ingredient }) =>
+    (category === "All items" || ingredient.category === category) &&
+    ingredient.name.toLowerCase().includes(search.toLowerCase()),
 );
 
   return (
@@ -65,8 +70,13 @@ const visible = ingredients.filter(
       {/* Only this scrolls */}
       <FlatList
         data={visible}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <IngredientRow ingredient={item} />}
+        keyExtractor={(entry) => entry.id}
+        renderItem={({ item }) => <IngredientRow 
+        title={item.ingredient.name} 
+        value={`${item.entry.amount} ${item.entry.unit}`}
+        subtitle={item.entry.expiresOn ? `Expires ${item.entry.expiresOn}` : undefined}
+        badge={item.entry.amount === 0 ? "OUT" : undefined}
+        />}
         ListHeaderComponent={<IngredientsListHeader count={visible.length} />}
         contentContainerStyle={{ padding: 16, gap: 12 }}
         keyboardShouldPersistTaps="handled"

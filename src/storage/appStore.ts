@@ -19,6 +19,8 @@ import { PantryEntry } from "../../data/recipe/pantry";
 import { Recipe } from "../../data/recipe/recipe";
 import { ingredients as starterIngredients } from "../data/ingredientsData";
 import { recipes as starterRecipes } from "../data/recipesData";
+import { pantry as starterPantry } from "../data/pantryData";
+
 
 // Created on use because the file system isn't available when rendering for web
 function dataFile() {
@@ -41,6 +43,7 @@ const fileBackend: StorageBackend = {
 export const appStore = new DataStore(fileBackend, {
   ingredients: starterIngredients,
   recipes: starterRecipes,
+  pantry: starterPantry,
 });
 
 /** The saved data, for use inside a component. */
