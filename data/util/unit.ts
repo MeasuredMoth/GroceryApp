@@ -1,29 +1,7 @@
-import { Quantity } from "data/base/quantity";
+import { createQuantity, Quantity } from "data/base/quantity";
+import { METRIC_UNITS, MEASUREMENT_SYSTEMS, LITERAL_UNITS, UNITS, IMPERIAL_UNITS } from "./types";
 
 const GRAM_PER_OUNCE: number = 28.34952;
-
-export enum MEASUREMENT_SYSTEMS {
-    METRIC = "Metric",
-    IMPERIAL = "Imperial",
-    LITERAL = "Literal",
-};
-
-export enum UNIT_TYPE {
-    WEIGHT = "Weight",
-    LIQUID = "Liquid",
-    LITERAL = "Literal",
-};
-
-export enum METRIC_UNITS {
-    // Mass
-    MILIGRAM = "mg",
-    GRAM = "g",
-    KILOGRAM = "kg",
-    // Volume
-    MILILITER = "ml",
-    LITER = "l",
-    KILOLITER = "kl",
-};
 
 export const MetricConversions: Record<METRIC_UNITS, number> = {
     [METRIC_UNITS.KILOGRAM]: 1000,
@@ -35,13 +13,6 @@ export const MetricConversions: Record<METRIC_UNITS, number> = {
     [METRIC_UNITS.MILILITER]: 0.001,
 }
 
-export enum IMPERIAL_UNITS {
-    CUP = "cup",
-    TABLESPOON = "tbsp",
-    TEASPOON = "tsp",
-    OUNCE = "oz",
-};
-
 // We do everthing in reference to ounces for simplicity
 export const ImperialConversions: Record<IMPERIAL_UNITS, number> = {
     // Thes are all using the US imperial system, which is not 1:1 with the actual Imperial system. Idk either.
@@ -50,13 +21,6 @@ export const ImperialConversions: Record<IMPERIAL_UNITS, number> = {
     [IMPERIAL_UNITS.TABLESPOON]: 1/2,
     [IMPERIAL_UNITS.TEASPOON]: 1/6,
 }
-
-export enum LITERAL_UNITS {
-    PIECE = "piece",
-    PINCH = "pinch",
-};
-
-export type UNITS = METRIC_UNITS | IMPERIAL_UNITS | LITERAL_UNITS
 
 const validUnits: Record<MEASUREMENT_SYSTEMS | string, UNITS[]> = {
     [MEASUREMENT_SYSTEMS.METRIC]: Object.values(METRIC_UNITS),
@@ -72,21 +36,16 @@ export function canConvert(from: UNITS, to: UNITS): boolean {
     )
 };
 
-/** Parses strings like "100 g", "1.5tbsp", "2 fl oz". Returns null if invalid. */
-/* 
-Do we need this? Not sure what situations we really want to go back and forth like this.
-
 export function parseQuantity(input: string): Quantity | null {
-  const match = input.trim().match(/^(\d+(?:\.\d+)?)\s*([a-zA-Z ]+)$/);
-  if (!match) return null;
+    const match = input.trim().match(/^(\d+(?:\.\d+)?)\s*([a-zA-Z ]+)$/);
+    if (!match) return null;
 
-  const amount = parseFloat(match[1]);
-  const unit = getUnit(match[2].trim().toLowerCase());
-
-  if (!Number.isFinite(amount) || amount <= 0) return null;
-  return createQuantity(amount, system, unit);
+    const amount = parseFloat(match[1]);
+    const unit = match[2].trim().toLowerCase();
+    
+    if (!Number.isFinite(amount) || amount <= 0) return null;
+    return createQuantity(amount, unit as UNITS);
 }
-*/
 
 export function formatQuantity(quantity: Quantity): string { return `${quantity.amount} ${quantity.unit}`; }
 

@@ -1,15 +1,5 @@
-import { UNITS } from "data/util/unit";
+import { INGREDIENT_CATEGORIES, UNITS } from "data/util/types";
 import { Quantity } from "./quantity";
-
-export enum INGREDIENT_CATEGORIES {
-    GRAIN = "Grain",
-    CARB = "Carb",
-    PROTIEN = "Protien",
-    FAT = "Fat",
-    VEGETABLE = "Vegetable",
-    FRUIT = "Fruit",
-    SEASONING = "Seasoning",
-}
 
 export interface Ingredient {
     name: string;

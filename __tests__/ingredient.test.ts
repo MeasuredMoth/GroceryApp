@@ -1,5 +1,6 @@
-import { createIngredient, Ingredient, INGREDIENT_CATEGORIES } from "data/base/ingredient"
-import { METRIC_UNITS } from "data/util/unit";
+import { createIngredient, Ingredient } from "data/base/ingredient"
+import { INGREDIENT_CATEGORIES } from "data/util/types";
+import { METRIC_UNITS } from "data/util/types";
 
 test("Creating ingredient.", () => {
     let ingredient: Ingredient = createIngredient("Flour", [ METRIC_UNITS.GRAM ], INGREDIENT_CATEGORIES.CARB);

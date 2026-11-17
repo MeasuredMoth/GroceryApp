@@ -1,5 +1,7 @@
 import { createQuantity, ImperialQuantity, LiteralQuantity, MetricQuantity, Quantity } from "data/base/quantity";
-import { IMPERIAL_UNITS, LITERAL_UNITS, MEASUREMENT_SYSTEMS, METRIC_UNITS } from "data/util/unit";
+import { IMPERIAL_UNITS } from "data/util/types";
+import { LITERAL_UNITS } from "data/util/types";
+import { MEASUREMENT_SYSTEMS, METRIC_UNITS } from "data/util/types";
 
 test("Create quantity.", () => {
     let quantity: Quantity = createQuantity(100, METRIC_UNITS.GRAM);
