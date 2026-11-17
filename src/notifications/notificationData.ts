@@ -2,11 +2,28 @@
 // No Expo imports in this file, so it can be unit tested with Jest.
 
 import { AppData, doneKey } from "../../data/store/app-data";
-import { mealsFor } from "../../data/recipe/meal-plan";
+import { Meal, mealsFor } from "../../data/recipe/meal-plan";
 import { NotificationData } from "./planner";
 
 // Today plus the next 7 days, the same window planner.ts schedules one-time notifications in
 const DAYS_AHEAD = 7;
+
+// How many ingredient names fit in a reminder before it says "+N more"
+const NAMES_SHOWN = 2;
+
+/** "Dinner (Salmon, Potatoes +1 more)", or just "Dinner" when no ingredient can be named. */
+function mealLabel(meal: Meal, data: AppData): string {
+  const names = meal.items.flatMap((item) => {
+    const ingredient = data.ingredients.find((i) => i.id === item.ingredientId);
+    return ingredient ? [ingredient.name] : [];
+  });
+  const unique = Array.from(new Set(names));
+  if (unique.length === 0) return meal.type;
+
+  const shown = unique.slice(0, NAMES_SHOWN).join(", ");
+  const more = unique.length - NAMES_SHOWN;
+  return `${meal.type} (${shown}${more > 0 ? ` +${more} more` : ""})`;
+}
 
 export function toNotificationData(data: AppData, now: Date = new Date()): NotificationData {
   const meals: NotificationData["meals"] = [];
@@ -20,7 +37,7 @@ export function toNotificationData(data: AppData, now: Date = new Date()): Notif
 
       const [hour, minute] = meal.time.split(":").map(Number);
       meals.push({
-        recipeName: meal.type, // meals are a list of ingredients now, so the reminder names the slot
+        recipeName: mealLabel(meal, data),
         at: new Date(day.getFullYear(), day.getMonth(), day.getDate(), hour, minute),
       });
     }

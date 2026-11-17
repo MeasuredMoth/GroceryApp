@@ -9,10 +9,12 @@ import { DEFAULT_SETTINGS, planNotifications } from "../src/notifications/planne
 const NOW = new Date(2026, 10, 4, 10, 0);
 
 const milk = createIngredient("Milk", ["ml", "l"], "Dairy", "milk");
+const oats = createIngredient("Oats", ["g", "kg"], "Carbs", "oats");
+const banana = createIngredient("Banana", ["piece"], "Fruit", "banana");
 const items = [{ ingredientId: "milk", amount: 200, unit: "ml" as const }];
 
 function emptyData() {
-    return createAppData({ ingredients: [milk], recipes: [] });
+    return createAppData({ ingredients: [milk, oats, banana], recipes: [] });
 }
 
 test("A weekly meal appears once for each day in the window", () => {
@@ -22,8 +24,8 @@ test("A weekly meal appears once for each day in the window", () => {
     const { meals } = toNotificationData(data, NOW);
 
     expect(meals).toEqual([
-        { recipeName: "Dinner", at: new Date(2026, 10, 4, 19, 0) },
-        { recipeName: "Dinner", at: new Date(2026, 10, 11, 19, 0) },
+        { recipeName: "Dinner (Milk)", at: new Date(2026, 10, 4, 19, 0) },
+        { recipeName: "Dinner (Milk)", at: new Date(2026, 10, 11, 19, 0) },
     ]);
 })
 
@@ -37,8 +39,8 @@ test("Changes for a single day are respected", () => {
     const { meals } = toNotificationData(data, NOW);
 
     expect(meals).toEqual([
-        { recipeName: "Snack", at: new Date(2026, 10, 4, 16, 0) },
-        { recipeName: "Dinner", at: new Date(2026, 10, 11, 19, 0) },
+        { recipeName: "Snack (Milk)", at: new Date(2026, 10, 4, 16, 0) },
+        { recipeName: "Dinner (Milk)", at: new Date(2026, 10, 11, 19, 0) },
     ]);
 })
 
@@ -77,7 +79,25 @@ test("Saved data turns into a meal reminder and an expiry reminder", () => {
     const plan = planNotifications(toNotificationData(data, NOW), settings, NOW);
 
     expect(plan.map((n) => [n.body, n.url])).toEqual([
-        ["Dinner is planned for 7:00 PM", "/mealplanTab"],
+        ["Dinner (Milk) is planned for 7:00 PM", "/mealplanTab"],
         ["Milk expires in 2 days", "/pantryTab"],
+    ]);
+})
+
+test("Reminders name up to two ingredients, once each", () => {
+    const data = emptyData();
+    const breakfast = createMeal("Breakfast", "08:00", [
+        { ingredientId: "oats", amount: 80, unit: "g" },
+        { ingredientId: "milk", amount: 200, unit: "ml" },
+        { ingredientId: "oats", amount: 10, unit: "g" },
+        { ingredientId: "banana", amount: 1, unit: "piece" },
+    ]);
+    const snack = createMeal("Snack", "16:00", [{ ingredientId: "deleted", amount: 1, unit: "piece" }]);
+    data.plan = addMeal(data.plan, NOW, breakfast, "day");
+    data.plan = addMeal(data.plan, new Date(2026, 10, 5), snack, "day");
+
+    expect(toNotificationData(data, NOW).meals.map((m) => m.recipeName)).toEqual([
+        "Breakfast (Oats, Milk +1 more)",
+        "Snack",
     ]);
 })
