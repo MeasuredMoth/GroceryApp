@@ -1,10 +1,13 @@
 import { useState } from "react";
-import { View, StyleSheet, FlatList, Pressable, Text } from "react-native";
+import { View, StyleSheet, Pressable, Text } from "react-native";
+import { router } from "expo-router";
+import Animated, { FadeIn, FadeOut, LinearTransition } from "react-native-reanimated";
 import Header from "@/components/header";
 import IngredientRow from "@/components/ingredientRow";
+import SwipeableRow, { closeOpenRow } from "@/components/swipeableRow";
 import IngredientsListHeader from "@/components/ingredientListHeader";
 import SearchAndFilters from "@/components/searchAndFilters";
-import { useAppData } from "@/storage/appStore";
+import { deletePantryEntry, useAppData } from "@/storage/appStore";
 import { Ionicons } from "@expo/vector-icons";
 import Screen from "@/components/Screen";
 import Feather from "@expo/vector-icons/Feather";
@@ -18,10 +21,6 @@ const CATEGORIES = [
   "Fruit",
   "Other",
 ];
-
-//TODO
-//show the pantry entries (useAppData().pantry, changed with savePantryEntry / deletePantryEntry).
-//For now this lists the saved ingredients.
 
 export default function PantryTab() {
   const { ingredients, pantry } = useAppData();
@@ -48,7 +47,13 @@ export default function PantryTab() {
           textHeader="Pantry"
           secondSubheading="Your ingredient database"
           action={
-            <Pressable style={styles.addButton} onPress={() => {}}>
+            <Pressable
+              style={styles.addButton}
+              onPress={() => {
+                closeOpenRow();
+                router.push("/pantry-item");
+              }}
+            >
               <Ionicons name="add" size={20} color="white" />
               <Text style={styles.addLabel}>Add item</Text>
             </Pressable>
@@ -66,21 +71,27 @@ export default function PantryTab() {
         placeholder="Search ingredients"
       />
 
-      {/* Only this scrolls */}
-      <FlatList
+      {/* Only this scrolls. Swipe a row left for Edit / Remove; removed rows fade out and the rest slide up. */}
+      <Animated.FlatList
         data={visible}
         keyExtractor={(item) => item.entry.id}
+        itemLayoutAnimation={LinearTransition.springify().damping(18)}
+        onScrollBeginDrag={closeOpenRow}
         renderItem={({ item }) => (
-          <IngredientRow
-            title={item.ingredient.name}
-            value={`${item.entry.amount} ${item.entry.unit}`}
-            subtitle={
-              item.entry.expiresOn
-                ? `Expires ${item.entry.expiresOn}`
-                : undefined
-            }
-            badge={item.entry.amount === 0 ? "OUT" : undefined}
-          />
+          <Animated.View entering={FadeIn} exiting={FadeOut.duration(200)}>
+            <SwipeableRow
+              onEdit={() => router.push({ pathname: "/pantry-item", params: { id: item.entry.id } })}
+              onDelete={() => deletePantryEntry(item.entry.id)}
+            >
+              <IngredientRow
+                title={item.ingredient.name}
+                value={`${item.entry.amount} ${item.entry.unit}`}
+                subtitle={item.entry.expiresOn ? `Expires ${item.entry.expiresOn}` : undefined}
+                badge={item.entry.amount === 0 ? "OUT" : undefined}
+                onPress={closeOpenRow}
+              />
+            </SwipeableRow>
+          </Animated.View>
         )}
         ListHeaderComponent={<IngredientsListHeader count={visible.length} />}
         contentContainerStyle={{ padding: 16, gap: 12 }}

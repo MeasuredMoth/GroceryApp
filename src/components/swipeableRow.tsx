@@ -1,0 +1,126 @@
+// A list row that slides left to show Edit and Remove buttons.
+// Only one row stays open at a time: opening another one closes the previous.
+
+import { ReactNode, useRef } from "react";
+import { Pressable, StyleSheet, Text } from "react-native";
+import ReanimatedSwipeable, {
+  SwipeableMethods,
+} from "react-native-gesture-handler/ReanimatedSwipeable";
+import Animated, {
+  Extrapolation,
+  interpolate,
+  SharedValue,
+  useAnimatedStyle,
+} from "react-native-reanimated";
+import { Ionicons } from "@expo/vector-icons";
+import { Colors } from "@/constants/Colors";
+
+const BUTTON_WIDTH = 76;
+const ACTIONS_WIDTH = BUTTON_WIDTH * 2;
+const RADIUS = 16;
+
+let openRow: SwipeableMethods | null = null;
+
+/** Closes whichever row is open, e.g. before leaving the screen. */
+export function closeOpenRow() {
+  openRow?.close();
+  openRow = null;
+}
+
+type Props = {
+  children: ReactNode;
+  onEdit: () => void;
+  onDelete: () => void;
+};
+
+export default function SwipeableRow({ children, onEdit, onDelete }: Props) {
+  const ref = useRef<SwipeableMethods>(null);
+
+  // Closes the row first, so it's back in place when the user returns from the edit screen
+  const run = (action: () => void) => {
+    ref.current?.close();
+    openRow = null;
+    action();
+  };
+
+  return (
+    <ReanimatedSwipeable
+      ref={ref}
+      friction={1.5}
+      rightThreshold={ACTIONS_WIDTH / 3}
+      overshootRight={false}
+      containerStyle={styles.container}
+      onSwipeableWillOpen={() => {
+        if (openRow && openRow !== ref.current) openRow.close();
+        openRow = ref.current;
+      }}
+      onSwipeableClose={() => {
+        if (openRow === ref.current) openRow = null;
+      }}
+      renderRightActions={(progress) => (
+        <Actions progress={progress} onEdit={() => run(onEdit)} onDelete={() => run(onDelete)} />
+      )}
+    >
+      {children}
+    </ReanimatedSwipeable>
+  );
+}
+
+function Actions({
+  progress,
+  onEdit,
+  onDelete,
+}: {
+  progress: SharedValue<number>;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  // Hidden while closed, so the red can't peek out around the row's rounded corners
+  const visible = useAnimatedStyle(() => ({
+    opacity: progress.value > 0.01 ? 1 : 0,
+  }));
+
+  // The icons grow and fade in as the row slides, instead of just being uncovered
+  const appear = useAnimatedStyle(() => ({
+    opacity: interpolate(progress.value, [0, 0.6, 1], [0, 0.6, 1], Extrapolation.CLAMP),
+    transform: [{ scale: interpolate(progress.value, [0, 1], [0.7, 1], Extrapolation.CLAMP) }],
+  }));
+
+  return (
+    <Animated.View style={[styles.actions, visible]}>
+      <Pressable
+        style={[styles.button, styles.edit]}
+        onPress={onEdit}
+        accessibilityRole="button"
+        accessibilityLabel="Edit"
+      >
+        <Animated.View style={[styles.buttonContent, appear]}>
+          <Ionicons name="pencil" size={20} color={Colors.primaryDark} />
+          <Text style={[styles.label, { color: Colors.primaryDark }]}>Edit</Text>
+        </Animated.View>
+      </Pressable>
+      <Pressable
+        style={[styles.button, styles.remove]}
+        onPress={onDelete}
+        accessibilityRole="button"
+        accessibilityLabel="Remove"
+      >
+        <Animated.View style={[styles.buttonContent, appear]}>
+          <Ionicons name="trash-outline" size={20} color="white" />
+          <Text style={[styles.label, { color: "white" }]}>Remove</Text>
+        </Animated.View>
+      </Pressable>
+    </Animated.View>
+  );
+}
+
+const styles = StyleSheet.create({
+  // Rounded and clipped, so the buttons share the row's card shape
+  container: { borderRadius: RADIUS, overflow: "hidden" },
+  actions: { flexDirection: "row", width: ACTIONS_WIDTH },
+  button: { width: BUTTON_WIDTH, alignItems: "center", justifyContent: "center" },
+  buttonContent: { alignItems: "center", gap: 4 },
+  edit: { backgroundColor: Colors.primarySoft },
+  remove: { backgroundColor: Colors.danger },
+  label: { fontSize: 12, fontWeight: "600" },
+});
