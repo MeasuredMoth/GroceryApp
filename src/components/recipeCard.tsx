@@ -18,8 +18,8 @@ const CHIP_COLORS: Record<RecipeCategory, { bg: string; text: string }> = {
 };
 
 export default function RecipeCard({ recipe, onPress, onMenuPress }: Props) {
-  const chip = CHIP_COLORS[recipe.getCategory()];
-  const image = recipe.getImage();
+  const chip = CHIP_COLORS[recipe.category];
+  const image = recipe.image;
 
   return (
     // pressable image on the outer left (currently does nothing on press)
@@ -34,14 +34,14 @@ export default function RecipeCard({ recipe, onPress, onMenuPress }: Props) {
 
       <View style={styles.info}>
         <View style={styles.titleRow}>
-          <Text style={styles.name} numberOfLines={2}>{recipe.getName()}</Text>
+          <Text style={styles.name} numberOfLines={2}>{recipe.name}</Text>
           <Pressable hitSlop={10} onPress={() => onMenuPress?.(recipe)}>
             <Ionicons name="ellipsis-horizontal" size={18} color={Colors.textMuted} />
           </Pressable>
         </View>
 
         <View style={[styles.chip, { backgroundColor: chip.bg }]}>
-          <Text style={[styles.chipText, { color: chip.text }]}>{recipe.getCategory()}</Text>
+          <Text style={[styles.chipText, { color: chip.text }]}>{recipe.category}</Text>
         </View>
 
         <View style={styles.metaRow}>

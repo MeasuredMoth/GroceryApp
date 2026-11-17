@@ -35,7 +35,7 @@ test("Weekly reminder uses the chosen day and time", () => {
     let plan = planNotifications(noData, settings, NOW);
 
     expect(plan.length).toBe(1);
-    expect(plan[0].url).toBe("/mealplan");
+    expect(plan[0].url).toBe("/mealplanTab");
     expect(plan[0].trigger).toEqual({ kind: "weekly", weekday: 3, hour: 7, minute: 30 });
 })
 
@@ -94,7 +94,7 @@ test("Expiry alert fires the chosen number of days before", () => {
     let plan = planNotifications({ meals: [], pantry }, expiryOn, NOW);
 
     expect(plan.length).toBe(1);
-    expect(plan[0].url).toBe("/ingredientsTab");
+    expect(plan[0].url).toBe("/pantryTab");
     expect(firesAt(plan[0])).toEqual(new Date(2026, 10, 6, 9, 0));
     expect(plan[0].body).toBe("Milk expires in 2 days");
 })

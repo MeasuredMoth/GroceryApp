@@ -4,7 +4,7 @@ import Header from "@/components/header";
 import IngredientRow from "@/components/ingredientRow";
 import IngredientsListHeader from "@/components/ingredientListHeader";
 import SearchAndFilters from "@/components/searchAndFilters";
-import { ingredients } from "@/data/ingredientsData";
+import { useAppData } from "@/storage/appStore";
 import { Ionicons } from "@expo/vector-icons";
 import Screen from "@/components/Screen";
 
@@ -18,10 +18,12 @@ const CATEGORIES = [
   "Other",
 ];
 
-//TODO 
-//implement it as a pantry with json storage
+//TODO
+//show the pantry entries (useAppData().pantry, changed with savePantryEntry / deletePantryEntry).
+//For now this lists the saved ingredients.
 
 export default function PantryTab() {
+  const { ingredients } = useAppData();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All items");
 

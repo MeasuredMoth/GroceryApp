@@ -3,15 +3,9 @@
 import { Platform } from "react-native";
 import { applyPlan, hasNotificationPermission } from "./notifications";
 import { loadNotificationSettings } from "./notificationSettings";
-import { NotificationData, planNotifications } from "./planner";
-
-// TODO: connect real data once it exists, then call rescheduleNotifications() after saving it.
-//  - meals: needs a date and time on each MealPlan entry
-//  - pantry: needs an expiry date on Ingredient
-// The meal prep and expiry rules in planner.ts are ready and tested for when these arrive.
-function loadNotificationData(): NotificationData {
-  return { meals: [], pantry: [] };
-}
+import { toNotificationData } from "./notificationData";
+import { planNotifications } from "./planner";
+import { appStore } from "../storage/appStore";
 
 let queue: Promise<void> = Promise.resolve();
 
@@ -25,7 +19,7 @@ export function rescheduleNotifications(): Promise<void> {
     if (Platform.OS === "web") return;
     if (!(await hasNotificationPermission())) return;
 
-    await applyPlan(planNotifications(loadNotificationData(), loadNotificationSettings()));
+    await applyPlan(planNotifications(toNotificationData(appStore.get()), loadNotificationSettings()));
   };
 
   queue = queue.then(run, run);
