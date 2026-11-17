@@ -95,7 +95,7 @@ function planMealPrep(meals: PlannedMeal[], settings: NotificationSettings, now:
       id: `meal-${meal.at.getTime()}-${meal.recipeName}`,
       title: "Time to prep",
       body: `${meal.recipeName} is planned for ${when}`,
-      url: "/mealplan",
+      url: "/mealplanTab",
       trigger: { kind: "date", date: fireAt },
     });
   }
@@ -139,7 +139,7 @@ function planExpiry(pantry: ExpiringItem[], settings: NotificationSettings, now:
       id: `expiry-${fireAt.getTime()}`,
       title: "Expiring soon",
       body,
-      url: "/ingredientsTab",
+      url: "/pantryTab",
       trigger: { kind: "date", date: fireAt } as PlannedTrigger,
     };
   });
@@ -159,7 +159,7 @@ export function planNotifications(
       id: "weekly-plan",
       title: "Plan your week",
       body: "Take a few minutes to plan your meals for the week.",
-      url: "/mealplan",
+      url: "/mealplanTab",
       trigger: { kind: "weekly", weekday, hour, minute },
     });
   }

@@ -21,7 +21,6 @@ import {
 } from "react-native";
 import {
   addMeal,
-  createEmptyPlan,
   createMeal,
   editMeal,
   EditScope,
@@ -29,11 +28,9 @@ import {
   MEAL_TYPES,
   mealsFor,
   MealType,
-  Plan,
   weekdayOf,
 } from "../../../data/recipe/meal-plan";
 import { Recipe, recipeToItems } from "../../../data/recipe/recipe";
-import { recipes } from "@/data/recipesData";
 import dayjs from "dayjs";
 import { ActionCard } from "@/components/actionCard";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -41,12 +38,12 @@ import { Card } from "@/components/card";
 import { DayScreen } from "@/components/dayScreen";
 import { Banner } from "@/components/bannerWithButton";
 import RecipePickerModal from "@/components/recipePickerModal";
-import { toDateKey } from "../../../data/util";
+import { doneKey } from "../../../data/store/app-data";
+import { setMealsDone, updatePlan, useAppData } from "@/storage/appStore";
 
 
 //TODO 
-//1. Switching from useState to a json file --> this way data can be read across the todayTab and the mealPlan tab
-//2. Removing the possibility to add ingredients or recipes from the today tab: that can only be possible in the mealplan tab
+//1. Removing the possibility to add ingredients or recipes from the today tab: that can only be possible in the mealplan tab
 
 //the core job is helping someone follow and manage a plan they already have, day by day.
 
@@ -90,15 +87,15 @@ export default function Index() {
 
   const greetingPhrase = greeting(dayjs().hour());
  
-  // The plan is plain data and every plan function returns a new Plan,
-  // so setPlan is enough to refresh the screen (no ref or rerender counter needed).
-  const [plan, setPlan] = useState<Plan>(createEmptyPlan);
+  // Saved on the device and shared with the meal plan tab.
+  // Every plan function returns a new Plan, so it can be passed straight to updatePlan.
+  const { plan, done } = useAppData();
 
   // Adds a recipe's ingredients to the meal of that type on the selected date.
   // TODO: ask "just this day" or "every <weekday>" instead of always using "day".
 const addRecipe = (type: MealType, recipe: Recipe, scope: EditScope) => {
   const items = recipeToItems(recipe);
-  setPlan((p) => {
+  updatePlan((p) => {
     const existing = mealsFor(p, date).find((m) => m.type === type);
     return existing
       ? editMeal(p, date, { ...existing, items: [...existing.items, ...items] }, scope)
@@ -107,7 +104,7 @@ const addRecipe = (type: MealType, recipe: Recipe, scope: EditScope) => {
   setPickerFor(null);
 };
  const removeItem = (meal: Meal, index: number) => {
-    setPlan((p) =>
+    updatePlan((p) =>
       editMeal(p, date, { ...meal, items: meal.items.filter((_, i) => i !== index) }, "day"),
     );
   };
@@ -128,17 +125,11 @@ const addRecipe = (type: MealType, recipe: Recipe, scope: EditScope) => {
     setNotificationStatus("Scheduled! It will appear in 5 seconds.");
   };
 
-  const [done, setDone] = useState<Record<string, boolean>>({});
-  const doneKey = (m: Meal) => `${toDateKey(date)}:${m.id}`;
-  const isDone = (m: Meal) => !!done[doneKey(m)];
+  const isDone = (m: Meal) => !!done[doneKey(date, m.id)];
 
   const toggleDone = (meals: Meal[]) => {
     const allDone = meals.every(isDone);
-    setDone((prev) => {
-      const next = { ...prev };
-      meals.forEach((m) => (next[doneKey(m)] = !allDone));
-      return next;
-    });
+    setMealsDone(date, meals.map((m) => m.id), !allDone);
   };
 
   return (

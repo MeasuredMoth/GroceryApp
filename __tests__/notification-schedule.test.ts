@@ -3,11 +3,19 @@ import { applyPlan, scheduleTestNotification } from "../src/notifications/notifi
 import { loadNotificationSettings } from "../src/notifications/notificationSettings";
 import { DEFAULT_SETTINGS } from "../src/notifications/planner";
 import { rescheduleNotifications } from "../src/notifications/reschedule";
+import { createAppData } from "../data/store/app-data";
+import { addMeal, createMeal } from "../data/recipe/meal-plan";
 
 jest.mock("react-native", () => ({ Platform: { OS: "android" } }));
 
 jest.mock("../src/notifications/notificationSettings", () => ({
     loadNotificationSettings: jest.fn(),
+}));
+
+// The real store reads a file on the device. Here it holds whatever the test puts in mockData.
+let mockData = createAppData({ ingredients: [], recipes: [] });
+jest.mock("../src/storage/appStore", () => ({
+    appStore: { get: () => mockData },
 }));
 
 jest.mock("expo-notifications", () => ({
@@ -40,6 +48,7 @@ beforeEach(() => {
     alreadyScheduled();
     allowPermission(true);
     mockedSettings.mockReturnValue(DEFAULT_SETTINGS);
+    mockData = createAppData({ ingredients: [], recipes: [] });
 })
 
 test("Weekly reminder reaches Expo as a weekly trigger", async () => {
@@ -87,6 +96,20 @@ test("Rescheduling uses the saved settings", async () => {
 
     expect(mocked.scheduleNotificationAsync).toHaveBeenCalledTimes(1);
     expect(mocked.scheduleNotificationAsync.mock.calls[0][0].identifier).toBe("weekly-plan");
+})
+
+test("Rescheduling uses the saved meal plan", async () => {
+    // A week from now, so the reminder is always in the future and inside the scheduling window
+    const now = new Date();
+    const nextWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 6, 12, 0);
+    const lunch = createMeal("Lunch", "12:00", [{ ingredientId: "oats", amount: 80, unit: "g" }]);
+    mockData.plan = addMeal(mockData.plan, nextWeek, lunch, "day");
+    mockedSettings.mockReturnValue({ ...DEFAULT_SETTINGS, mealPrep: { enabled: true, hoursBefore: 2 } });
+
+    await rescheduleNotifications();
+
+    expect(mocked.scheduleNotificationAsync).toHaveBeenCalledTimes(1);
+    expect(mocked.scheduleNotificationAsync.mock.calls[0][0].content.title).toBe("Time to prep");
 })
 
 test("Turning the reminder off removes it", async () => {

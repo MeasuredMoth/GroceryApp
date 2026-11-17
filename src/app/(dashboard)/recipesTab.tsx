@@ -5,12 +5,13 @@ import Header from "@/components/header";
 import SearchAndFilters from "@/components/searchAndFilters"
 import { useState, useMemo } from "react";
 import RecipesListHeader from "@/components/recipesListHeader"
-import { recipes } from "@/data/recipesData"
+import { useAppData } from "@/storage/appStore"
 import RecipeCard from "@/components/recipeCard"
 
 const CATEGORIES = ["All", "Breakfast", "Lunch", "Dinner", "Snacks", "Desserts"];
 
 export default function RecipesTab() {
+  const { recipes } = useAppData();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
 
@@ -20,10 +21,10 @@ export default function RecipesTab() {
     () =>
       recipes.filter(
         (r) =>
-          r.getName().toLowerCase().includes(search.toLowerCase()) &&
-          (category === "All" || r.getCategory() === category)
+          r.name.toLowerCase().includes(search.toLowerCase()) &&
+          (category === "All" || r.category === category)
       ),
-    [search, category]
+    [recipes, search, category]
   );
 
   //spacing trick in order to append a null at the end if the number of recipes is odd (since we have recipes split into two columns)
@@ -55,7 +56,7 @@ export default function RecipesTab() {
       <FlatList
         data={data}
         numColumns={2}
-        keyExtractor={(item, i) => (item ? item.getId() : `spacer-${i}`)} //gives a key to every recipe based on its ID
+        keyExtractor={(item, i) => (item ? item.id : `spacer-${i}`)} //gives a key to every recipe based on its ID
         columnWrapperStyle={{ gap: 12 }}
         contentContainerStyle={{ padding: 16, gap: 12 }}
         ListHeaderComponent={<RecipesListHeader count={visible.length} />} //renders the title, number of recipes and the sort by button

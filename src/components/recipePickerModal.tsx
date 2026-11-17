@@ -2,7 +2,7 @@ import { useState } from "react";
 import { FlatList, Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import Screen from "@/components/Screen";
 import { Colors } from "@/constants/Colors";
-import { recipes } from "@/data/recipesData";
+import { useAppData } from "@/storage/appStore";
 import { EditScope, MealType } from "../../data/recipe/meal-plan";
 import { Recipe } from "../../data/recipe/recipe";
 
@@ -14,6 +14,7 @@ type Props = {
 };
 
 export default function RecipePickerModal({ type, weekday, onPick, onClose }: Props) {
+  const { recipes } = useAppData();
   const [scope, setScope] = useState<EditScope>("day");
 
   const pick = (recipe: Recipe) => {

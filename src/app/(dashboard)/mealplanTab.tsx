@@ -8,7 +8,6 @@ import { DayScreen } from "@/components/dayScreen";
 import RecipePickerModal from "@/components/recipePickerModal";
 import {
   addMeal,
-  createEmptyPlan,
   createMeal,
   editMeal,
   EditScope,
@@ -16,11 +15,11 @@ import {
   Meal,
   mealsFor,
   MealType,
-  Plan,
   resetDay,
   weekdayOf,
 } from "../../../data/recipe/meal-plan";
 import { Recipe, recipeToItems } from "../../../data/recipe/recipe";
+import { updatePlan, useAppData } from "@/storage/appStore";
 
 // Time given to a meal created from the picker. Meal times become editable later.
 const DEFAULT_TIMES: Record<MealType, string> = {
@@ -46,8 +45,8 @@ const DAYS = buildDays();
 const TODAY_INDEX = WEEKS * 7 + ((new Date().getDay() + 6) % 7);
 
 export default function MealPlanTab() {
-  // Own state for now. Swap for the shared plan once the JSON storage exists.
-  const [plan, setPlan] = useState<Plan>(createEmptyPlan);
+  // Saved on the device and shared with the today tab
+  const { plan } = useAppData();
   const [selected, setSelected] = useState(TODAY_INDEX);
   const [pageWidth, setPageWidth] = useState(0);
   const [pickerFor, setPickerFor] = useState<MealType | null>(null);
@@ -67,7 +66,7 @@ export default function MealPlanTab() {
     if (!pickerFor) return;
     const type = pickerFor;
     const items = recipeToItems(recipe);
-    setPlan((p) => {
+    updatePlan((p) => {
       const existing = mealsFor(p, date).find((m) => m.type === type);
       return existing
         ? editMeal(p, date, { ...existing, items: [...existing.items, ...items] }, scope)
@@ -77,7 +76,7 @@ export default function MealPlanTab() {
   };
 
   const removeItem = (d: Date, meal: Meal, index: number) => {
-    setPlan((p) =>
+    updatePlan((p) =>
       editMeal(p, d, { ...meal, items: meal.items.filter((_, i) => i !== index) }, "day"),
     );
   };
@@ -94,7 +93,7 @@ export default function MealPlanTab() {
       <DaySelector days={week} selected={selected % 7} onSelect={(i) => goTo(weekStart + i)} />
 
       {hasOverride(plan, date) && (
-        <Pressable onPress={() => setPlan((p) => resetDay(p, date))}>
+        <Pressable onPress={() => updatePlan((p) => resetDay(p, date))}>
           <Text style={styles.reset}>
             Changed for this day only. Tap to go back to every {weekdayOf(date)}.
           </Text>
