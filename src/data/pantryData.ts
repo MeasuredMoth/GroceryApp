@@ -1,12 +1,36 @@
-import { PantryEntry } from "../../data/recipe/pantry";
+import { ingredients } from "./ingredientsData";
+import { createPantryEntry, PantryEntry } from "../../data/recipe/pantry";
+import { Unit } from "../../data/unit";
+import { toDateKey } from "../../data/util";
 
-// Stand-in: appStore.ts imports this file but it wasn't committed on feature/pantryTab.
-// If you have your own version locally, keep yours.
-export const pantry: PantryEntry[] = [
-  { id: "pantry-oats", ingredientId: "oats", amount: 500, unit: "g" },
-  { id: "pantry-eggs", ingredientId: "eggs", amount: 4, unit: "piece" },
-  { id: "pantry-milk", ingredientId: "milk", amount: 1, unit: "l", expiresOn: "2026-11-21" },
-  { id: "pantry-broccoli", ingredientId: "broccoli", amount: 200, unit: "g", expiresOn: "2026-11-19" },
-  { id: "pantry-pasta", ingredientId: "pasta", amount: 500, unit: "g" },
-  { id: "pantry-rice", ingredientId: "rice", amount: 1, unit: "kg" },
+function daysFromNow(days: number) {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return toDateKey(d);
+}
+
+type Sample = { id: string; amount: number; unit: Unit; expiresInDays?: number };
+
+const SAMPLES: Sample[] = [
+  { id: "salmon", amount: 300, unit: "g", expiresInDays: 2 },
+  { id: "lettuce", amount: 160, unit: "g", expiresInDays: 1 },
+  { id: "greek-yogurt", amount: 250, unit: "g", expiresInDays: 3 },
+  { id: "rice", amount: 1200, unit: "g" },
+  { id: "eggs", amount: 4, unit: "piece", expiresInDays: 10 },
+  { id: "broccoli", amount: 200, unit: "g", expiresInDays: 5 },
+  { id: "pasta", amount: 500, unit: "g" },
+  { id: "milk", amount: 1, unit: "l", expiresInDays: 6 },
+  { id: "banana", amount: 0, unit: "piece" },
 ];
+
+export const pantry: PantryEntry[] = SAMPLES.flatMap((s) => {
+  const ingredient = ingredients.find((i) => i.id === s.id);
+  if (!ingredient) return [];
+  return [
+    createPantryEntry(
+      ingredient,
+      { amount: s.amount, unit: s.unit },
+      s.expiresInDays !== undefined ? daysFromNow(s.expiresInDays) : undefined,
+    ),
+  ];
+});
