@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { View, StyleSheet, Pressable, Text } from "react-native";
-import { router } from "expo-router";
-import Animated, { FadeIn, FadeOut, LinearTransition } from "react-native-reanimated";
+import { Href, router } from "expo-router";
+import Animated, { Easing, FadeIn, FadeOut, LinearTransition } from "react-native-reanimated";
 import Header from "@/components/header";
 import IngredientRow from "@/components/ingredientRow";
 import SwipeableRow, { closeOpenRow } from "@/components/swipeableRow";
@@ -11,6 +11,8 @@ import { deletePantryEntry, useAppData } from "@/storage/appStore";
 import { Ionicons } from "@expo/vector-icons";
 import Screen from "@/components/Screen";
 import Feather from "@expo/vector-icons/Feather";
+import { Ingredient } from "../../../data/recipe/ingredient";
+import { PantryEntry } from "../../../data/recipe/pantry";
 
 const CATEGORIES = [
   "All items",
@@ -22,12 +24,18 @@ const CATEGORIES = [
   "Other",
 ];
 
+type Row = { entry: PantryEntry; ingredient: Ingredient };
+
+// Removed rows fade out quickly, then the rows below glide up. No spring, so nothing bounces.
+const ROW_EXIT = FadeOut.duration(160);
+const ROW_LAYOUT = LinearTransition.duration(240).easing(Easing.out(Easing.cubic));
+
 export default function PantryTab() {
   const { ingredients, pantry } = useAppData();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All items");
 
-  const rows = pantry.flatMap((entry) => {
+  const rows: Row[] = pantry.flatMap((entry) => {
     const ingredient = ingredients.find((i) => i.id === entry.ingredientId);
     return ingredient ? [{ entry, ingredient }] : [];
   });
@@ -51,7 +59,7 @@ export default function PantryTab() {
               style={styles.addButton}
               onPress={() => {
                 closeOpenRow();
-                router.push("/pantry-item");
+                router.push("/pantry-item" as Href);
               }}
             >
               <Ionicons name="add" size={20} color="white" />
@@ -71,16 +79,16 @@ export default function PantryTab() {
         placeholder="Search ingredients"
       />
 
-      {/* Only this scrolls. Swipe a row left for Edit / Remove; removed rows fade out and the rest slide up. */}
+      {/* Only this scrolls. Swipe a row left for Edit / Remove. */}
       <Animated.FlatList
         data={visible}
         keyExtractor={(item) => item.entry.id}
-        itemLayoutAnimation={LinearTransition.springify().damping(18)}
+        itemLayoutAnimation={ROW_LAYOUT}
         onScrollBeginDrag={closeOpenRow}
         renderItem={({ item }) => (
-          <Animated.View entering={FadeIn} exiting={FadeOut.duration(200)}>
+          <Animated.View entering={FadeIn.duration(200)} exiting={ROW_EXIT}>
             <SwipeableRow
-              onEdit={() => router.push({ pathname: "/pantry-item", params: { id: item.entry.id } })}
+              onEdit={() => router.push(`/pantry-item?id=${encodeURIComponent(item.entry.id)}` as Href)}
               onDelete={() => deletePantryEntry(item.entry.id)}
             >
               <IngredientRow
@@ -102,7 +110,6 @@ export default function PantryTab() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1 },
   addButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -113,6 +120,5 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   addLabel: { color: "white", fontWeight: "600" },
-  addRow: { alignItems: "flex-end", paddingHorizontal: 16, marginTop: 8 },
   headerContainer: { paddingHorizontal: 16, paddingBottom: 8 },
 });

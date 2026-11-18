@@ -36,9 +36,10 @@ type Props = {
 export default function SwipeableRow({ children, onEdit, onDelete }: Props) {
   const ref = useRef<SwipeableMethods>(null);
 
-  // Closes the row first, so it's back in place when the user returns from the edit screen
-  const run = (action: () => void) => {
-    ref.current?.close();
+  // Edit closes the row, so it's back in place after the edit screen.
+  // Remove leaves it open: the row fades out where it is instead of sliding back while fading.
+  const run = (action: () => void, close: boolean) => {
+    if (close) ref.current?.close();
     openRow = null;
     action();
   };
@@ -58,7 +59,7 @@ export default function SwipeableRow({ children, onEdit, onDelete }: Props) {
         if (openRow === ref.current) openRow = null;
       }}
       renderRightActions={(progress) => (
-        <Actions progress={progress} onEdit={() => run(onEdit)} onDelete={() => run(onDelete)} />
+        <Actions progress={progress} onEdit={() => run(onEdit, true)} onDelete={() => run(onDelete, false)} />
       )}
     >
       {children}

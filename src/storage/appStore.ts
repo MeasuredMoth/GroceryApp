@@ -15,7 +15,7 @@ import { AppData, removeById, setDone, upsertById } from "../../data/store/app-d
 import { DataStore, StorageBackend } from "../../data/store/data-store";
 import { Ingredient } from "../../data/recipe/ingredient";
 import { Plan } from "../../data/recipe/meal-plan";
-import { PantryEntry } from "../../data/recipe/pantry";
+import { mergeIntoPantry, PantryEntry } from "../../data/recipe/pantry";
 import { Recipe } from "../../data/recipe/recipe";
 import { ingredients as starterIngredients } from "../data/ingredientsData";
 import { recipes as starterRecipes } from "../data/recipesData";
@@ -81,8 +81,9 @@ export function deleteRecipe(id: string) {
   appStore.update((data) => ({ recipes: removeById(data.recipes, id) }));
 }
 
+/** Adds or edits a pantry entry. Same ingredient + same expiry date sums into one row (see mergeIntoPantry). */
 export function savePantryEntry(entry: PantryEntry) {
-  appStore.update((data) => ({ pantry: upsertById(data.pantry, entry) }));
+  appStore.update((data) => ({ pantry: mergeIntoPantry(data.pantry, entry) }));
 }
 
 export function deletePantryEntry(id: string) {

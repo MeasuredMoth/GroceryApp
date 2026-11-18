@@ -24,8 +24,8 @@ import {
   INGREDIENT_CATEGORIES,
   IngredientCategory,
 } from "../../data/recipe/ingredient";
-import { createPantryEntry } from "../../data/recipe/pantry";
-import { Unit } from "../../data/unit";
+import { createPantryEntry, PantryEntry } from "../../data/recipe/pantry";
+import { canConvert, convert, Unit } from "../../data/unit";
 import { DateKey, toDateKey } from "../../data/util";
 
 /* ---------- Small helpers ---------- */
@@ -126,6 +126,27 @@ export default function PantryItemScreen() {
     if (!unit) return;
     const current = Number.isFinite(amount) ? amount : 0;
     setAmountText(formatAmount(Math.max(0, current + direction * stepFor(unit))));
+  };
+
+  // When adding, the row this will be summed into (same ingredient and expiry date), so the user knows
+  const mergeTarget: PantryEntry | undefined =
+    !isEdit && selected && unit
+      ? pantry.find(
+          (e) =>
+            e.ingredientId === selected.id &&
+            (e.expiresOn ?? null) === (expiresOn ?? null) &&
+            canConvert(unit, e.unit),
+        )
+      : undefined;
+  const mergedTotal =
+    mergeTarget && unit && amountOk
+      ? mergeTarget.amount + (convert({ amount, unit }, mergeTarget.unit)?.amount ?? 0)
+      : null;
+
+  const markRunOut = () => {
+    if (!editing) return;
+    savePantryEntry({ ...editing, amount: 0 });
+    router.back();
   };
 
   const save = () => {
@@ -276,7 +297,37 @@ export default function PantryItemScreen() {
             )}
 
             <ExpiryField value={expiresOn} onChange={setExpiresOn} />
+
+            {mergeTarget && (
+              <View style={styles.mergeNote}>
+                <Ionicons name="git-merge-outline" size={16} color={Colors.primaryDark} />
+                <Text style={styles.mergeNoteText}>
+                  {mergeTarget.amount === 0
+                    ? `Restocks your empty ${selected.name} row`
+                    : mergedTotal !== null
+                      ? `Adds to the ${formatAmount(mergeTarget.amount)} ${mergeTarget.unit} you have: ${formatAmount(mergedTotal)} ${mergeTarget.unit} total`
+                      : `Adds to the ${formatAmount(mergeTarget.amount)} ${mergeTarget.unit} you already have`}
+                </Text>
+              </View>
+            )}
           </Animated.View>
+        )}
+
+        {/* Keeps the row in the pantry with "OUT", so it's clear it needs buying */}
+        {editing && editing.amount > 0 && (
+          <Pressable style={styles.runOutButton} onPress={markRunOut} accessibilityRole="button">
+            <Ionicons name="remove-circle-outline" size={20} color={Colors.danger} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.runOutTitle}>Mark as run out</Text>
+              <Text style={styles.muted}>Keeps it in your pantry, marked as out of stock</Text>
+            </View>
+          </Pressable>
+        )}
+        {editing && editing.amount === 0 && (
+          <View style={styles.outNote}>
+            <Ionicons name="alert-circle-outline" size={18} color={Colors.danger} />
+            <Text style={styles.outNoteText}>Out of stock. Set an amount above to restock it.</Text>
+          </View>
         )}
 
         {/* Ingredient list to pick from (not shown when editing) */}
@@ -672,6 +723,36 @@ const styles = StyleSheet.create({
   muted: { fontSize: 12, color: Colors.textMuted },
   link: { fontSize: 15, fontWeight: "600", color: Colors.primaryDark },
   error: { fontSize: 12, color: Colors.danger },
+
+  mergeNote: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: Colors.primarySoft,
+    borderRadius: 10,
+    padding: 10,
+  },
+  mergeNoteText: { flex: 1, fontSize: 13, color: Colors.primaryDark },
+  runOutButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    backgroundColor: Colors.card,
+    borderWidth: 1,
+    borderColor: "#F3C7C7",
+    borderRadius: 16,
+    padding: 14,
+  },
+  runOutTitle: { fontSize: 15, fontWeight: "700", color: Colors.danger },
+  outNote: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "#FDECEC",
+    borderRadius: 12,
+    padding: 12,
+  },
+  outNoteText: { flex: 1, fontSize: 13, color: Colors.danger },
 
   customCard: {
     backgroundColor: Colors.card,
