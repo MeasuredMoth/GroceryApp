@@ -13,6 +13,7 @@ import Screen from "@/components/Screen";
 import Feather from "@expo/vector-icons/Feather";
 import { Ingredient } from "../../../data/recipe/ingredient";
 import { PantryEntry } from "../../../data/recipe/pantry";
+import PantryResume from "@/components/pantryResume";
 
 const CATEGORIES = [
   "All items",
@@ -29,6 +30,19 @@ type Row = { entry: PantryEntry; ingredient: Ingredient };
 // Removed rows fade out quickly, then the rows below glide up. No spring, so nothing bounces.
 const ROW_EXIT = FadeOut.duration(160);
 const ROW_LAYOUT = LinearTransition.duration(240).easing(Easing.out(Easing.cubic));
+const EXPIRING_SOON_DAYS = 3;
+const MS_PER_DAY = 86_400_000;
+
+
+// Assumes expiresOn is an ISO date string like "2026-11-20".
+// Parsed as a local date so the day count doesn't shift with timezones.
+function daysUntil(isoDate: string): number | null {
+  const [y, m, d] = isoDate.slice(0, 10).split("-").map(Number);
+  if (!y || !m || !d) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return Math.round((new Date(y, m - 1, d).getTime() - today.getTime()) / MS_PER_DAY);
+}
 
 export default function PantryTab() {
   const { ingredients, pantry } = useAppData();
@@ -45,6 +59,20 @@ export default function PantryTab() {
       (category === "All items" || ingredient.category === category) &&
       ingredient.name.toLowerCase().includes(search.toLowerCase()),
   );
+
+  // Computed from all rows, not `visible`, so search/filters don't change the warning.
+const withExpiry = rows
+  .filter(({ entry }) => entry.expiresOn && entry.amount > 0)
+  .map(({ entry, ingredient }) => ({
+    name: ingredient.name,
+    daysLeft: daysUntil(entry.expiresOn!),
+  }))
+  .filter((r): r is { name: string; daysLeft: number } => r.daysLeft !== null)
+  .sort((a, b) => a.daysLeft - b.daysLeft);
+
+const expiringSoon = withExpiry.filter((r) => r.daysLeft <= EXPIRING_SOON_DAYS);
+const nextExpiring = withExpiry[0];
+
 
   return (
     <Screen>
@@ -68,6 +96,14 @@ export default function PantryTab() {
           }
         />
       </View>
+
+   <View style={styles.resumeContainer}>
+  <PantryResume
+    totalItems={rows.length}
+    expiringSoonCount={expiringSoon.length}
+    nextExpiring={nextExpiring}
+  />
+</View>
 
       <SearchAndFilters
         search={search}
@@ -121,4 +157,5 @@ const styles = StyleSheet.create({
   },
   addLabel: { color: "white", fontWeight: "600" },
   headerContainer: { paddingHorizontal: 16, paddingBottom: 8 },
+  resumeContainer: { paddingHorizontal: 16, paddingBottom: 8 },
 });
