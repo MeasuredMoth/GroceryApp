@@ -4,7 +4,7 @@ import Header from "@/components/header";
 import IngredientRow from "@/components/ingredientRow";
 import IngredientsListHeader from "@/components/ingredientListHeader";
 import SearchAndFilters from "@/components/searchAndFilters";
-import { ingredients } from "@/data/ingredientsData";
+import { useAppData } from "@/storage/appStore";
 import { Ionicons } from "@expo/vector-icons";
 import Screen from "@/components/Screen";
 
@@ -14,26 +14,32 @@ const CATEGORIES = [
   "Carbs",
   "Vegetables",
   "Dairy",
+  "Fruit",
   "Other",
 ];
 
-export default function IngredientsTab() {
+//TODO
+//show the pantry entries (useAppData().pantry, changed with savePantryEntry / deletePantryEntry).
+//For now this lists the saved ingredients.
+
+export default function PantryTab() {
+  const { ingredients } = useAppData();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All items");
 
-  const visible = ingredients.filter(
-    (i) => i.getName().toLowerCase().includes(search.toLowerCase()),
-    // add the category filter once Ingredient has a category field
-  );
+const visible = ingredients.filter(
+  (i) =>
+    (category === "All items" || i.category === category) &&
+    i.name.toLowerCase().includes(search.toLowerCase()),
+);
 
   return (
     <Screen>
       {/* Fixed (non-scrolling) area */}
       <View style={styles.headerContainer}>
         <Header
-          textHeader="Ingredients"
+          textHeader="Pantry"
           firstSubheading="Your ingredient database"
-          secondSubheading="Save nutrition, prices and details once. Reuse them in every recipe."
           action={
             <Pressable style={styles.addButton} onPress={() => {}}>
               <Ionicons name="add" size={20} color="white" />
@@ -50,12 +56,13 @@ export default function IngredientsTab() {
         categories={CATEGORIES}
         category={category}
         onCategoryChange={setCategory}
+        placeholder="Search ingredients"
       />
 
       {/* Only this scrolls */}
       <FlatList
         data={visible}
-        keyExtractor={(item) => item.getName()}
+        keyExtractor={(item) => item.id}
         renderItem={({ item }) => <IngredientRow ingredient={item} />}
         ListHeaderComponent={<IngredientsListHeader count={visible.length} />}
         contentContainerStyle={{ padding: 16, gap: 12 }}
@@ -67,16 +74,12 @@ export default function IngredientsTab() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-<<<<<<< HEAD
   headerContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 16,
   },
-=======
-  headerContainer: { paddingHorizontal: 16, paddingBottom: 12 },
->>>>>>> 0b7764e (Switched to new data structure)
   addButton: {
     flexDirection: "row",
     alignItems: "center",
