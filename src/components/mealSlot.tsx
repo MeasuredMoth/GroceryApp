@@ -37,8 +37,8 @@ const pretty = (s: string) => {
 type Props = {
   type: MealType;
   meals: Meal[]; // the day's meals of this type (usually 0 or 1)
-  onAdd: () => void;
-  onRemoveItem: (meal: Meal, index: number) => void;
+  onAdd?: () => void;
+  onRemoveItem?: (meal: Meal, index: number) => void;
   // Turns an ingredient id into a display name. Defaults to showing the id
   // until an ingredient library exists to look names up in.
   nameOf?: (ingredientId: string) => string;
@@ -83,48 +83,49 @@ export default function MealSlot({
       </View>
 
       <View style={styles.items}>
-        {meals.map((meal) => {
-          // Key by ingredient (+ nth repeat of it), not by position, so the
-          // right row fades out when one is removed.
-          const seen: Record<string, number> = {};
-          return meal.items.map((item, index) => {
-            const n = (seen[item.ingredientId] =
-              (seen[item.ingredientId] ?? 0) + 1);
-            return (
-              <Animated.View
-                key={`${meal.id}-${item.ingredientId}-${n}`}
-                entering={FadeIn.duration(200)}
-                exiting={ROW_EXIT}
-                layout={ROW_LAYOUT}
-              >
-                <SwipeableRow onDelete={() => onRemoveItem(meal, index)}>
-                  <IngredientRow
-                    title={pretty(nameOf(item.ingredientId))}
-                    value={`${item.amount} ${item.unit}`}
-                    trailing={
-                      <Pressable
-                        onPress={() => onRemoveItem(meal, index)}
-                        hitSlop={8}
-                      >
-                        <Ionicons
-                          name="close"
-                          size={18}
-                          color={Colors.textMuted}
-                        />
-                      </Pressable>
-                    }
-                  />
-                </SwipeableRow>
-              </Animated.View>
-            );
-          });
-        })}
-      </View>
+  {meals.map((meal) => {
+    const seen: Record<string, number> = {};
+    return meal.items.map((item, index) => {
+      const n = (seen[item.ingredientId] = (seen[item.ingredientId] ?? 0) + 1);
 
-      <Pressable style={styles.addPill} onPress={onAdd}>
-        <Ionicons name="add" size={18} color="#0f4d3a" />
-        <Text style={styles.addText}>Add recipe or ingredient</Text>
-      </Pressable>
+      const row = (
+        <IngredientRow
+          title={pretty(nameOf(item.ingredientId))}
+          value={`${item.amount} ${item.unit}`}
+          trailing={
+            onRemoveItem ? (
+              <Pressable onPress={() => onRemoveItem(meal, index)} hitSlop={8}>
+                <Ionicons name="close" size={18} color={Colors.textMuted} />
+              </Pressable>
+            ) : undefined
+          }
+        />
+      );
+
+      return (
+        <Animated.View
+          key={`${meal.id}-${item.ingredientId}-${n}`}
+          entering={FadeIn.duration(200)}
+          exiting={ROW_EXIT}
+          layout={ROW_LAYOUT}
+        >
+          {onRemoveItem ? (
+            <SwipeableRow onDelete={() => onRemoveItem(meal, index)}>{row}</SwipeableRow>
+          ) : (
+            row
+          )}
+        </Animated.View>
+      );
+    });
+  })}
+</View>
+
+     {onAdd && (
+  <Pressable style={styles.addPill} onPress={onAdd}>
+    <Ionicons name="add" size={18} color="#0f4d3a" />
+    <Text style={styles.addText}>Add recipe or ingredient</Text>
+  </Pressable>
+)}
     </View>
   );
 }

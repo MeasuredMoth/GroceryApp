@@ -149,8 +149,6 @@ const addRecipe = (type: MealType, recipe: Recipe, scope: EditScope) => {
               <DayScreen
                 date={date}
                 plan={plan}
-                onAdd={setPickerFor}
-                onRemoveItem={removeItem}
                 isDone={isDone}
                 onToggleDone={toggleDone}
               />
@@ -195,13 +193,6 @@ const addRecipe = (type: MealType, recipe: Recipe, scope: EditScope) => {
             buttonLabel="Edit this week"
           />
         </View>
-
-        {/* <Pressable style={styles.testButton} onPress={sendTestNotification}>
-          <Text style={styles.testButtonText}>Send test notification</Text>
-        </Pressable>
-        {notificationStatus !== "" && (
-          <Text style={styles.tagline}>{notificationStatus}</Text>
-        )} */}
       </ScrollView>
     </Screen>
   );
