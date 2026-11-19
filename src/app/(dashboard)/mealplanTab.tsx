@@ -20,6 +20,7 @@ import {
 } from "../../../data/recipe/meal-plan";
 import { Recipe, recipeToItems } from "../../../data/recipe/recipe";
 import { updatePlan, useAppData } from "@/storage/appStore";
+import Entypo from "@expo/vector-icons/Entypo";
 
 // Time given to a meal created from the picker. Meal times become editable later.
 const DEFAULT_TIMES: Record<MealType, string> = {
@@ -85,6 +86,7 @@ export default function MealPlanTab() {
     <Screen>
       <View style={styles.headerContainer}>
         <Header
+          icon={<Entypo name="calendar" size={24} color="#0f4d3a" />}
           textHeader="Meal Plan"
           secondSubheading="Swipe between days to see or change your plan."
         />
