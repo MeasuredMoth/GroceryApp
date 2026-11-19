@@ -108,7 +108,17 @@ function Actions({
           </Animated.View>
         </Pressable>
       )}
-      {/* Remove Pressable unchanged */}
+            <Pressable
+        style={[styles.button, styles.remove]}
+        onPress={onDelete}
+        accessibilityRole="button"
+        accessibilityLabel="Remove"
+      >
+        <Animated.View style={[styles.buttonContent, appear]}>
+          <Ionicons name="trash-outline" size={20} color="white" />
+          <Text style={[styles.label, { color: "white" }]}>Remove</Text>
+        </Animated.View>
+      </Pressable>
     </Animated.View>
   );
 }

@@ -1,9 +1,21 @@
 import { View, Text, Pressable, StyleSheet } from "react-native";
+import Animated, {
+  Easing,
+  FadeIn,
+  FadeOut,
+  LinearTransition,
+} from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
+import IngredientRow from "@/components/ingredientRow";
+import SwipeableRow from "@/components/swipeableRow";
 import { Meal, MealType } from "../../data/recipe/meal-plan";
-import SwipeableRow from "./swipeableRow";
 
+// Same timings as the pantry list
+const ROW_EXIT = FadeOut.duration(160);
+const ROW_LAYOUT = LinearTransition.duration(240).easing(
+  Easing.out(Easing.cubic),
+);
 
 //Sets the icon and tint for each meal type
 const ICONS: Record<
@@ -44,7 +56,6 @@ export default function MealSlot({
   onToggleDone,
 }: Props) {
   const icon = ICONS[type];
-  const hasItems = meals.some((m) => m.items.length > 0);
 
   return (
     <View style={styles.card}>
@@ -71,30 +82,44 @@ export default function MealSlot({
         </View>
       </View>
 
-      {hasItems && <View style={styles.divider} />}
-
-   {meals.map((meal) =>
-  meal.items.map((item, index) => (
-    <SwipeableRow
-      key={`${meal.id}-${item.ingredientId}-${index}`}
-      radius={8}
-      onDelete={() => onRemoveItem(meal, index)}
-    >
-      <View style={styles.itemRow}>
-        <View style={styles.bullet} />
-        <Text style={styles.itemName} numberOfLines={1}>
-          {pretty(nameOf(item.ingredientId))}
-        </Text>
-        <Text style={styles.itemQty}>
-          {item.amount} {item.unit}
-        </Text>
-        <Pressable onPress={() => onRemoveItem(meal, index)} hitSlop={8}>
-          <Ionicons name="close" size={16} color={Colors.textMuted} />
-        </Pressable>
+      <View style={styles.items}>
+        {meals.map((meal) => {
+          // Key by ingredient (+ nth repeat of it), not by position, so the
+          // right row fades out when one is removed.
+          const seen: Record<string, number> = {};
+          return meal.items.map((item, index) => {
+            const n = (seen[item.ingredientId] =
+              (seen[item.ingredientId] ?? 0) + 1);
+            return (
+              <Animated.View
+                key={`${meal.id}-${item.ingredientId}-${n}`}
+                entering={FadeIn.duration(200)}
+                exiting={ROW_EXIT}
+                layout={ROW_LAYOUT}
+              >
+                <SwipeableRow onDelete={() => onRemoveItem(meal, index)}>
+                  <IngredientRow
+                    title={pretty(nameOf(item.ingredientId))}
+                    value={`${item.amount} ${item.unit}`}
+                    trailing={
+                      <Pressable
+                        onPress={() => onRemoveItem(meal, index)}
+                        hitSlop={8}
+                      >
+                        <Ionicons
+                          name="close"
+                          size={18}
+                          color={Colors.textMuted}
+                        />
+                      </Pressable>
+                    }
+                  />
+                </SwipeableRow>
+              </Animated.View>
+            );
+          });
+        })}
       </View>
-    </SwipeableRow>
-  )),
-)}
 
       <Pressable style={styles.addPill} onPress={onAdd}>
         <Ionicons name="add" size={18} color="#0f4d3a" />
@@ -134,28 +159,7 @@ const styles = StyleSheet.create({
   },
   checkDone: { backgroundColor: "#0f4d3a" },
   titleDone: { textDecorationLine: "line-through", color: Colors.textMuted },
-  divider: {
-    height: 1,
-    backgroundColor: Colors.border,
-    marginTop: 14,
-    marginBottom: 6,
-  },
-itemRow: {
-  flexDirection: "row",
-  alignItems: "center",
-  gap: 10,
-  paddingVertical: 8,
-  backgroundColor: Colors.card,
-},
-  bullet: {
-    width: 5,
-    height: 5,
-    borderRadius: 3,
-    backgroundColor: Colors.textMuted,
-  },
-
-  itemName: { flex: 1, fontSize: 15, color: Colors.primaryDark },
-  itemQty: { fontSize: 14, fontWeight: "600", color: Colors.primaryDark },
+  items: { gap: 8, marginTop: 12 },
   addPill: {
     marginTop: 12,
     backgroundColor: "#E6F1EC",

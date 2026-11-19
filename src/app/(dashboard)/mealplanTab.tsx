@@ -5,6 +5,7 @@ import Screen from "@/components/Screen";
 import Header from "@/components/header";
 import DaySelector from "@/components/daySelector";
 import { DayScreen } from "@/components/dayScreen";
+import { closeOpenRow } from "@/components/swipeableRow";
 import RecipePickerModal from "@/components/recipePickerModal";
 import {
   addMeal,
@@ -108,6 +109,7 @@ export default function MealPlanTab() {
             ref={listRef}
             data={DAYS}
             extraData={plan}
+            onScrollBeginDrag={closeOpenRow}
             keyExtractor={(d) => d.toISOString()}
             horizontal
             pagingEnabled
