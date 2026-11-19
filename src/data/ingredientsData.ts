@@ -3,6 +3,7 @@ import { INGREDIENT_CATEGORY, MEASUREMENT_TYPE } from "../../data/util/types";
 
 export const ingredients: Ingredient[] = [
   // VEGETABLES
+<<<<<<< HEAD
   createIngredient("Broccoli", [MEASUREMENT_TYPE.MASS], INGREDIENT_CATEGORY.VEGETABLE, "broccoli"),
   createIngredient("Tomato", [MEASUREMENT_TYPE.MASS, MEASUREMENT_TYPE.COUNT], INGREDIENT_CATEGORY.VEGETABLE, "tomato"),
   createIngredient("Cucumber", [MEASUREMENT_TYPE.MASS, MEASUREMENT_TYPE.COUNT], INGREDIENT_CATEGORY.VEGETABLE, "cucumber"),
@@ -12,6 +13,18 @@ export const ingredients: Ingredient[] = [
   createIngredient("Carrots", [MEASUREMENT_TYPE.MASS], INGREDIENT_CATEGORY.VEGETABLE, "carrots"),
   createIngredient("Peas", [MEASUREMENT_TYPE.MASS], INGREDIENT_CATEGORY.VEGETABLE, "peas"),
   createIngredient("Pumpkin", [MEASUREMENT_TYPE.MASS], INGREDIENT_CATEGORY.VEGETABLE, "pumpkin"),
+=======
+  createIngredient("Broccoli", ["g", "kg"], "Vegetables", "broccoli"),
+  createIngredient("Tomato", ["g", "kg", "piece"], "Vegetables", "tomato"),
+  createIngredient("Cucumber", ["g", "kg", "piece"], "Vegetables", "cucumber"),
+  createIngredient("Lettuce", ["g", "kg"], "Vegetables", "lettuce"),
+  createIngredient("Onion", ["g", "kg", "piece"], "Vegetables", "onion"),
+  createIngredient("Bell Pepper", ["g", "kg", "piece"], "Vegetables", "bell-pepper"),
+  createIngredient("Carrots", ["g", "kg"], "Vegetables", "carrots"),
+  createIngredient("Peas", ["g", "kg"], "Vegetables", "peas"),
+  createIngredient("Pumpkin", ["oz", "lb"], "Vegetables", "pumpkin"),
+
+>>>>>>> a16923d (added pantry resume)
 
 
   // DIARY
