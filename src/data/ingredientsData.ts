@@ -10,6 +10,8 @@ export const ingredients: Ingredient[] = [
   createIngredient("Bell Pepper", ["g", "kg", "piece"], "Vegetables", "bell-pepper"),
   createIngredient("Carrots", ["g", "kg"], "Vegetables", "carrots"),
   createIngredient("Peas", ["g", "kg"], "Vegetables", "peas"),
+  createIngredient("Pumpkin", ["oz", "lb"], "Vegetables", "pumpkin"),
+
 
   // DAIRY
   createIngredient("Milk", ["ml", "l"], "Dairy", "milk"),

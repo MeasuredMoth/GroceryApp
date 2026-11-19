@@ -21,6 +21,8 @@ const SAMPLES: Sample[] = [
   { id: "pasta", amount: 500, unit: "g" },
   { id: "milk", amount: 1, unit: "l", expiresInDays: 6 },
   { id: "banana", amount: 0, unit: "piece" },
+  { id: "pumpkin", amount: 4, unit: "lb" },
+  
 ];
 
 export const pantry: PantryEntry[] = SAMPLES.flatMap((s) => {
