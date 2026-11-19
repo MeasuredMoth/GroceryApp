@@ -33,7 +33,7 @@ import {
 import { Recipe, recipeToItems } from "../../../data/recipe/recipe";
 import dayjs from "dayjs";
 import { ActionCard } from "@/components/actionCard";
-import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Entypo, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Card } from "@/components/card";
 import { DayScreen } from "@/components/dayScreen";
 import { Banner } from "@/components/bannerWithButton";
@@ -139,6 +139,8 @@ const addRecipe = (type: MealType, recipe: Recipe, scope: EditScope) => {
       showsVerticalScrollIndicator={false}
     >
         <Header
+          icon={<Entypo name="leaf" size={24} color="#2E7D4F" />}
+
           textHeader="GroceryMeal"
           firstSubheading={`${greetingPhrase}, ${userName}`}
           secondSubheading="Healthy meals. Less waste."
