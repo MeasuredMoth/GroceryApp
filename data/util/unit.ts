@@ -1,26 +1,42 @@
-import { createQuantity, Quantity } from "data/base/quantity";
-import { METRIC_UNITS, MEASUREMENT_SYSTEMS, LITERAL_UNITS, UNITS, IMPERIAL_UNITS } from "./types";
+import { createQuantity, Quantity } from "../recipe/quantity";
+import { IMPERIAL_UNITS, LITERAL_UNITS, MEASUREMENT_SYSTEMS, MEASUREMENT_TYPE, METRIC_UNITS, UNITS } from "./types";
 
 const GRAM_PER_OUNCE: number = 28.34952;
 
-export const MetricConversions: Record<METRIC_UNITS, number> = {
+type ConvertableUnits = IMPERIAL_UNITS | METRIC_UNITS;
+
+export const UnitConversions: Record<ConvertableUnits, number> = {
     [METRIC_UNITS.KILOGRAM]: 1000,
     [METRIC_UNITS.GRAM]: 1,
     [METRIC_UNITS.MILIGRAM]: 0.001,
-
+    
     [METRIC_UNITS.KILOLITER]: 1000,
     [METRIC_UNITS.LITER]: 1,
     [METRIC_UNITS.MILILITER]: 0.001,
+
+    [IMPERIAL_UNITS.OUNCE]: 1 * GRAM_PER_OUNCE,
+    [IMPERIAL_UNITS.CUP]: 1/8 * GRAM_PER_OUNCE,
+    [IMPERIAL_UNITS.TABLESPOON]: 1/2 * GRAM_PER_OUNCE,
+    [IMPERIAL_UNITS.TEASPOON]: 1/6 * GRAM_PER_OUNCE,
 }
 
-// We do everthing in reference to ounces for simplicity
-export const ImperialConversions: Record<IMPERIAL_UNITS, number> = {
-    // Thes are all using the US imperial system, which is not 1:1 with the actual Imperial system. Idk either.
-    [IMPERIAL_UNITS.OUNCE]: 1,
-    [IMPERIAL_UNITS.CUP]: 1/8,
-    [IMPERIAL_UNITS.TABLESPOON]: 1/2,
-    [IMPERIAL_UNITS.TEASPOON]: 1/6,
-}
+export const MeasurementTypes: Record<UNITS, MEASUREMENT_TYPE[]> = {
+    [METRIC_UNITS.KILOGRAM]: [MEASUREMENT_TYPE.COUNT],
+    [METRIC_UNITS.GRAM]: [MEASUREMENT_TYPE.MASS],
+    [METRIC_UNITS.MILIGRAM]: [MEASUREMENT_TYPE.MASS],
+
+    [METRIC_UNITS.KILOLITER]: [MEASUREMENT_TYPE.VOLUME],
+    [METRIC_UNITS.LITER]: [MEASUREMENT_TYPE.VOLUME],
+    [METRIC_UNITS.MILILITER]: [MEASUREMENT_TYPE.VOLUME],
+
+    [IMPERIAL_UNITS.CUP]: [MEASUREMENT_TYPE.VOLUME, MEASUREMENT_TYPE.MASS],
+    [IMPERIAL_UNITS.OUNCE]: [MEASUREMENT_TYPE.VOLUME, MEASUREMENT_TYPE.MASS],
+    [IMPERIAL_UNITS.TABLESPOON]: [MEASUREMENT_TYPE.VOLUME, MEASUREMENT_TYPE.MASS],
+    [IMPERIAL_UNITS.TEASPOON]: [MEASUREMENT_TYPE.VOLUME, MEASUREMENT_TYPE.MASS],
+
+    [LITERAL_UNITS.PIECE]: [MEASUREMENT_TYPE.COUNT],
+    [LITERAL_UNITS.PINCH]: [MEASUREMENT_TYPE.COUNT],
+} 
 
 const validUnits: Record<MEASUREMENT_SYSTEMS | string, UNITS[]> = {
     [MEASUREMENT_SYSTEMS.METRIC]: Object.values(METRIC_UNITS),
@@ -32,7 +48,8 @@ const validUnits: Record<MEASUREMENT_SYSTEMS | string, UNITS[]> = {
 export function canConvert(from: UNITS, to: UNITS): boolean {
   return (
       (Object.keys(METRIC_UNITS).includes(from) && Object.keys(METRIC_UNITS).includes(to)) &&
-      (Object.keys(IMPERIAL_UNITS).includes(from) && Object.keys(IMPERIAL_UNITS).includes(to))
+      (Object.keys(IMPERIAL_UNITS).includes(from) && Object.keys(IMPERIAL_UNITS).includes(to)) &&
+      (getMeasureTypeFromUnit(from) == getMeasureTypeFromUnit(to))
     )
 };
 
@@ -56,20 +73,10 @@ export function getSystemFromUnit(unit: UNITS): MEASUREMENT_SYSTEMS | null  {
     return  result.length > 0 ? result[0] as MEASUREMENT_SYSTEMS : null;
 }
 
-export function convertBetweenMetric(from: METRIC_UNITS, to: METRIC_UNITS, amount: number): number {
-    return (MetricConversions[from] / MetricConversions[to]) * amount;
+export function getMeasureTypeFromUnit(unit: UNITS): MEASUREMENT_TYPE[] {
+    return MeasurementTypes[unit];
 }
 
-export function convertBetweenImperial(from: IMPERIAL_UNITS, to: IMPERIAL_UNITS, amount: number): number {
-    return (ImperialConversions[from] / ImperialConversions[to]) * amount;
-}
-
-export function convertMetricToImperial(from: METRIC_UNITS, to: IMPERIAL_UNITS, amount: number): number {
-    let ounces = convertBetweenMetric(from, METRIC_UNITS.GRAM, amount) / GRAM_PER_OUNCE;
-    return convertBetweenImperial(IMPERIAL_UNITS.OUNCE, to, ounces);
-}
-
-export function convertImperialToMetric(from: IMPERIAL_UNITS, to: METRIC_UNITS, amount: number): number {
-    let grams = convertBetweenImperial(from, IMPERIAL_UNITS.OUNCE, amount) * GRAM_PER_OUNCE;
-    return convertBetweenMetric(METRIC_UNITS.GRAM, to, grams);
+export function convertUnit(from: ConvertableUnits, to: ConvertableUnits, amount: number): number {
+    return (UnitConversions[from] / UnitConversions[to]) * amount;
 }

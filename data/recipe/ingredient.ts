@@ -1,15 +1,15 @@
-import { INGREDIENT_CATEGORIES, UNITS } from "data/util/types";
 import { Quantity } from "./quantity";
+import { INGREDIENT_CATEGORIES, MEASUREMENT_TYPE } from "../util/types";
 
 export interface Ingredient {
     name: string;
-    allowedUnits: UNITS[]; 
+    allowedUnits: MEASUREMENT_TYPE[]; 
     ingredientCategory: INGREDIENT_CATEGORIES;
 }
 
 export function createIngredient(
   name: string,
-  allowedUnits: UNITS[],
+  allowedUnits: MEASUREMENT_TYPE[],
   ingredientCategory: INGREDIENT_CATEGORIES
 ): Ingredient {
     const trimmed = name.trim();
@@ -36,5 +36,5 @@ export function isQuantityAllowed(
 }
 
 export function isValidQuantity(ingredient: Ingredient, quantity: Quantity){
-  return Object.values(ingredient.allowedUnits).includes(quantity.unit)
+  return ingredient.allowedUnits.some(u => quantity.unit.includes(u));
 }

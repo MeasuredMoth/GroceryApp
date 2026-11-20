@@ -1,5 +1,5 @@
-import { parseQuantity } from "data/util/unit"
-import { IMPERIAL_UNITS, LITERAL_UNITS, METRIC_UNITS } from "data/util/types";
+import { IMPERIAL_UNITS, LITERAL_UNITS, METRIC_UNITS } from "../data/util/types";
+import { parseQuantity } from "../data/util/unit";
 
 test("creating quantity from parseQuantity.", () => {
     expect(parseQuantity("10 g")?.amount).toBe(10);
