@@ -1,18 +1,17 @@
-import { createIngredient, Ingredient } from "data/base/ingredient"
-import { INGREDIENT_CATEGORIES } from "data/util/types";
-import { METRIC_UNITS } from "data/util/types";
+import { createIngredient, Ingredient } from "../data/recipe/ingredient";
+import { METRIC_UNIT, INGREDIENT_CATEGORY, MEASUREMENT_TYPE } from "../data/util/types";
 
 test("Creating ingredient.", () => {
-    let ingredient: Ingredient = createIngredient("Flour", [ METRIC_UNITS.GRAM ], INGREDIENT_CATEGORIES.CARB);
+    let ingredient: Ingredient = createIngredient("Flour", [ MEASUREMENT_TYPE.MASS ], INGREDIENT_CATEGORY.CARB);
 
     expect(ingredient.name).toBe("Flour");
-    expect(ingredient.allowedUnits).toStrictEqual([ METRIC_UNITS.GRAM ]);
-    expect(ingredient.ingredientCategory).toBe(INGREDIENT_CATEGORIES.CARB);
+    expect(ingredient.allowedUnits).toStrictEqual([ MEASUREMENT_TYPE.MASS ]);
+    expect(ingredient.ingredientCategory).toBe(INGREDIENT_CATEGORY.CARB);
 })
 
 test("createIngredient parameter check.", () => {
-    expect(() => createIngredient("   ", [ METRIC_UNITS.GRAM ], INGREDIENT_CATEGORIES.CARB)).toThrow(/name/);
-    expect(() => createIngredient("Flour", [], INGREDIENT_CATEGORIES.CARB)).toThrow(/allowed unit/);
+    expect(() => createIngredient("   ", [ MEASUREMENT_TYPE.MASS ], INGREDIENT_CATEGORY.CARB)).toThrow(/name/);
+    expect(() => createIngredient("Flour", [], INGREDIENT_CATEGORY.CARB)).toThrow(/allowed unit/);
 })
 
 /*

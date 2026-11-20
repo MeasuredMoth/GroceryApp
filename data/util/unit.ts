@@ -1,18 +1,18 @@
 import { createQuantity, Quantity } from "../recipe/quantity";
-import { IMPERIAL_UNITS, LITERAL_UNITS, MEASUREMENT_SYSTEMS, MEASUREMENT_TYPE, METRIC_UNITS, UNITS } from "./types";
+import { IMPERIAL_UNITS, LITERAL_UNIT, MEASUREMENT_SYSTEM, MEASUREMENT_TYPE, METRIC_UNIT, UNITS } from "./types";
 
 const GRAM_PER_OUNCE: number = 28.34952;
 
-type ConvertableUnits = IMPERIAL_UNITS | METRIC_UNITS;
+type ConvertableUnits = IMPERIAL_UNITS | METRIC_UNIT;
 
 export const UnitConversions: Record<ConvertableUnits, number> = {
-    [METRIC_UNITS.KILOGRAM]: 1000,
-    [METRIC_UNITS.GRAM]: 1,
-    [METRIC_UNITS.MILIGRAM]: 0.001,
+    [METRIC_UNIT.KILOGRAM]: 1000,
+    [METRIC_UNIT.GRAM]: 1,
+    [METRIC_UNIT.MILIGRAM]: 0.001,
     
-    [METRIC_UNITS.KILOLITER]: 1000,
-    [METRIC_UNITS.LITER]: 1,
-    [METRIC_UNITS.MILILITER]: 0.001,
+    [METRIC_UNIT.KILOLITER]: 1000,
+    [METRIC_UNIT.LITER]: 1,
+    [METRIC_UNIT.MILILITER]: 0.001,
 
     [IMPERIAL_UNITS.OUNCE]: 1 * GRAM_PER_OUNCE,
     [IMPERIAL_UNITS.CUP]: 1/8 * GRAM_PER_OUNCE,
@@ -21,37 +21,44 @@ export const UnitConversions: Record<ConvertableUnits, number> = {
 }
 
 export const MeasurementTypes: Record<UNITS, MEASUREMENT_TYPE[]> = {
-    [METRIC_UNITS.KILOGRAM]: [MEASUREMENT_TYPE.COUNT],
-    [METRIC_UNITS.GRAM]: [MEASUREMENT_TYPE.MASS],
-    [METRIC_UNITS.MILIGRAM]: [MEASUREMENT_TYPE.MASS],
+    [METRIC_UNIT.KILOGRAM]: [MEASUREMENT_TYPE.MASS],
+    [METRIC_UNIT.GRAM]: [MEASUREMENT_TYPE.MASS],
+    [METRIC_UNIT.MILIGRAM]: [MEASUREMENT_TYPE.MASS],
 
-    [METRIC_UNITS.KILOLITER]: [MEASUREMENT_TYPE.VOLUME],
-    [METRIC_UNITS.LITER]: [MEASUREMENT_TYPE.VOLUME],
-    [METRIC_UNITS.MILILITER]: [MEASUREMENT_TYPE.VOLUME],
+    [METRIC_UNIT.KILOLITER]: [MEASUREMENT_TYPE.VOLUME],
+    [METRIC_UNIT.LITER]: [MEASUREMENT_TYPE.VOLUME],
+    [METRIC_UNIT.MILILITER]: [MEASUREMENT_TYPE.VOLUME],
 
     [IMPERIAL_UNITS.CUP]: [MEASUREMENT_TYPE.VOLUME, MEASUREMENT_TYPE.MASS],
     [IMPERIAL_UNITS.OUNCE]: [MEASUREMENT_TYPE.VOLUME, MEASUREMENT_TYPE.MASS],
     [IMPERIAL_UNITS.TABLESPOON]: [MEASUREMENT_TYPE.VOLUME, MEASUREMENT_TYPE.MASS],
     [IMPERIAL_UNITS.TEASPOON]: [MEASUREMENT_TYPE.VOLUME, MEASUREMENT_TYPE.MASS],
 
-    [LITERAL_UNITS.PIECE]: [MEASUREMENT_TYPE.COUNT],
-    [LITERAL_UNITS.PINCH]: [MEASUREMENT_TYPE.COUNT],
+    [LITERAL_UNIT.PIECE]: [MEASUREMENT_TYPE.COUNT],
+    [LITERAL_UNIT.PINCH]: [MEASUREMENT_TYPE.COUNT],
 } 
 
-const validUnits: Record<MEASUREMENT_SYSTEMS | string, UNITS[]> = {
-    [MEASUREMENT_SYSTEMS.METRIC]: Object.values(METRIC_UNITS),
-    [MEASUREMENT_SYSTEMS.IMPERIAL]: Object.values(IMPERIAL_UNITS),
-    [MEASUREMENT_SYSTEMS.LITERAL]: Object.values(LITERAL_UNITS),
+const validUnits: Record<MEASUREMENT_SYSTEM | string, UNITS[]> = {
+    [MEASUREMENT_SYSTEM.METRIC]: Object.values(METRIC_UNIT),
+    [MEASUREMENT_SYSTEM.IMPERIAL]: Object.values(IMPERIAL_UNITS),
+    [MEASUREMENT_SYSTEM.LITERAL]: Object.values(LITERAL_UNIT),
 };
+
+export function systemIsConvertable(from: UNITS, to: UNITS): boolean {
+    return (
+        (validUnits[MEASUREMENT_SYSTEM.METRIC].includes(from) || validUnits[MEASUREMENT_SYSTEM.IMPERIAL].includes(from)) &&
+        (validUnits[MEASUREMENT_SYSTEM.METRIC].includes(to) || validUnits[MEASUREMENT_SYSTEM.IMPERIAL].includes(to))
+    )
+}
+
+export function isMeasureTypesConvertable(from: UNITS, to: UNITS): boolean {
+    return getMeasureTypeFromUnit(from).filter(key => getMeasureTypeFromUnit(to).includes(key)).length > 0
+}
 
 /** Mass and volume convert within their kind. Count units only match themselves. */
 export function canConvert(from: UNITS, to: UNITS): boolean {
-  return (
-      (Object.keys(METRIC_UNITS).includes(from) && Object.keys(METRIC_UNITS).includes(to)) &&
-      (Object.keys(IMPERIAL_UNITS).includes(from) && Object.keys(IMPERIAL_UNITS).includes(to)) &&
-      (getMeasureTypeFromUnit(from) == getMeasureTypeFromUnit(to))
-    )
-};
+    return systemIsConvertable(from, to) && isMeasureTypesConvertable(from, to)
+};  
 
 export function parseQuantity(input: string): Quantity | null {
     const match = input.trim().match(/^(\d+(?:\.\d+)?)\s*([a-zA-Z ]+)$/);
@@ -66,11 +73,11 @@ export function parseQuantity(input: string): Quantity | null {
 
 export function formatQuantity(quantity: Quantity): string { return `${quantity.amount} ${quantity.unit}`; }
 
-export function isValidUnit(system: MEASUREMENT_SYSTEMS, unit: UNITS): boolean {  return validUnits[system].includes(unit); }
+export function isValidUnit(system: MEASUREMENT_SYSTEM, unit: UNITS): boolean {  return validUnits[system].includes(unit); }
 
-export function getSystemFromUnit(unit: UNITS): MEASUREMENT_SYSTEMS | null  {
-    let result = Object.values(MEASUREMENT_SYSTEMS).filter(key => isValidUnit(key as MEASUREMENT_SYSTEMS, unit))
-    return  result.length > 0 ? result[0] as MEASUREMENT_SYSTEMS : null;
+export function getSystemFromUnit(unit: UNITS): MEASUREMENT_SYSTEM | null  {
+    let result = Object.values(MEASUREMENT_SYSTEM).filter(key => isValidUnit(key as MEASUREMENT_SYSTEM, unit))
+    return  result.length > 0 ? result[0] as MEASUREMENT_SYSTEM : null;
 }
 
 export function getMeasureTypeFromUnit(unit: UNITS): MEASUREMENT_TYPE[] {

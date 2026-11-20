@@ -2,7 +2,7 @@ export interface Dictionary<T> {
     [key: string]: T;
 }
 
-export enum MEASUREMENT_SYSTEMS {
+export enum MEASUREMENT_SYSTEM {
     METRIC = "Metric",
     IMPERIAL = "Imperial",
     LITERAL = "Literal"
@@ -14,7 +14,7 @@ export enum UNIT_TYPE {
     LITERAL = "Literal"
 }
 
-export enum METRIC_UNITS {
+export enum METRIC_UNIT {
     // Mass
     MILIGRAM = "mg",
     GRAM = "g",
@@ -25,22 +25,49 @@ export enum METRIC_UNITS {
     KILOLITER = "kl"
 }
 
-export enum LITERAL_UNITS {
+export enum LITERAL_UNIT {
     PIECE = "piece",
     PINCH = "pinch"
 }
 
-export type UNITS = METRIC_UNITS | IMPERIAL_UNITS | LITERAL_UNITS;
+export type UNITS = METRIC_UNIT | IMPERIAL_UNITS | LITERAL_UNIT;
 
-export enum INGREDIENT_CATEGORIES {
+export enum INGREDIENT_CATEGORY {
   GRAIN = "Grain",
   CARB = "Carb",
   PROTIEN = "Protien",
   FAT = "Fat",
   VEGETABLE = "Vegetable",
   FRUIT = "Fruit",
-  SEASONING = "Seasoning"
+  SEASONING = "Seasoning",
+  DIARY = "Diary",
 }
+
+export enum RECIPE_CATEGORY {
+  BREAKFAST = "Breakfast",
+  LUNCH = "Lunch",
+  DINNER = "Dinner",
+  SNACK = "Snack",
+  DESSERT = "Dessert"
+}
+
+export enum MEAL_TYPE {
+    BREAKFAST = "Breakfast",
+    LUNCH = "Lunch",
+    DINNER = "Dinner",
+    SNACK = "Snack"
+}
+
+export enum WEEKDAYS {
+    SUNDAY = "Sunday",
+    MONDAY = "Monday",
+    TUESDAY = "Tuesday",
+    WEDNESDAY = "Wednesday",
+    THURSDAY = "Thursday",
+    FRIDAY = "Friday",
+    SATURDAY = "Saturday"
+}
+
 export enum IMPERIAL_UNITS {
     CUP = "cup",
     TABLESPOON = "tbsp",
@@ -48,3 +75,8 @@ export enum IMPERIAL_UNITS {
     OUNCE = "oz"
 }
 
+export enum MEASUREMENT_TYPE {
+    MASS = "mass",
+    VOLUME = "volume",
+    COUNT = "count",
+}

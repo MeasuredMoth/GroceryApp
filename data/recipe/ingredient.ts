@@ -1,16 +1,16 @@
 import { Quantity } from "./quantity";
-import { INGREDIENT_CATEGORIES, MEASUREMENT_TYPE } from "../util/types";
+import { INGREDIENT_CATEGORY, MEASUREMENT_TYPE } from "../util/types";
 
 export interface Ingredient {
     name: string;
     allowedUnits: MEASUREMENT_TYPE[]; 
-    ingredientCategory: INGREDIENT_CATEGORIES;
+    ingredientCategory: INGREDIENT_CATEGORY;
 }
 
 export function createIngredient(
   name: string,
   allowedUnits: MEASUREMENT_TYPE[],
-  ingredientCategory: INGREDIENT_CATEGORIES
+  ingredientCategory: INGREDIENT_CATEGORY
 ): Ingredient {
     const trimmed = name.trim();
 
