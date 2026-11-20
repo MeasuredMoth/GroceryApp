@@ -1,60 +1,42 @@
-import { Dictionary } from "data/types";
-import { Ingredient, Quantity, ingredientType, quantityFormats } from "data/recipe/ingredient";
-import { Recipe } from "data/recipe/recipe";
+import { createRecipe, recipeToItems } from "../data/recipe/recipe"
+import { PlanItem } from "../data/recipe/meal-plan"
+import { createQuantity } from "../data/recipe/quantity"
+import { IMPERIAL_UNITS, LITERAL_UNIT, METRIC_UNIT, RECIPE_CATEGORY } from "../data/util/types"
 
-test("Changing name of Recipe.", () => {
-    let recipe = new Recipe();
-
-    recipe.setName("Pie");
-
-    expect(recipe.getName()).toBe("Pie")
-});
-
-test("Setting name of Recipe to nothing.", () => {
-    let recipe = new Recipe();
-
-    recipe.setName("Pie");
-    recipe.setName("");
-
-    expect(recipe.getName()).toBe("Pie");
-})
-
-test("Adding ingredent to Recipe.", () => {
-    let recipe = new Recipe();
-
-    recipe.appendIngredient(new Ingredient());
-    recipe.appendIngredient(new Ingredient());
-    recipe.appendIngredient(new Ingredient());
-
-    expect(recipe.getIngredients().length).toBe(3);
-})
-
-test("Getting JSON back from Recipe", () => {
-    let apple = new Ingredient("Apple", {amount: 1, unit: "piece"}, ingredientType.FRUIT);
-
-    let recipe = new Recipe("Pie");
-
-    recipe.appendIngredient(apple);
-
-    let jsonCompare: Dictionary<any> = {}
-    jsonCompare[recipe.getName()] = {
-         "Apple": {
-            "quantity": {amount: 1, unit: "piece"},
-            "type": ingredientType.FRUIT,
-            "system": "literal",
+test("Create recipe", () => {
+    let recipe = createRecipe(
+        "Apple Pie", 
+        [
+            {ingredientId: "Apple", quantity: createQuantity(10, LITERAL_UNIT.PIECE)} ,
+            {ingredientId: "Flour", quantity: createQuantity(50, METRIC_UNIT.KILOGRAM)},
+        ],
+        {
+            category: RECIPE_CATEGORY.DESSERT,
         }
-    }
-
-    let data = recipe.getJSON()
-
-    expect(JSON.parse(data)).toStrictEqual(jsonCompare);
+    )
+    expect(recipe.name).toBe("Apple Pie");
+    expect(recipe.category).toBe(RECIPE_CATEGORY.DESSERT);
+    expect(recipe.items.at(0)?.ingredientId).toBe("Apple");
+    expect(recipe.items.at(1)?.ingredientId).toBe("Flour");
 })
 
-test("Getting recipe types from Recipe's Ingredients", () => {
-    let recipe = new Recipe("Chicken And Rice", [
-        new Ingredient("Chicken", {amount: 100, unit: "g"}, ingredientType.PROTIEN),
-        new Ingredient("Rice", {amount: 200, unit: "kg"}, ingredientType.CARB),
-    ])
+test("Try bad parameters", () => {
+    expect(() => createRecipe("     ")).toThrow(/name/);
+})
 
-    expect(recipe.getIngredientTypes()).toStrictEqual([ingredientType.PROTIEN, ingredientType.CARB]);
+test("Extract items from recipe", () => {
+     let recipe = createRecipe(
+        "Apple Pie", 
+        [
+            {ingredientId: "Apple", quantity: createQuantity(10, LITERAL_UNIT.PIECE)} ,
+            {ingredientId: "Flour", quantity: createQuantity(50, METRIC_UNIT.KILOGRAM)},
+            {ingredientId: "Sauce", quantity: createQuantity(100, IMPERIAL_UNITS.OUNCE)},
+        ],
+    )
+
+    let recipeItems = recipeToItems(recipe);
+
+    expect(recipeItems.at(0)?.ingredientId).toBe("Apple");
+    expect(recipeItems.at(1)?.quantity.amount).toBe(50);
+    expect(recipeItems.at(2)?.quantity.unit).toBe(IMPERIAL_UNITS.OUNCE);
 })
