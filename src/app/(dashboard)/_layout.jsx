@@ -4,26 +4,21 @@ import Feather from "@expo/vector-icons/Feather";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import Entypo from "@expo/vector-icons/Entypo";
 import AntDesign from "@expo/vector-icons/AntDesign";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+// Claude-generated code.
+import SlidingTabBar from "@/components/slidingTabBar";
+// Claude-generated code ends here
 
 const ICON_SIZE = 26;
 
 const DashBoardLayout = () => {
-  const insets = useSafeAreaInsets();
-
   return (
     <Tabs
+      tabBar={(props) => <SlidingTabBar {...props} />}
+  
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: Colors.primaryDark,
         tabBarInactiveTintColor: Colors.textMuted,
-        tabBarLabelPosition: "below-icon",
-        tabBarLabelStyle: { fontSize: 12 },
-        tabBarStyle: {
-          height: 56 + insets.bottom,
-          paddingBottom: insets.bottom,
-          paddingTop: 6,
-        },
       }}
     >
       <Tabs.Screen
