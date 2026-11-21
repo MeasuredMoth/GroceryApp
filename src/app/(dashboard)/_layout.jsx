@@ -4,9 +4,7 @@ import Feather from "@expo/vector-icons/Feather";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import Entypo from "@expo/vector-icons/Entypo";
 import AntDesign from "@expo/vector-icons/AntDesign";
-// Claude-generated code.
 import SlidingTabBar from "@/components/slidingTabBar";
-// Claude-generated code ends here
 
 const ICON_SIZE = 26;
 
