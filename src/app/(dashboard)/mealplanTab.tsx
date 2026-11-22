@@ -16,6 +16,7 @@ import {
   Meal,
   mealsFor,
   MealType,
+  PlanItem,
   resetDay,
   weekdayOf,
 } from "../../../data/recipe/meal-plan";
@@ -64,18 +65,22 @@ export default function MealPlanTab() {
     listRef.current?.scrollToIndex({ index, animated: false });
   };
 
-  const addRecipe = (recipe: Recipe, scope: EditScope) => {
-    if (!pickerFor) return;
-    const type = pickerFor;
-    const items = recipeToItems(recipe);
-    updatePlan((p) => {
-      const existing = mealsFor(p, date).find((m) => m.type === type);
-      return existing
-        ? editMeal(p, date, { ...existing, items: [...existing.items, ...items] }, scope)
-        : addMeal(p, date, createMeal(type, DEFAULT_TIMES[type], items), scope);
-    });
-    setPickerFor(null);
-  };
+const addItems = (items: PlanItem[], scope: EditScope) => {
+  if (!pickerFor) return;
+  const type = pickerFor;
+  updatePlan((p) => {
+    const existing = mealsFor(p, date).find((m) => m.type === type);
+    return existing
+      ? editMeal(p, date, { ...existing, items: [...existing.items, ...items] }, scope)
+      : addMeal(p, date, createMeal(type, DEFAULT_TIMES[type], items), scope);
+  });
+  setPickerFor(null);
+};
+
+const addRecipe = (recipe: Recipe, scope: EditScope) =>
+  addItems(recipeToItems(recipe), scope);
+
+const addIngredient = (item: PlanItem, scope: EditScope) => addItems([item], scope);
 
   const removeItem = (d: Date, meal: Meal, index: number) => {
     updatePlan((p) =>
@@ -136,12 +141,13 @@ export default function MealPlanTab() {
         )}
       </View>
 
-      <RecipePickerModal
-        type={pickerFor}
-        weekday={weekdayOf(date)}
-        onPick={addRecipe}
-        onClose={() => setPickerFor(null)}
-      />
+   <RecipePickerModal
+  type={pickerFor}
+  weekday={weekdayOf(date)}
+  onPick={addRecipe}
+  onPickIngredient={addIngredient}
+  onClose={() => setPickerFor(null)}
+/>
     </Screen>
   );
 }
