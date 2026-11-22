@@ -13,8 +13,8 @@ import {
 interface DayScreenProps {
   date: Date;
   plan: Plan;
-  onAdd: (meal: MealType) => void;
-  onRemoveItem: (meal: Meal, index: number) => void;
+  onAdd?: (meal: MealType) => void;
+  onRemoveItem?: (meal: Meal, index: number) => void;
   isDone?: (meal: Meal) => boolean;
   onToggleDone?: (meals: Meal[]) => void;
 }
@@ -44,15 +44,15 @@ export function DayScreen({ date, plan, onAdd, onRemoveItem, isDone, onToggleDon
         {MEAL_TYPES.map((type) => {
   const slotMeals = meals.filter((m) => m.type === type);
   return (
-    <MealSlot
-      key={type}
-      type={type}
-      meals={slotMeals}
-      onAdd={() => onAdd(type)}
-      onRemoveItem={onRemoveItem}
-      done={!!isDone && slotMeals.length > 0 && slotMeals.every(isDone)}
-      onToggleDone={onToggleDone && slotMeals.length > 0 ? () => onToggleDone(slotMeals) : undefined}
-    />
+   <MealSlot
+  key={type}
+  type={type}
+  meals={slotMeals}
+  onAdd={onAdd ? () => onAdd(type) : undefined}
+  onRemoveItem={onRemoveItem}
+  done={!!isDone && slotMeals.length > 0 && slotMeals.every(isDone)}
+  onToggleDone={onToggleDone && slotMeals.length > 0 ? () => onToggleDone(slotMeals) : undefined}
+/>
   );
 })}
       </View>
