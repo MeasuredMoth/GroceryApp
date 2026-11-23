@@ -1,4 +1,3 @@
-import { createIngredient } from "../data/recipe/ingredient";
 import { addMeal, createMeal, mealsFor } from "../data/recipe/meal-plan";
 import { createPantryEntry } from "../data/recipe/pantry";
 import { createRecipe } from "../data/recipe/recipe";
@@ -12,15 +11,18 @@ import {
     upsertById,
 } from "../data/store/app-data";
 import { DataStore, StorageBackend } from "../data/store/data-store";
+import { createIngredient } from "../data/recipe/ingredient";
+import { INGREDIENT_CATEGORY, MEAL_TYPE, MEASUREMENT_TYPE, METRIC_UNIT, RECIPE_CATEGORY } from "../data/util/types";
+import { createQuantity } from "../data/recipe/quantity";
 
 // Wednesday, Nov 4 2026 at 10:00 local time
 const NOW = new Date(2026, 10, 4, 10, 0);
 
-const oats = createIngredient("Oats", ["g", "kg"], "Carbs", "oats");
-const milk = createIngredient("Milk", ["ml", "l"], "Dairy", "milk");
-const porridge = createRecipe("Porridge", [{ ingredientId: "oats", amount: 80, unit: "g" }], {
+const oats = createIngredient("Oats", [MEASUREMENT_TYPE.MASS], INGREDIENT_CATEGORY.CARB, "oats");
+const milk = createIngredient("Milk", [MEASUREMENT_TYPE.VOLUME], INGREDIENT_CATEGORY.DIARY, "milk");
+const porridge = createRecipe("Porridge", [{ ingredientId: "oats", quantity: createQuantity(80, METRIC_UNIT.GRAM) }], {
     id: "recipe-porridge",
-    category: "Breakfast",
+    category: RECIPE_CATEGORY.DINNER,
 });
 const defaults = { ingredients: [oats, milk], recipes: [porridge] };
 
@@ -40,12 +42,12 @@ function memoryBackend(text: string | null = null) {
 
 function sampleData() {
     const data = createAppData(defaults);
-    const breakfast = createMeal("Breakfast", "08:00", [{ ingredientId: "oats", amount: 80, unit: "g" }], "warm");
-    const snack = createMeal("Snack", "16:00", [{ ingredientId: "milk", amount: 200, unit: "ml" }]);
+    const breakfast = createMeal(MEAL_TYPE.BREAKFAST, "08:00", [{ ingredientId: "oats", quantity: createQuantity(80, METRIC_UNIT.GRAM) }], "warm");
+    const snack = createMeal(MEAL_TYPE.SNACK, "16:00", [{ ingredientId: "milk", quantity: createQuantity(200, METRIC_UNIT.MILILITER)}]);
 
     data.plan = addMeal(data.plan, NOW, breakfast, "weekday");
     data.plan = addMeal(data.plan, NOW, snack, "day");
-    data.pantry = [createPantryEntry(milk, { amount: 1, unit: "l" }, "2026-11-09")];
+    data.pantry = [createPantryEntry(milk, createQuantity(1, METRIC_UNIT.LITER), "2026-11-09")];
     data.done = setDone({}, NOW, [breakfast.id], true);
     return data;
 }
@@ -79,7 +81,7 @@ test("Everything survives being saved and read back", () => {
 test("A change is saved and is there after a restart", () => {
     const backend = memoryBackend();
     const store = new DataStore(backend, defaults);
-    const meal = createMeal("Lunch", "12:30", [{ ingredientId: "oats", amount: 50, unit: "g" }]);
+    const meal = createMeal(MEAL_TYPE.LUNCH, "12:30", [{ ingredientId: "oats", quantity: createQuantity(50, METRIC_UNIT.GRAM) }]);
 
     store.update((data) => ({ plan: addMeal(data.plan, NOW, meal, "weekday") }));
 
@@ -154,21 +156,21 @@ test("Bad entries are dropped without losing the good ones", () => {
     const raw = {
         ingredients: [
             oats,
-            { id: "eggs", name: "Eggs", allowedUnits: ["dozen"], category: "Proteins" }, // no valid unit
-            { id: "salt", name: "Salt", allowedUnits: ["g", "spoonful"], category: "Spices" },
+            { id: "eggs", name: "Eggs", allowedUnits: ["cccc"], ingredientCategory: "Protienss" }, // no valid unit
+            { id: "salt", name: "Salt", allowedUnits: ["count"], ingredientCategory: "Seasoninggg" },
             "flour",
         ],
         recipes: [
             { id: "r1", name: "Mix", category: "Brunch", items: [
-                { ingredientId: "oats", amount: 80, unit: "g" },
-                { ingredientId: "oats", amount: -5, unit: "g" },
-                { ingredientId: "milk", amount: 1, unit: "bucket" },
+                { ingredientId: "oats", quantity: { amount: 80, unit: "g" }},
+                { ingredientId: "oats", quantity: { amount: -5, unit: "g" }},
+                { ingredientId: "milk", quantity: { amount: 1, unit: "bucket" }},
             ], image: 7 },
             { name: "No id" },
         ],
         pantry: [
-            { id: "p1", ingredientId: "milk", amount: 0, unit: "l", expiresOn: "next week" },
-            { id: "p2", ingredientId: "milk", amount: -1, unit: "l" },
+            { id: "p1", ingredientId: "milk", quantity: { amount: 0, unit: "l" }, expiresOn: "next week" },
+            { id: "p2", ingredientId: "milk", quantity: { amount: -1, unit: "l" }},
         ],
     };
 
@@ -176,12 +178,12 @@ test("Bad entries are dropped without losing the good ones", () => {
 
     expect(data.ingredients).toEqual([
         oats,
-        { id: "salt", name: "Salt", allowedUnits: ["g"], category: "Other" },
+        { id: "salt", name: "Salt", allowedUnits: ["count"], ingredientCategory: "Other" },
     ]);
     expect(data.recipes).toEqual([
-        { id: "r1", name: "Mix", category: "Dinner", items: [{ ingredientId: "oats", amount: 80, unit: "g" }] },
+        { id: "r1", name: "Mix", category: "Dinner", image: undefined, items: [{ ingredientId: "oats", quantity: { amount: 80, system: "Metric", unit: "g" } }] },
     ]);
-    expect(data.pantry).toEqual([{ id: "p1", ingredientId: "milk", amount: 0, unit: "l" }]);
+    expect(data.pantry).toEqual([{ id: "p1", ingredientId: "milk", quantity: {amount: 0, system: "Metric", unit: "l" } }]);
 })
 
 test("A damaged plan keeps the meals that are still valid", () => {

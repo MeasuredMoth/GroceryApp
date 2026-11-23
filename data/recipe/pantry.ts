@@ -12,8 +12,7 @@ import { Quantity } from "./quantity";
 export interface PantryEntry {
   id: string;
   ingredientId: string;
-  amount: number; // 0 is allowed: keeps "you're out of oats" instead of deleting the row
-  unit: UNITS;
+  quantity: Quantity;
   expiresOn?: DateKey; // "YYYY-MM-DD"
 }
 
@@ -31,8 +30,7 @@ export function createPantryEntry(
   return {
     id: makeId("pantry"),
     ingredientId: ingredient.id,
-    amount: quantity.amount,
-    unit: quantity.unit,
+    quantity: quantity,
     expiresOn,
   };
 }

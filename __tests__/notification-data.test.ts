@@ -62,7 +62,7 @@ test("Pantry entries with an expiry date are passed on by ingredient name", () =
         createPantryEntry(milk, createQuantity(1, METRIC_UNIT.LITER), "2026-11-06"),
         createPantryEntry(milk, createQuantity(1, METRIC_UNIT.LITER)), // no expiry date
         createPantryEntry(milk, createQuantity(0, METRIC_UNIT.LITER), "2026-11-05"), // none left
-        { id: "p", ingredientId: "deleted", amount: 1, unit: METRIC_UNIT.LITER, expiresOn: "2026-11-05" },
+        { id: "p", ingredientId: "deleted", quantity: createQuantity(1, METRIC_UNIT.LITER), expiresOn: "2026-11-05" },
     ];
 
     expect(toNotificationData(data, NOW).pantry).toEqual([{ name: "Milk", expiresOn: new Date(2026, 10, 6) }]);

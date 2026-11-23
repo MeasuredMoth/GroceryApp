@@ -11,7 +11,7 @@ import {
   PlanItem,
 } from "../recipe/meal-plan";
 import { PantryEntry } from "../recipe/pantry";
-import { createQuantity } from "../recipe/quantity";
+import { createQuantity, Quantity } from "../recipe/quantity";
 import { Recipe } from "../recipe/recipe";
 import { INGREDIENT_CATEGORY, MEAL_TYPE, MEASUREMENT_TYPE, RECIPE_CATEGORY, UNITS, WEEKDAYS } from "../util/types";
 import { isUnit } from "../util/unit";
@@ -106,21 +106,22 @@ function readIngredient(raw: unknown): Ingredient | null {
   if (!isObject(raw) || !isText(raw.id) || !isText(raw.name)) return null;
 
   const allowedUnits = readList(raw.allowedUnits, (unit) =>
-    typeof unit === "string" && Object.keys(MEASUREMENT_TYPE).includes(unit) ? unit as MEASUREMENT_TYPE : null,
+    typeof unit === "string" && Object.values(MEASUREMENT_TYPE).includes(unit as MEASUREMENT_TYPE) ? unit as MEASUREMENT_TYPE : null,
   );
   if (allowedUnits.length === 0) return null;
 
-  const category = Object.keys(INGREDIENT_CATEGORY).includes(raw.category as string)
-    ? (raw.category as INGREDIENT_CATEGORY)
+  const category = Object.values(INGREDIENT_CATEGORY).includes(raw.ingredientCategory as INGREDIENT_CATEGORY)
+    ? (raw.ingredientCategory as INGREDIENT_CATEGORY)
     : INGREDIENT_CATEGORY.OTHER;
   return createIngredient(raw.name, allowedUnits, category, raw.id);
 }
 
 function readPlanItem(raw: unknown): PlanItem | null {
+  console.log(raw);
   if (!isObject(raw) || !isText(raw.ingredientId)) return null;
-  if (typeof raw.amount !== "number" || !Number.isFinite(raw.amount) || raw.amount <= 0) return null;
-  if (typeof raw.unit !== "string" || !isUnit(raw.unit)) return null;
-  return { ingredientId: raw.ingredientId, quantity: createQuantity(raw.amount, raw.unit as UNITS) };
+  const quantity = readQuantity(raw.quantity)
+  if (!quantity) return null;
+  return { ingredientId: raw.ingredientId, quantity: quantity};
 }
 
 function readRecipe(raw: unknown): Recipe | null {
@@ -133,6 +134,7 @@ function readRecipe(raw: unknown): Recipe | null {
       ? (raw.category as RECIPE_CATEGORY)
       : RECIPE_CATEGORY.DINNER,
     items: readList(raw.items, readPlanItem),
+    image: undefined
   };
   // Only photos with a uri survive a restart. A bundled image is a number that changes between builds.
   if (isObject(raw.image) && isText(raw.image.uri)) recipe.image = { uri: raw.image.uri };
@@ -141,7 +143,7 @@ function readRecipe(raw: unknown): Recipe | null {
 
 function readMeal(raw: unknown): Meal | null {
   if (!isObject(raw) || !isText(raw.id)) return null;
-  if (!Object.keys(MEAL_TYPE).includes(raw.type as string)) return null;
+  if (!Object.values(MEAL_TYPE).includes(raw.type as MEAL_TYPE)) return null;
   if (typeof raw.time !== "string" || !TIME.test(raw.time)) return null;
 
   const meal: Meal = {
@@ -150,7 +152,7 @@ function readMeal(raw: unknown): Meal | null {
     time: raw.time,
     items: readList(raw.items, readPlanItem),
   };
-  if (isText(raw.note)) meal.note = raw.note;
+  meal.note = isText(raw.note) ? raw.note : undefined;
   return meal;
 }
 
@@ -179,7 +181,8 @@ function readPlan(raw: unknown): Plan {
   if (!isObject(raw)) return plan;
 
   if (isObject(raw.template)) {
-    for (const day of Object.values(WEEKDAYS)) plan.template[day] = readList(raw.template[day], readMeal);
+    for (const day of Object.values(WEEKDAYS)) 
+      plan.template[day] = readList(raw.template[day], readMeal);
   }
   if (isObject(raw.overrides)) {
     for (const [key, value] of Object.entries(raw.overrides)) {
@@ -192,14 +195,13 @@ function readPlan(raw: unknown): Plan {
 
 function readPantryEntry(raw: unknown): PantryEntry | null {
   if (!isObject(raw) || !isText(raw.id) || !isText(raw.ingredientId)) return null;
-  if (typeof raw.amount !== "number" || !Number.isFinite(raw.amount) || raw.amount < 0) return null;
-  if (typeof raw.unit !== "string" || !isUnit(raw.unit)) return null;
+  const quantity = readQuantity(raw.quantity);
+  if (!quantity) return null;
 
   const entry: PantryEntry = {
     id: raw.id,
     ingredientId: raw.ingredientId,
-    amount: raw.amount,
-    unit: raw.unit as UNITS,
+    quantity: quantity,
   };
   if (typeof raw.expiresOn === "string" && DATE_KEY.test(raw.expiresOn)) entry.expiresOn = raw.expiresOn;
   return entry;
@@ -218,6 +220,13 @@ function readDone(raw: unknown, now: Date): DoneLog {
     if (value === true && DATE_KEY.test(date) && key[10] === ":" && date >= oldest) done[key] = true;
   }
   return done;
+}
+
+function readQuantity(raw: unknown): Quantity | null {
+  if (!isObject(raw)) return null;
+  if (typeof raw.amount !== "number" || !isFinite(raw.amount)) return null;
+  if (typeof raw.unit !== "string" || !isUnit(raw.unit) || raw.amount < 0) return null;
+  return createQuantity(raw.amount, raw.unit as UNITS)
 }
 
 /**
