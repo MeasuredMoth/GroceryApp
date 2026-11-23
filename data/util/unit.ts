@@ -1,5 +1,5 @@
 import { createQuantity, Quantity } from "../recipe/quantity";
-import { IMPERIAL_UNITS, LITERAL_UNIT, MEASUREMENT_SYSTEM, MEASUREMENT_TYPE, METRIC_UNIT, UNITS } from "./types";
+import { IMPERIAL_UNITS, LITERAL_UNIT, MEASUREMENT_SYSTEM, MEASUREMENT_TYPE, METRIC_UNIT, UNIT_TYPE, UNITS } from "./types";
 
 const GRAM_PER_OUNCE: number = 28.34952;
 
@@ -74,6 +74,15 @@ export function parseQuantity(input: string): Quantity | null {
 export function formatQuantity(quantity: Quantity): string { return `${quantity.amount} ${quantity.unit}`; }
 
 export function isValidUnit(system: MEASUREMENT_SYSTEM, unit: UNITS): boolean {  return validUnits[system].includes(unit); }
+
+export function isUnit(unit: string): boolean 
+{ 
+    return (
+        Object.values(METRIC_UNIT).includes(unit as METRIC_UNIT) ||
+        Object.values(IMPERIAL_UNITS).includes(unit as IMPERIAL_UNITS) ||
+        Object.values(LITERAL_UNIT).includes(unit as LITERAL_UNIT)
+    )
+}
 
 export function getSystemFromUnit(unit: UNITS): MEASUREMENT_SYSTEM | null  {
     let result = Object.values(MEASUREMENT_SYSTEM).filter(key => isValidUnit(key as MEASUREMENT_SYSTEM, unit))
