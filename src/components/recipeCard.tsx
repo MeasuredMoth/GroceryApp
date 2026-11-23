@@ -1,7 +1,8 @@
 import { View, Text, Pressable, Image, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
-import { Recipe, RecipeCategory } from "../../data/recipe/recipe";
+import { Recipe } from "../../data/recipe/recipe";
+import { RECIPE_CATEGORY } from "../../data/util/types";
 
 type Props = {
   recipe: Recipe;
@@ -9,12 +10,12 @@ type Props = {
   onMenuPress?: (recipe: Recipe) => void;
 };
 
-const CHIP_COLORS: Record<RecipeCategory, { bg: string; text: string }> = {
-  Breakfast: { bg: "#E3F0FB", text: "#1F5F99" },
-  Lunch: { bg: "#FFF3CC", text: "#8A6A00" },
-  Dinner: { bg: "#E3F3E6", text: "#2E7D4F" },
-  Snack: { bg: "#EDE7F8", text: "#6B4FA3" },
-  Dessert: { bg: "#FBE4EC", text: "#A33A62" },
+const CHIP_COLORS: Record<RECIPE_CATEGORY, { bg: string; text: string }> = {
+  [RECIPE_CATEGORY.BREAKFAST]: { bg: "#E3F0FB", text: "#1F5F99" },
+  [RECIPE_CATEGORY.LUNCH]: { bg: "#FFF3CC", text: "#8A6A00" },
+  [RECIPE_CATEGORY.DINNER]: { bg: "#E3F3E6", text: "#2E7D4F" },
+  [RECIPE_CATEGORY.SNACK]: { bg: "#EDE7F8", text: "#6B4FA3" },
+  [RECIPE_CATEGORY.DESSERT]: { bg: "#FBE4EC", text: "#A33A62" },
 };
 
 export default function RecipeCard({ recipe, onPress, onMenuPress }: Props) {

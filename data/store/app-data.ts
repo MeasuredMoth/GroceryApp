@@ -35,6 +35,7 @@ export interface AppData {
 export interface Defaults {
   ingredients: Ingredient[];
   recipes: Recipe[];
+  pantry?: PantryEntry[];   // optional, so existing code and tests still work
 }
 
 // Ticks older than this are dropped on load, so the file doesn't grow forever
@@ -52,7 +53,7 @@ export function createAppData(defaults: Defaults): AppData {
     ingredients: defaults.ingredients,
     recipes: defaults.recipes,
     plan: createEmptyPlan(),
-    pantry: [],
+    pantry: defaults.pantry ?? [],
     done: {},
   };
 }
@@ -241,7 +242,9 @@ export function sanitizeAppData(raw: unknown, defaults: Defaults, now: Date = ne
     ingredients: Array.isArray(raw.ingredients) ? readList(raw.ingredients, readIngredient) : defaults.ingredients,
     recipes: Array.isArray(raw.recipes) ? readList(raw.recipes, readRecipe) : defaults.recipes,
     plan: readPlan(raw.plan),
-    pantry: readList(raw.pantry, readPantryEntry),
+    pantry: Array.isArray(raw.pantry)
+  ? readList(raw.pantry, readPantryEntry)
+  : (defaults.pantry ?? []),
     done: readDone(raw.done, now),
   };
 }

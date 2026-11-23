@@ -5,46 +5,46 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Colors } from "@/constants/Colors";
 import { ReactNode } from "react";
 import { Href, router } from "expo-router";
+import Feather from "@expo/vector-icons/Feather";
+
 
 type HeaderProps = {
+  icon?: ReactNode;
   textHeader: string;
   firstSubheading?: string;
   secondSubheading?: string;
-  action?: ReactNode;       //Optional element to be displayed on the right
-}
+  action?: ReactNode;
+};
 
-{/*Logo and name on the top left */ }
-export default function Header({ textHeader, firstSubheading, secondSubheading, action }: HeaderProps) {
-
+export default function Header({ icon, textHeader, firstSubheading, secondSubheading, action }: HeaderProps) {
   return (
     <View style={styles.container}>
-
+      {/* Layer 1: app bar */}
       <View style={styles.topRow}>
-        <View style={styles.brand}>
+  <View style={styles.brand}>
+    {icon}
+    <Text style={styles.brandName}>{textHeader}</Text>
+  </View>
 
-          <Entypo name="leaf" size={24} color="#2E7D4F" />
-          <Text style={styles.brandName}>{textHeader}</Text>
-        </View>
+  <View style={styles.topRight}>
+    {action}
+    <Pressable
+      style={styles.profileButton}
+      onPress={() => router.push("/settings" as Href)}
+      accessibilityRole="button"
+      accessibilityLabel="Settings"
+    >
+      <Ionicons name="person-outline" size={20} color={Colors.primaryDark} />
+    </Pressable>
+  </View>
+</View>
 
-        <Pressable
-          style={styles.profileButton}
-          onPress={() => router.push("/settings" as Href)}
-          accessibilityRole="button"
-          accessibilityLabel="Settings"
-        >
-          <Ionicons name="person-outline" size={24} color={Colors.primaryDark} />
-        </Pressable>
-      </View>
-
-      <View style={styles.subheadingRow}>
-        <View style={styles.subheadingText}>
-          {firstSubheading ? <Text style={styles.greeting}>{firstSubheading}</Text> : null}
-          {secondSubheading ? <Text style={styles.tagline}>{secondSubheading}</Text> : null}
-        </View>
-        {action ? <View style={styles.action}>{action}</View> : null}
-      </View>
+<View style={styles.subheadingText}>
+  {firstSubheading ? <Text style={styles.greeting}>{firstSubheading}</Text> : null}
+  {secondSubheading ? <Text style={styles.tagline}>{secondSubheading}</Text> : null}
+</View>
     </View>
-  )
+  );
 }
 
 
@@ -62,19 +62,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  brandName: {
-    fontSize: 34,
-    fontWeight: '700',
-    color: '#0d3332',
-  },
-  profileButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#DCEFE4',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+topRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+profileButton: {
+  width: 36,            // was 48
+  height: 36,
+  borderRadius: 18,
+  backgroundColor: '#DCEFE4',
+  alignItems: 'center',
+  justifyContent: 'center',
+},
+brandName: { fontSize: 28, fontWeight: '700', color: '#0d3332' },  // was 34
   greeting: {
     fontSize: 20,          // was 26
     fontWeight: '700',
@@ -85,13 +82,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#6B7A72',
   },
-  subheadingRow: {
-    gap: 12,               // column layout: text on top, action below
-  },
-  subheadingText: {
-    gap: 4,
-  },
-  action: {
-    alignSelf: 'flex-start',   // use 'flex-end' to push it right
-  },
+subheadingRow: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  gap: 12,
+},
+subheadingText: {
+  flex: 1,
+  gap: 4,
+},
+action: {
+  flexDirection: 'row',
+},
+appName: { fontSize: 18, fontWeight: '700', color: '#0d3332' },
+titleRow: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'flex-start',   // button lines up with the title, not the subtitle
+  gap: 12,
+},
+titleBlock: { flex: 1, gap: 2 },
 });

@@ -1,70 +1,91 @@
-import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '@/constants/Colors';
-import { Ingredient } from '../../data/recipe/ingredient';
+// components/ingredientRow.tsx
+import { ReactNode } from "react";
+import { View, Text, Pressable, StyleSheet } from "react-native";
+import { Colors } from "@/constants/Colors";
 
 type IngredientRowProps = {
-  ingredient: Ingredient;
+  title: string;
+  subtitle?: string;          // e.g. "Expires in 2 days"
+  subtitleColor?: string;     // e.g. red for expiring items
+  badge?: string;             // e.g. "LOW"
+  value?: string;             // right side, big: "300 g"
+  valueSub?: string;          // right side, small: "Fridge"
+  icon?: ReactNode;           // goes inside the circle on the left
+  onPress?: () => void;
+  trailing?: ReactNode; // goes after the value, e.g. a remove button
 };
 
-export default function IngredientRow( {ingredient}: IngredientRowProps ) {
+export default function IngredientRow({
+  title,
+  subtitle,
+  subtitleColor = Colors.textMuted,
+  badge,
+  value,
+  valueSub,
+  icon,
+  onPress,
+  trailing,
+}: IngredientRowProps) {
   return (
-    <Pressable style={styles.row}>
+    <Pressable style={styles.row} onPress={onPress}>
+      {icon ? <View style={styles.iconCircle}>{icon}</View> : null}
+
       <View style={styles.info}>
-        <Text style={styles.name}>{ingredient.name}</Text>
-        {/* <Text style={styles.details}>{ingredient.getQuantityString()}</Text> */}
+        <View style={styles.titleRow}>
+          <Text style={styles.name}>{title}</Text>
+          {badge ? (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{badge}</Text>
+            </View>
+          ) : null}
+        </View>
+        {subtitle ? (
+          <Text style={[styles.subtitle, { color: subtitleColor }]}>{subtitle}</Text>
+        ) : null}
       </View>
 
-        {/* <Text style={styles.details}>
-          {ingredient.category}   {ingredient.kcal} kcal / 100 g
-        </Text> */}
-{/*       
-      
-
-      <View style={styles.priceBlock}>
-        <Text style={styles.price}>${ingredient.price.toFixed(2)}</Text>
-        <Text style={styles.unit}>/ {ingredient.unit}</Text>
-      </View> */}
-
-      <Ionicons name="chevron-forward" size={20} color={Colors.textMuted} />
+      {value || valueSub ? (
+        <View style={styles.right}>
+          {value ? <Text style={styles.value}>{value}</Text> : null}
+          {valueSub ? <Text style={styles.valueSub}>{valueSub}</Text> : null}
+        </View>
+      ) : null}
+        {trailing}
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   row: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: Colors.card,
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: 16,
-    padding: 14,
+    padding: 12,
     gap: 12,
   },
-  info: {
-    flex: 1,
+  iconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#DCEFE4",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  name: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.primaryDark,
+  info: { flex: 1, gap: 2 },
+  titleRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  name: { fontSize: 16, fontWeight: "600", color: Colors.primaryDark },
+  subtitle: { fontSize: 12 },
+  badge: {
+    backgroundColor: "#FDE2E2",
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
   },
-  details: {
-    fontSize: 14,
-    color: Colors.textMuted,
-    marginTop: 2,
-  },
-  priceBlock: {
-    alignItems: 'flex-end',
-  },
-  price: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: Colors.primaryDark,
-  },
-  unit: {
-    fontSize: 13,
-    color: Colors.textMuted,
-  },
+  badgeText: { fontSize: 10, fontWeight: "700", color: "#C62828" },
+  right: { alignItems: "flex-end", gap: 2 },
+  value: { fontSize: 16, fontWeight: "700", color: Colors.primaryDark },
+  valueSub: { fontSize: 12, color: Colors.textMuted },
 });

@@ -29,7 +29,8 @@ export enum IMPERIAL_UNITS {
     CUP = "cup",
     TABLESPOON = "tbsp",
     TEASPOON = "tsp",
-    OUNCE = "oz"
+    OUNCE = "oz",
+    POUND = "lb"
 }
 
 export enum LITERAL_UNIT {

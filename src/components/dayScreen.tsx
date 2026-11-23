@@ -43,15 +43,15 @@ export function DayScreen({ date, plan, onAdd, onRemoveItem, isDone, onToggleDon
         {Object.values(MEAL_TYPE).map((type) => {
   const slotMeals = meals.filter((m) => m.type === type);
   return (
-    <MealSlot
-      key={type}
-      type={type}
-      meals={slotMeals}
-      onAdd={() => onAdd(type)}
-      onRemoveItem={onRemoveItem}
-      done={!!isDone && slotMeals.length > 0 && slotMeals.every(isDone)}
-      onToggleDone={onToggleDone && slotMeals.length > 0 ? () => onToggleDone(slotMeals) : undefined}
-    />
+   <MealSlot
+  key={type}
+  type={type}
+  meals={slotMeals}
+  onAdd={onAdd ? () => onAdd(type) : undefined}
+  onRemoveItem={onRemoveItem}
+  done={!!isDone && slotMeals.length > 0 && slotMeals.every(isDone)}
+  onToggleDone={onToggleDone && slotMeals.length > 0 ? () => onToggleDone(slotMeals) : undefined}
+/>
   );
 })}
       </View>

@@ -11,6 +11,8 @@ export const ingredients: Ingredient[] = [
   createIngredient("Bell Pepper", [MEASUREMENT_TYPE.MASS, MEASUREMENT_TYPE.COUNT], INGREDIENT_CATEGORY.VEGETABLE, "bell-pepper"),
   createIngredient("Carrots", [MEASUREMENT_TYPE.MASS], INGREDIENT_CATEGORY.VEGETABLE, "carrots"),
   createIngredient("Peas", [MEASUREMENT_TYPE.MASS], INGREDIENT_CATEGORY.VEGETABLE, "peas"),
+  createIngredient("Pumpkin", [MEASUREMENT_TYPE.MASS], INGREDIENT_CATEGORY.VEGETABLE, "pumpkin"),
+
 
   // DIARY
   createIngredient("Milk", [MEASUREMENT_TYPE.VOLUME], INGREDIENT_CATEGORY.DIARY, "milk"),
