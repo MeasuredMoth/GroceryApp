@@ -148,8 +148,8 @@ export function createQuantity(
 ): Quantity {
     if (!Number.isFinite(amount))
         throw new Error(`Quantity needs a finite quantity. Got ${amount}.`);
-    if (amount <= 0)
-        throw new Error(`Quantity cannot have negative/none amount.`);
+    if (amount < 0)
+        throw new Error(`Quantity cannot have negative amount.`);
     let system = getSystemFromUnit(unit);
     if (!system)
         throw new Error(`Couldn't get system from unit: ${unit}.`);
