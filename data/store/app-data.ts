@@ -117,7 +117,6 @@ function readIngredient(raw: unknown): Ingredient | null {
 }
 
 function readPlanItem(raw: unknown): PlanItem | null {
-  console.log(raw);
   if (!isObject(raw) || !isText(raw.ingredientId)) return null;
   const quantity = readQuantity(raw.quantity)
   if (!quantity) return null;
