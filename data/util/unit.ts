@@ -8,7 +8,7 @@ export type ConvertableUnits = IMPERIAL_UNITS | METRIC_UNIT;
 export const UnitConversions: Record<ConvertableUnits, number> = {
     [METRIC_UNIT.KILOGRAM]: 1000,
     [METRIC_UNIT.GRAM]: 1,
-    [METRIC_UNIT.MILIGRAM]: 0.001,
+    [METRIC_UNIT.MILLIGRAM]: 0.001,
     
     [METRIC_UNIT.KILOLITER]: 1000,
     [METRIC_UNIT.LITER]: 1,
@@ -21,10 +21,38 @@ export const UnitConversions: Record<ConvertableUnits, number> = {
     [IMPERIAL_UNITS.POUND]: (1/16) * GRAM_PER_OUNCE
 }
 
+export const ValidTypeUnits: Record<MEASUREMENT_TYPE, UNITS[]> = {
+    [MEASUREMENT_TYPE.MASS]: [
+        METRIC_UNIT.KILOGRAM,
+        METRIC_UNIT.GRAM,
+        METRIC_UNIT.MILLIGRAM,
+
+        IMPERIAL_UNITS.CUP,
+        IMPERIAL_UNITS.OUNCE,
+        IMPERIAL_UNITS.TABLESPOON,
+        IMPERIAL_UNITS.TEASPOON,
+        IMPERIAL_UNITS.POUND,
+    ],
+    [MEASUREMENT_TYPE.VOLUME]: [
+        METRIC_UNIT.KILOGRAM,
+        METRIC_UNIT.LITER,
+        METRIC_UNIT.MILLIGRAM,
+        
+        IMPERIAL_UNITS.CUP,
+        IMPERIAL_UNITS.OUNCE,
+        IMPERIAL_UNITS.TABLESPOON,
+        IMPERIAL_UNITS.TEASPOON,
+    ],
+    [MEASUREMENT_TYPE.COUNT]: [
+        LITERAL_UNIT.PIECE,
+        LITERAL_UNIT.PINCH,
+    ]
+}   
+
 export const MeasurementTypes: Record<UNITS, MEASUREMENT_TYPE[]> = {
     [METRIC_UNIT.KILOGRAM]: [MEASUREMENT_TYPE.MASS],
     [METRIC_UNIT.GRAM]: [MEASUREMENT_TYPE.MASS],
-    [METRIC_UNIT.MILIGRAM]: [MEASUREMENT_TYPE.MASS],
+    [METRIC_UNIT.MILLIGRAM]: [MEASUREMENT_TYPE.MASS],
 
     [METRIC_UNIT.KILOLITER]: [MEASUREMENT_TYPE.VOLUME],
     [METRIC_UNIT.LITER]: [MEASUREMENT_TYPE.VOLUME],
@@ -103,4 +131,12 @@ export function getMeasureTypeFromUnit(unit: UNITS): MEASUREMENT_TYPE[] {
 
 export function convertUnit(from: ConvertableUnits, to: ConvertableUnits, amount: number): number {
     return (UnitConversions[from] / UnitConversions[to]) * amount;
+}
+
+export function getPossibleUnitsFromType(types: MEASUREMENT_TYPE[]): UNITS[] {
+    let units = []
+    for (const type of types)
+        units.push(...ValidTypeUnits[type]);
+
+    return units;
 }

@@ -25,7 +25,7 @@ import {
 import { createPantryEntry, PantryEntry } from "../../data/recipe/pantry";
 import { INGREDIENT_CATEGORY, LITERAL_UNIT, METRIC_UNIT, UNITS } from "../../data/util/types";
 import { DateKey, toDateKey } from "../../data/util/util";
-import { canConvert, ConvertableUnits, convertUnit, DefaultUnit, MeasurementTypes, systemIsConvertable } from "../../data/util/unit";
+import { canConvert, ConvertableUnits, convertUnit, DefaultUnit, getPossibleUnitsFromType, MeasurementTypes, systemIsConvertable } from "../../data/util/unit";
 import { createQuantity } from "../../data/recipe/quantity";
 
 /* ---------- Small helpers ---------- */
@@ -103,7 +103,7 @@ export default function PantryItemScreen() {
 
   // An entry saved in a unit the ingredient no longer allows can still be edited in that unit
   const units: UNITS[] = selected
-    ? Array.from(new Set([...(editing?.quantity ? [editing.quantity.unit] : [])]))
+    ? Array.from(new Set([ ...getPossibleUnitsFromType(selected.allowedUnits), ...(editing?.quantity ? [editing.quantity.unit] : [])]))
     : [];
 
   const matches = useMemo(() => {

@@ -32,7 +32,7 @@ test("converting metric to other systems.", () => {
 test("converting imperial to other systems.", () => {
     let imperialQuantity: ImperialQuantity = createQuantity(10, IMPERIAL_UNITS.CUP) as ImperialQuantity;
 
-    expect(imperialQuantity.convertToUnit(METRIC_UNIT.MILIGRAM).amount).toBeCloseTo(35436.9, 1);
+    expect(imperialQuantity.convertToUnit(METRIC_UNIT.MILLIGRAM).amount).toBeCloseTo(35436.9, 1);
     expect(imperialQuantity.convertToUnit(IMPERIAL_UNITS.TABLESPOON).amount).toBe(2.5);
     expect(() => imperialQuantity.convertToUnit(LITERAL_UNIT.PINCH)).toThrow(/convert/);
 })

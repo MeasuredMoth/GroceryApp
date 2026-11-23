@@ -16,7 +16,7 @@ export enum UNIT_TYPE {
 
 export enum METRIC_UNIT {
     // Mass
-    MILIGRAM = "mg",
+    MILLIGRAM = "mg",
     GRAM = "g",
     KILOGRAM = "kg",
     // Volume
