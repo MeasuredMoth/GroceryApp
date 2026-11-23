@@ -1,6 +1,8 @@
-import { allowsUnit, Ingredient } from "./ingredient";
-import { Quantity, Unit } from "../unit";
-import { DateKey, makeId } from "../util";
+import { UNITS } from "../util/types";
+import { DateKey, makeId } from "../util/util";
+import { Ingredient, isValidQuantity } from "./ingredient";
+import { Quantity } from "./quantity";
+
 
 /**
  * One purchase of an ingredient. The same ingredient may appear in several
@@ -11,7 +13,7 @@ export interface PantryEntry {
   id: string;
   ingredientId: string;
   amount: number; // 0 is allowed: keeps "you're out of oats" instead of deleting the row
-  unit: Unit;
+  unit: UNITS;
   expiresOn?: DateKey; // "YYYY-MM-DD"
 }
 
@@ -23,7 +25,7 @@ export function createPantryEntry(
   if (!Number.isFinite(quantity.amount) || quantity.amount < 0) {
     throw new Error("Amount can't be negative");
   }
-  if (!allowsUnit(ingredient, quantity.unit)) {
+  if (!isValidQuantity(ingredient, quantity)) {
     throw new Error(`${ingredient.name} can't be stored in ${quantity.unit}`);
   }
   return {

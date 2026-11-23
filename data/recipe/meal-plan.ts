@@ -1,8 +1,7 @@
-import { allowsUnit, Ingredient } from "./ingredient";
-import { Unit } from "../unit";
-import { DateKey, makeId, pad2, toDateKey } from "../util";
+import { MEAL_TYPE, WEEKDAYS } from "../util/types";
+import { DateKey, makeId, toDateKey, pad2 } from "../util/util";
+import { Ingredient, isValidQuantity } from "./ingredient";
 import { Quantity } from "./quantity";
-import { MEAL_TYPE, MEAL_TYPES, WEEKDAYS } from "../util/types";
 
 const daysOfWeek = Object.values(WEEKDAYS)
 
@@ -71,7 +70,7 @@ export function validatePlanItem(
   if (!Number.isFinite(item.quantity.amount) || item.quantity.amount <= 0) {
     return "Amount must be greater than 0";
   }
-  if (!allowsUnit(ing, item.quantity.unit))
+  if (!isValidQuantity(ing, item.quantity))
     return `${ing.name} can't be measured in ${item.quantity.unit}`;
   return null;
 }

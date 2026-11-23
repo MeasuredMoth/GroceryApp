@@ -25,6 +25,13 @@ export enum METRIC_UNIT {
     KILOLITER = "kl"
 }
 
+export enum IMPERIAL_UNITS {
+    CUP = "cup",
+    TABLESPOON = "tbsp",
+    TEASPOON = "tsp",
+    OUNCE = "oz"
+}
+
 export enum LITERAL_UNIT {
     PIECE = "piece",
     PINCH = "pinch"
@@ -41,6 +48,7 @@ export enum INGREDIENT_CATEGORY {
   FRUIT = "Fruit",
   SEASONING = "Seasoning",
   DIARY = "Diary",
+  OTHER = "Other",
 }
 
 export enum RECIPE_CATEGORY {
@@ -66,13 +74,6 @@ export enum WEEKDAYS {
     THURSDAY = "Thursday",
     FRIDAY = "Friday",
     SATURDAY = "Saturday"
-}
-
-export enum IMPERIAL_UNITS {
-    CUP = "cup",
-    TABLESPOON = "tbsp",
-    TEASPOON = "tsp",
-    OUNCE = "oz"
 }
 
 export enum MEASUREMENT_TYPE {
