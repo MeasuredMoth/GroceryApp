@@ -41,8 +41,7 @@ import RecipePickerModal from "@/components/recipePickerModal";
 import { doneKey } from "../../../data/store/app-data";
 import { setMealsDone, updatePlan, useAppData } from "@/storage/appStore";
 
-
-//TODO 
+//TODO
 //1. Removing the possibility to add ingredients or recipes from the today tab: that can only be possible in the mealplan tab
 
 //the core job is helping someone follow and manage a plan they already have, day by day.
@@ -70,7 +69,7 @@ function buildDays(range = 30): Date[] {
 function greeting(hour: number): string {
   if (hour >= 6 && hour < 12) return "Good morning";
   if (hour >= 12 && hour < 17) return "Good afternoon";
-  return "Good evening"; 
+  return "Good evening";
 }
 
 const DAYS = buildDays();
@@ -86,29 +85,38 @@ export default function Index() {
   const date = DAYS[selected];
 
   const greetingPhrase = greeting(dayjs().hour());
- 
+
   // Saved on the device and shared with the meal plan tab.
   // Every plan function returns a new Plan, so it can be passed straight to updatePlan.
   const { plan, done } = useAppData();
 
   // Adds a recipe's ingredients to the meal of that type on the selected date.
   // TODO: ask "just this day" or "every <weekday>" instead of always using "day".
-const addRecipe = (type: MealType, recipe: Recipe, scope: EditScope) => {
-  const items = recipeToItems(recipe);
-  updatePlan((p) => {
-    const existing = mealsFor(p, date).find((m) => m.type === type);
-    return existing
-      ? editMeal(p, date, { ...existing, items: [...existing.items, ...items] }, scope)
-      : addMeal(p, date, createMeal(type, DEFAULT_TIMES[type], items), scope);
-  });
-  setPickerFor(null);
-};
- const removeItem = (meal: Meal, index: number) => {
+  const addRecipe = (type: MealType, recipe: Recipe, scope: EditScope) => {
+    const items = recipeToItems(recipe);
+    updatePlan((p) => {
+      const existing = mealsFor(p, date).find((m) => m.type === type);
+      return existing
+        ? editMeal(
+            p,
+            date,
+            { ...existing, items: [...existing.items, ...items] },
+            scope,
+          )
+        : addMeal(p, date, createMeal(type, DEFAULT_TIMES[type], items), scope);
+    });
+    setPickerFor(null);
+  };
+  const removeItem = (meal: Meal, index: number) => {
     updatePlan((p) =>
-      editMeal(p, date, { ...meal, items: meal.items.filter((_, i) => i !== index) }, "day"),
+      editMeal(
+        p,
+        date,
+        { ...meal, items: meal.items.filter((_, i) => i !== index) },
+        "day",
+      ),
     );
   };
-
 
   const [notificationStatus, setNotificationStatus] = useState("");
 
@@ -129,38 +137,39 @@ const addRecipe = (type: MealType, recipe: Recipe, scope: EditScope) => {
 
   const toggleDone = (meals: Meal[]) => {
     const allDone = meals.every(isDone);
-    setMealsDone(date, meals.map((m) => m.id), !allDone);
+    setMealsDone(
+      date,
+      meals.map((m) => m.id),
+      !allDone,
+    );
   };
 
   return (
     <Screen>
-          <ScrollView
-      contentContainerStyle={styles.content}
-      showsVerticalScrollIndicator={false}
-    >
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
         <Header
           icon={<Entypo name="leaf" size={24} color="#2E7D4F" />}
-
           textHeader="GroceryMeal"
           firstSubheading={`${greetingPhrase}, ${userName}`}
           secondSubheading="Healthy meals. Less waste."
         />
         <View style={{ marginTop: 16 }}>
-              <DayScreen
-                date={date}
-                plan={plan}
-                onAdd={setPickerFor}
-                onRemoveItem={removeItem}
-                isDone={isDone}
-                onToggleDone={toggleDone}
-              />
+          <DayScreen
+            date={date}
+            plan={plan}
+            isDone={isDone}
+            onToggleDone={toggleDone}
+          />
 
           <RecipePickerModal
-  type={pickerFor}
-  weekday={weekdayOf(date)}
-  onPick={(r, scope) => pickerFor && addRecipe(pickerFor, r, scope)}
-  onClose={() => setPickerFor(null)}
-/>
+            type={pickerFor}
+            weekday={weekdayOf(date)}
+            onPick={(r, scope) => pickerFor && addRecipe(pickerFor, r, scope)}
+            onClose={() => setPickerFor(null)}
+          />
         </View>
 
         <View style={{ flexDirection: "row", gap: 16, marginTop: 16 }}>
@@ -195,13 +204,6 @@ const addRecipe = (type: MealType, recipe: Recipe, scope: EditScope) => {
             buttonLabel="Edit this week"
           />
         </View>
-
-        {/* <Pressable style={styles.testButton} onPress={sendTestNotification}>
-          <Text style={styles.testButtonText}>Send test notification</Text>
-        </Pressable>
-        {notificationStatus !== "" && (
-          <Text style={styles.tagline}>{notificationStatus}</Text>
-        )} */}
       </ScrollView>
     </Screen>
   );

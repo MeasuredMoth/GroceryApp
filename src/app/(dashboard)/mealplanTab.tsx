@@ -5,6 +5,7 @@ import Screen from "@/components/Screen";
 import Header from "@/components/header";
 import DaySelector from "@/components/daySelector";
 import { DayScreen } from "@/components/dayScreen";
+import { closeOpenRow } from "@/components/swipeableRow";
 import RecipePickerModal from "@/components/recipePickerModal";
 import {
   addMeal,
@@ -15,11 +16,13 @@ import {
   Meal,
   mealsFor,
   MealType,
+  PlanItem,
   resetDay,
   weekdayOf,
 } from "../../../data/recipe/meal-plan";
 import { Recipe, recipeToItems } from "../../../data/recipe/recipe";
 import { updatePlan, useAppData } from "@/storage/appStore";
+import Entypo from "@expo/vector-icons/Entypo";
 
 // Time given to a meal created from the picker. Meal times become editable later.
 const DEFAULT_TIMES: Record<MealType, string> = {
@@ -62,18 +65,22 @@ export default function MealPlanTab() {
     listRef.current?.scrollToIndex({ index, animated: false });
   };
 
-  const addRecipe = (recipe: Recipe, scope: EditScope) => {
-    if (!pickerFor) return;
-    const type = pickerFor;
-    const items = recipeToItems(recipe);
-    updatePlan((p) => {
-      const existing = mealsFor(p, date).find((m) => m.type === type);
-      return existing
-        ? editMeal(p, date, { ...existing, items: [...existing.items, ...items] }, scope)
-        : addMeal(p, date, createMeal(type, DEFAULT_TIMES[type], items), scope);
-    });
-    setPickerFor(null);
-  };
+const addItems = (items: PlanItem[], scope: EditScope) => {
+  if (!pickerFor) return;
+  const type = pickerFor;
+  updatePlan((p) => {
+    const existing = mealsFor(p, date).find((m) => m.type === type);
+    return existing
+      ? editMeal(p, date, { ...existing, items: [...existing.items, ...items] }, scope)
+      : addMeal(p, date, createMeal(type, DEFAULT_TIMES[type], items), scope);
+  });
+  setPickerFor(null);
+};
+
+const addRecipe = (recipe: Recipe, scope: EditScope) =>
+  addItems(recipeToItems(recipe), scope);
+
+const addIngredient = (item: PlanItem, scope: EditScope) => addItems([item], scope);
 
   const removeItem = (d: Date, meal: Meal, index: number) => {
     updatePlan((p) =>
@@ -85,6 +92,7 @@ export default function MealPlanTab() {
     <Screen>
       <View style={styles.headerContainer}>
         <Header
+          icon={<Entypo name="calendar" size={24} color="#0f4d3a" />}
           textHeader="Meal Plan"
           secondSubheading="Swipe between days to see or change your plan."
         />
@@ -106,6 +114,7 @@ export default function MealPlanTab() {
             ref={listRef}
             data={DAYS}
             extraData={plan}
+            onScrollBeginDrag={closeOpenRow}
             keyExtractor={(d) => d.toISOString()}
             horizontal
             pagingEnabled
@@ -132,12 +141,13 @@ export default function MealPlanTab() {
         )}
       </View>
 
-      <RecipePickerModal
-        type={pickerFor}
-        weekday={weekdayOf(date)}
-        onPick={addRecipe}
-        onClose={() => setPickerFor(null)}
-      />
+   <RecipePickerModal
+  type={pickerFor}
+  weekday={weekdayOf(date)}
+  onPick={addRecipe}
+  onPickIngredient={addIngredient}
+  onClose={() => setPickerFor(null)}
+/>
     </Screen>
   );
 }
