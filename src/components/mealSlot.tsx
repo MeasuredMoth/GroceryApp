@@ -1,10 +1,11 @@
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
-import { Meal, MealType } from "../../data/recipe/meal-plan";
+import { Meal } from "../../data/recipe/meal-plan";
+import { MEAL_TYPE } from "../../data/util/types";
 
 //Sets the icons for each meal type
-const ICONS: Record<MealType, keyof typeof Ionicons.glyphMap> = {
+const ICONS: Record<MEAL_TYPE, keyof typeof Ionicons.glyphMap> = {
   Breakfast: "sunny-outline",
   Lunch: "restaurant-outline",
   Dinner: "moon-outline",
@@ -12,7 +13,7 @@ const ICONS: Record<MealType, keyof typeof Ionicons.glyphMap> = {
 };
 
 type Props = {
-  type: MealType;
+  type: MEAL_TYPE;
   meals: Meal[]; // the day's meals of this type (usually 0 or 1)
   onAdd: () => void;
   onRemoveItem: (meal: Meal, index: number) => void;
@@ -67,7 +68,7 @@ export default function MealSlot({
               {nameOf(item.ingredientId)}
             </Text>
             <Text style={styles.itemQty}>
-              {item.amount} {item.unit}
+              {item.quantity.amount} {item.quantity.unit}
             </Text>
             <Pressable onPress={() => onRemoveItem(meal, index)} hitSlop={8}>
               <Ionicons name="close" size={18} color={Colors.textMuted} />

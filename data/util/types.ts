@@ -42,7 +42,7 @@ export type UNITS = METRIC_UNIT | IMPERIAL_UNITS | LITERAL_UNIT;
 export enum INGREDIENT_CATEGORY {
   GRAIN = "Grain",
   CARB = "Carb",
-  PROTIEN = "Protien",
+  PROTEIN = "PROTEIN",
   FAT = "Fat",
   VEGETABLE = "Vegetable",
   FRUIT = "Fruit",
