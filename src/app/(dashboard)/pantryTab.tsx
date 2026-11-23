@@ -14,16 +14,28 @@ import Feather from "@expo/vector-icons/Feather";
 import { Ingredient } from "../../../data/recipe/ingredient";
 import { PantryEntry } from "../../../data/recipe/pantry";
 import PantryResume from "@/components/pantryResume";
+import { INGREDIENT_CATEGORY } from "../../../data/util/types";
 
-const CATEGORIES = [
-  "All items",
-  "Proteins",
-  "Carbs",
-  "Vegetables",
-  "Dairy",
-  "Fruit",
-  "Other",
-];
+
+enum CATEGORIES {
+  ALLITEMS = "All items",
+  PROTEINS = "Proteins",
+  CARBS = "Carbs",
+  VEGETABLES = "Vegetables",
+  DAIRY = "Dairy",
+  FRUIT = "Fruit",
+  OTHER = "Other"
+}
+
+const LabelCategories: Record<CATEGORIES | string, INGREDIENT_CATEGORY | null>  = {
+  [CATEGORIES.ALLITEMS]: null,
+  [CATEGORIES.PROTEINS]: INGREDIENT_CATEGORY.PROTEIN,
+  [CATEGORIES.CARBS]: INGREDIENT_CATEGORY.CARB,
+  [CATEGORIES.VEGETABLES]: INGREDIENT_CATEGORY.VEGETABLE,
+  [CATEGORIES.DAIRY]: INGREDIENT_CATEGORY.DIARY,
+  [CATEGORIES.FRUIT]: INGREDIENT_CATEGORY.FRUIT,
+  [CATEGORIES.OTHER]: INGREDIENT_CATEGORY.OTHER,
+};
 
 //TODO check that when adding a new ingredient and so adding the allowed units, you can only add those units in the pantry
 
@@ -58,13 +70,13 @@ export default function PantryTab() {
 
   const visible = rows.filter(
     ({ ingredient }) =>
-      (category === "All items" || ingredient.category === category) &&
+      (category === CATEGORIES.ALLITEMS || ingredient.ingredientCategory === LabelCategories[category]) &&
       ingredient.name.toLowerCase().includes(search.toLowerCase()),
   );
 
   // Computed from all rows, not `visible`, so search/filters don't change the warning.
 const withExpiry = rows
-  .filter(({ entry }) => entry.expiresOn && entry.amount > 0)
+  .filter(({ entry }) => entry.expiresOn && entry.quantity.amount > 0)
   .map(({ entry, ingredient }) => ({
     name: ingredient.name,
     daysLeft: daysUntil(entry.expiresOn!),
@@ -111,7 +123,7 @@ const nextExpiring = withExpiry[0];
         search={search}
         onSearchChange={setSearch}
         onFilterPress={() => console.log("Open filters")}
-        categories={CATEGORIES}
+        categories={Object.values(CATEGORIES)}
         category={category}
         onCategoryChange={setCategory}
         placeholder="Search ingredients"
@@ -131,9 +143,9 @@ const nextExpiring = withExpiry[0];
             >
               <IngredientRow
                 title={item.ingredient.name}
-                value={`${item.entry.amount} ${item.entry.unit}`}
+                value={`${item.entry.quantity.amount} ${item.entry.quantity.unit}`}
                 subtitle={item.entry.expiresOn ? `Expires ${item.entry.expiresOn}` : undefined}
-                badge={item.entry.amount === 0 ? "OUT" : undefined}
+                badge={item.entry.quantity.amount === 0 ? "OUT" : undefined}
                 onPress={closeOpenRow}
               />
             </SwipeableRow>
