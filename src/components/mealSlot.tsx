@@ -9,7 +9,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
 import IngredientRow from "@/components/ingredientRow";
 import SwipeableRow from "@/components/swipeableRow";
-import { Meal, MealType } from "../../data/recipe/meal-plan";
+import { Meal } from "../../data/recipe/meal-plan";
+import { MEAL_TYPE } from "../../data/util/types";
 
 // Same timings as the pantry list
 const ROW_EXIT = FadeOut.duration(160);
@@ -19,7 +20,7 @@ const ROW_LAYOUT = LinearTransition.duration(240).easing(
 
 //Sets the icon and tint for each meal type
 const ICONS: Record<
-  MealType,
+  MEAL_TYPE,
   { name: keyof typeof Ionicons.glyphMap; bg: string; fg: string }
 > = {
   Breakfast: { name: "sunny-outline", bg: "#FDF0C8", fg: "#B7791F" },
@@ -35,7 +36,7 @@ const pretty = (s: string) => {
 };
 
 type Props = {
-  type: MealType;
+  type: MEAL_TYPE;
   meals: Meal[]; // the day's meals of this type (usually 0 or 1)
   onAdd?: () => void;
   onRemoveItem?: (meal: Meal, index: number) => void;
@@ -91,7 +92,7 @@ export default function MealSlot({
       const row = (
         <IngredientRow
           title={pretty(nameOf(item.ingredientId))}
-          value={`${item.amount} ${item.unit}`}
+          value={`${item.quantity.amount} ${item.quantity.unit}`}
           trailing={
             onRemoveItem ? (
               <Pressable onPress={() => onRemoveItem(meal, index)} hitSlop={8}>

@@ -5,6 +5,8 @@ import { DEFAULT_SETTINGS } from "../src/notifications/planner";
 import { rescheduleNotifications } from "../src/notifications/reschedule";
 import { createAppData } from "../data/store/app-data";
 import { addMeal, createMeal } from "../data/recipe/meal-plan";
+import { MEAL_TYPE, METRIC_UNIT } from "../data/util/types";
+import { createQuantity } from "../data/recipe/quantity";
 
 jest.mock("react-native", () => ({ Platform: { OS: "android" } }));
 
@@ -102,7 +104,7 @@ test("Rescheduling uses the saved meal plan", async () => {
     // A week from now, so the reminder is always in the future and inside the scheduling window
     const now = new Date();
     const nextWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 6, 12, 0);
-    const lunch = createMeal("Lunch", "12:00", [{ ingredientId: "oats", amount: 80, unit: "g" }]);
+    const lunch = createMeal(MEAL_TYPE.LUNCH, "12:00", [{ ingredientId: "oats", quantity: createQuantity(80, METRIC_UNIT.GRAM) }]);
     mockData.plan = addMeal(mockData.plan, nextWeek, lunch, "day");
     mockedSettings.mockReturnValue({ ...DEFAULT_SETTINGS, mealPrep: { enabled: true, hoursBefore: 2 } });
 

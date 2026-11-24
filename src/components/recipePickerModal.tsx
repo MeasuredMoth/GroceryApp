@@ -13,12 +13,15 @@ import { Ionicons } from "@expo/vector-icons";
 import Screen from "@/components/Screen";
 import { Colors } from "@/constants/Colors";
 import { useAppData } from "@/storage/appStore";
-import { EditScope, MealType, PlanItem } from "../../data/recipe/meal-plan";
+import { EditScope, PlanItem } from "../../data/recipe/meal-plan";
 import { Ingredient } from "../../data/recipe/ingredient";
 import { Recipe } from "../../data/recipe/recipe";
+import { MEAL_TYPE } from "../../data/util/types";
+import { createQuantity } from "../../data/recipe/quantity";
+import { DefaultUnit, MeasurementTypes } from "../../data/util/unit";
 
 type Props = {
-  type: MealType | null; // null = closed
+  type: MEAL_TYPE | null; // null = closed
   weekday: string; // "Monday", used in the "every Monday" option
   onPick: (recipe: Recipe, scope: EditScope) => void;
   onPickIngredient?: (item: PlanItem, scope: EditScope) => void; // omit to hide the Ingredient option
@@ -41,7 +44,7 @@ export default function RecipePickerModal({
   // Step 2 of the ingredient flow: the chosen ingredient plus its amount and unit
   const [chosen, setChosen] = useState<Ingredient | null>(null);
   const [amountText, setAmountText] = useState("");
-  const [unit, setUnit] = useState<Ingredient["allowedUnits"][number] | null>(null);
+  const [unit, setUnit] = useState<typeof DefaultUnit[Ingredient["allowedUnits"][number]] | null>(null);
 
   const reset = () => {
     setScope("day");
@@ -64,7 +67,7 @@ export default function RecipePickerModal({
 
   const chooseIngredient = (ingredient: Ingredient) => {
     setChosen(ingredient);
-    setUnit(ingredient.allowedUnits[0] ?? null);
+    setUnit(DefaultUnit[ingredient.allowedUnits[0]] ?? null);
     setAmountText("");
   };
 
@@ -73,7 +76,7 @@ export default function RecipePickerModal({
 
   const confirmIngredient = () => {
     if (!chosen || !unit || !canAdd || !onPickIngredient) return;
-    onPickIngredient({ ingredientId: chosen.id, amount, unit }, scope);
+    onPickIngredient({ ingredientId: chosen.id, quantity: createQuantity(amount, unit) }, scope);
     reset();
   };
 
@@ -163,7 +166,7 @@ export default function RecipePickerModal({
               <Text style={styles.label}>Unit</Text>
               <View style={styles.chipRowWrap}>
                 {chosen.allowedUnits.map((u) => (
-                  <Chip key={u} label={u} active={unit === u} onPress={() => setUnit(u)} />
+                  <Chip key={u} label={u} active={unit ? MeasurementTypes[unit].includes(u) : false} onPress={() => setUnit(DefaultUnit[u])} />
                 ))}
               </View>
 
@@ -195,7 +198,7 @@ export default function RecipePickerModal({
               renderItem={({ item }) => (
                 <Pressable style={styles.row} onPress={() => chooseIngredient(item)}>
                   <Text style={styles.rowText}>{item.name}</Text>
-                  <Text style={styles.rowSub}>{item.category}</Text>
+                  <Text style={styles.rowSub}>{item.ingredientCategory}</Text>
                 </Pressable>
               )}
             />

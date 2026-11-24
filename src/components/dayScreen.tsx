@@ -4,17 +4,16 @@ import { Card } from "@/components/card";
 import MealSlot from "@/components/mealSlot";
 import {
   Meal,
-  MEAL_TYPES,
   mealsFor,
-  MealType,
   Plan,
 } from "../../data/recipe/meal-plan";
+import { MEAL_TYPE } from "../../data/util/types";
 
 interface DayScreenProps {
   date: Date;
   plan: Plan;
-  onAdd?: (meal: MealType) => void;
-  onRemoveItem?: (meal: Meal, index: number) => void;
+  onAdd: (meal: MEAL_TYPE) => void;
+  onRemoveItem: (meal: Meal, index: number) => void;
   isDone?: (meal: Meal) => boolean;
   onToggleDone?: (meals: Meal[]) => void;
 }
@@ -41,7 +40,7 @@ export function DayScreen({ date, plan, onAdd, onRemoveItem, isDone, onToggleDon
     <Card>
       <Text style={styles.sectionTitle}>{title}</Text>
       <View style={styles.slots}>
-        {MEAL_TYPES.map((type) => {
+        {Object.values(MEAL_TYPE).map((type) => {
   const slotMeals = meals.filter((m) => m.type === type);
   return (
    <MealSlot

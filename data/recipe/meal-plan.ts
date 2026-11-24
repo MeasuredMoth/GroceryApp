@@ -1,41 +1,21 @@
-import { allowsUnit, Ingredient } from "./ingredient";
-import { Unit } from "../unit";
-import { DateKey, makeId, pad2, toDateKey } from "../util";
+import { MEAL_TYPE, WEEKDAYS } from "../util/types";
+import { DateKey, makeId, toDateKey, pad2 } from "../util/util";
+import { Ingredient, isValidQuantity } from "./ingredient";
+import { Quantity } from "./quantity";
 
-/* ---------- Types ---------- */
+const daysOfWeek = Object.values(WEEKDAYS)
 
-export type MealType = "Breakfast" | "Lunch" | "Dinner" | "Snack";
-export const MEAL_TYPES: readonly MealType[] = [
-  "Breakfast",
-  "Lunch",
-  "Dinner",
-  "Snack",
-];
-
-// Indexed by Date.getDay(), so Sunday is first.
-export const WEEKDAYS = [
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-] as const;
-export type Weekday = (typeof WEEKDAYS)[number];
-
-export const weekdayOf = (d: Date): Weekday => WEEKDAYS[d.getDay()];
+export const weekdayOf = (d: Date): WEEKDAYS => daysOfWeek[d.getDay()];
 
 /** One line of the plan: "80 g oats". */
 export interface PlanItem {
   ingredientId: string;
-  amount: number;
-  unit: Unit;
+  quantity: Quantity
 }
 
 export interface Meal {
   id: string; // needed so "just this day" edits can say which meal they mean
-  type: MealType; // two snacks are allowed, so type is not unique
+  type: MEAL_TYPE; // two snacks are allowed, so type is not unique
   time: string; // "HH:mm", 24h
   items: PlanItem[];
   note?: string;
@@ -53,7 +33,7 @@ export interface DayOverride {
 }
 
 export interface Plan {
-  template: Record<Weekday, Meal[]>;
+  template: Record<WEEKDAYS, Meal[]>;
   overrides: Record<DateKey, DayOverride>;
 }
 
@@ -63,13 +43,13 @@ export type EditScope = "day" | "weekday";
 /* ---------- Creating ---------- */
 
 export function createEmptyPlan(): Plan {
-  const template = {} as Record<Weekday, Meal[]>;
-  WEEKDAYS.forEach((d) => (template[d] = []));
+  const template = {} as Record<WEEKDAYS, Meal[]>;
+  daysOfWeek.forEach((d) => (template[d] = []));
   return { template, overrides: {} };
 }
 
 export function createMeal(
-  type: MealType,
+  type: MEAL_TYPE,
   time: string,
   items: PlanItem[] = [],
   note?: string,
@@ -87,11 +67,11 @@ export function validatePlanItem(
 ): string | null {
   const ing = getIngredient(item.ingredientId);
   if (!ing) return `Unknown ingredient: ${item.ingredientId}`;
-  if (!Number.isFinite(item.amount) || item.amount <= 0) {
+  if (!Number.isFinite(item.quantity.amount) || item.quantity.amount <= 0) {
     return "Amount must be greater than 0";
   }
-  if (!allowsUnit(ing, item.unit))
-    return `${ing.name} can't be measured in ${item.unit}`;
+  if (!isValidQuantity(ing, item.quantity))
+    return `${ing.name} can't be measured in ${item.quantity.unit}`;
   return null;
 }
 
@@ -155,7 +135,7 @@ function setOverride(plan: Plan, key: DateKey, ov: DayOverride): Plan {
   return { ...plan, overrides };
 }
 
-const setTemplate = (plan: Plan, day: Weekday, meals: Meal[]): Plan => ({
+const setTemplate = (plan: Plan, day: WEEKDAYS, meals: Meal[]): Plan => ({
   ...plan,
   template: { ...plan.template, [day]: meals },
 });

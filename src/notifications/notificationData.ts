@@ -46,7 +46,7 @@ export function toNotificationData(data: AppData, now: Date = new Date()): Notif
   const pantry: NotificationData["pantry"] = [];
   for (const entry of data.pantry) {
     const ingredient = data.ingredients.find((i) => i.id === entry.ingredientId);
-    if (!ingredient || !entry.expiresOn || entry.amount === 0) continue;
+    if (!ingredient || !entry.expiresOn || entry.quantity.amount === 0) continue;
 
     // Built from the parts because new Date("YYYY-MM-DD") is UTC and can land on the day before
     const [year, month, date] = entry.expiresOn.split("-").map(Number);

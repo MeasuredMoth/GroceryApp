@@ -1,13 +1,8 @@
 import type { ImageSourcePropType } from "react-native";
 import type { PlanItem } from "./meal-plan";
-import { makeId } from "../util";
+import { RECIPE_CATEGORY } from "../util/types";
+import { makeId } from "../util/util";
 
-export type RecipeCategory =
-  | "Breakfast"
-  | "Lunch"
-  | "Dinner"
-  | "Snack"
-  | "Dessert";
 
 /**
  * A recipe is a shortcut: a saved list of ingredients with quantities.
@@ -17,13 +12,13 @@ export type RecipeCategory =
 export interface Recipe {
   id: string;
   name: string;
-  category: RecipeCategory;
+  category: RECIPE_CATEGORY;
   items: PlanItem[];
   image?: ImageSourcePropType;
 }
 
 export interface RecipeOptions {
-  category?: RecipeCategory;
+  category?: RECIPE_CATEGORY;
   image?: ImageSourcePropType;
   id?: string;
 }
@@ -38,7 +33,7 @@ export function createRecipe(
   return {
     id: options.id ?? makeId("recipe"),
     name: trimmed,
-    category: options.category ?? "Dinner",
+    category: options.category ?? RECIPE_CATEGORY.DINNER,
     items,
     image: options.image,
   };

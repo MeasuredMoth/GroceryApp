@@ -21,30 +21,34 @@ import { saveIngredient, savePantryEntry, useAppData } from "@/storage/appStore"
 import {
   createIngredient,
   Ingredient,
-  INGREDIENT_CATEGORIES,
-  IngredientCategory,
 } from "../../data/recipe/ingredient";
 import { createPantryEntry, PantryEntry } from "../../data/recipe/pantry";
-import { canConvert, convert, Unit } from "../../data/unit";
-import { DateKey, toDateKey } from "../../data/util";
+import { INGREDIENT_CATEGORY, LITERAL_UNIT, METRIC_UNIT, UNITS } from "../../data/util/types";
+import { DateKey, toDateKey } from "../../data/util/util";
+import { canConvert, ConvertableUnits, convertUnit, DefaultUnit, getPossibleUnitsFromType, MeasurementTypes, systemIsConvertable } from "../../data/util/unit";
+import { createQuantity } from "../../data/recipe/quantity";
 
 /* ---------- Small helpers ---------- */
 
-const CATEGORY_ICONS: Record<IngredientCategory, keyof typeof Ionicons.glyphMap> = {
-  Proteins: "egg-outline",
-  Carbs: "nutrition-outline",
-  Vegetables: "leaf-outline",
-  Dairy: "water-outline",
-  Fruit: "color-fill-outline",
-  Other: "cube-outline",
+const CATEGORY_ICONS: Record<INGREDIENT_CATEGORY, keyof typeof Ionicons.glyphMap> = {
+  [INGREDIENT_CATEGORY.PROTEIN]: "egg-outline",
+  [INGREDIENT_CATEGORY.CARB]: "nutrition-outline",
+  [INGREDIENT_CATEGORY.VEGETABLE]: "leaf-outline",
+  [INGREDIENT_CATEGORY.DIARY]: "water-outline",
+  [INGREDIENT_CATEGORY.FRUIT]: "color-fill-outline",
+  [INGREDIENT_CATEGORY.GRAIN]: "cube-outline",
+  [INGREDIENT_CATEGORY.FAT]: "cube-outline",
+  [INGREDIENT_CATEGORY.SEASONING]: "cube-outline",
+  [INGREDIENT_CATEGORY.OTHER]: "cube-outline",
 };
 
 // What a new custom ingredient can be measured in
-const UNIT_GROUPS: { label: string; units: Unit[] }[] = [
-  { label: "Weight (g, kg)", units: ["g", "kg"] },
-  { label: "Volume (ml, l)", units: ["ml", "l"] },
-  { label: "Pieces", units: ["piece"] },
+const UNIT_GROUPS: { label: string; units: UNITS[] }[] = [
+  { label: "Weight (g, kg)", units: [METRIC_UNIT.GRAM, METRIC_UNIT.KILOGRAM] },
+  { label: "Pieces", units: [METRIC_UNIT.LITER, METRIC_UNIT.MILILITER] },
+  { label: "Volume (ml, l)", units: [LITERAL_UNIT.PIECE] },
 ];
+
 
 const EXPIRY_SHORTCUTS = [
   { label: "3 days", days: 3 },
@@ -56,7 +60,7 @@ const EXPIRY_SHORTCUTS = [
 const MAX_MATCHES = 6;
 
 /** How much one tap on - or + changes the amount, so each unit feels reasonable. */
-function stepFor(unit: Unit): number {
+function stepFor(unit: UNITS): number {
   if (unit === "g" || unit === "ml") return 50;
   if (unit === "kg" || unit === "l") return 0.5;
   return 1;
@@ -90,16 +94,16 @@ export default function PantryItemScreen() {
 
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(editing?.ingredientId ?? null);
-  const [amountText, setAmountText] = useState(editing ? formatAmount(editing.amount) : "");
-  const [unit, setUnit] = useState<Unit | null>(editing?.unit ?? null);
+  const [amountText, setAmountText] = useState(editing ? formatAmount(editing.quantity.amount) : "");
+  const [unit, setUnit] = useState<UNITS | null>(editing?.quantity.unit ?? null);
   const [expiresOn, setExpiresOn] = useState<DateKey | undefined>(editing?.expiresOn);
   const [creating, setCreating] = useState(false);
 
   const selected = ingredients.find((i) => i.id === selectedId) ?? null;
 
   // An entry saved in a unit the ingredient no longer allows can still be edited in that unit
-  const units: Unit[] = selected
-    ? Array.from(new Set([...selected.allowedUnits, ...(editing?.unit ? [editing.unit] : [])]))
+  const units: UNITS[] = selected
+    ? Array.from(new Set([ ...getPossibleUnitsFromType(selected.allowedUnits), ...(editing?.quantity ? [editing.quantity.unit] : [])]))
     : [];
 
   const matches = useMemo(() => {
@@ -111,7 +115,7 @@ export default function PantryItemScreen() {
 
   const select = (ingredient: Ingredient) => {
     setSelectedId(ingredient.id);
-    setUnit(ingredient.allowedUnits[0]);
+    setUnit(DefaultUnit[ingredient.allowedUnits[0]]);
     setAmountText("");
     setExpiresOn(undefined); // a date picked for another ingredient doesn't carry over
     setCreating(false);
@@ -135,26 +139,26 @@ export default function PantryItemScreen() {
           (e) =>
             e.ingredientId === selected.id &&
             (e.expiresOn ?? null) === (expiresOn ?? null) &&
-            canConvert(unit, e.unit),
+            canConvert(unit, e.quantity.unit),
         )
       : undefined;
   const mergedTotal =
-    mergeTarget && unit && amountOk
-      ? mergeTarget.amount + (convert({ amount, unit }, mergeTarget.unit)?.amount ?? 0)
+    mergeTarget && unit && amountOk && systemIsConvertable(unit, mergeTarget.quantity.unit)
+      ? mergeTarget.quantity.amount + convertUnit(unit as ConvertableUnits, mergeTarget.quantity.unit as ConvertableUnits, amount)
       : null;
 
   const markRunOut = () => {
     if (!editing) return;
-    savePantryEntry({ ...editing, amount: 0 });
+    savePantryEntry({ ...editing, quantity: createQuantity(0, editing.quantity.unit) });
     router.back();
   };
 
   const save = () => {
     if (!selected || !unit || !amountOk) return;
     if (editing) {
-      savePantryEntry({ ...editing, ingredientId: selected.id, amount, unit, expiresOn });
+      savePantryEntry({ ...editing, ingredientId: selected.id, quantity: createQuantity(0, editing.quantity.unit) , expiresOn });
     } else {
-      savePantryEntry(createPantryEntry(selected, { amount, unit }, expiresOn));
+      savePantryEntry(createPantryEntry(selected, createQuantity(amount, unit), expiresOn));
     }
     router.back();
   };
@@ -241,7 +245,7 @@ export default function PantryItemScreen() {
                 <View style={styles.row}>
                   <Text style={styles.selectedName}>{selected.name}</Text>
                   <View style={styles.categoryChip}>
-                    <Text style={styles.categoryChipText}>{selected.category}</Text>
+                    <Text style={styles.categoryChipText}>{selected.ingredientCategory}</Text>
                   </View>
                 </View>
               </View>
@@ -302,11 +306,11 @@ export default function PantryItemScreen() {
               <View style={styles.mergeNote}>
                 <Ionicons name="git-merge-outline" size={16} color={Colors.primaryDark} />
                 <Text style={styles.mergeNoteText}>
-                  {mergeTarget.amount === 0
+                  {mergeTarget.quantity.amount === 0
                     ? `Restocks your empty ${selected.name} row`
                     : mergedTotal !== null
-                      ? `Adds to the ${formatAmount(mergeTarget.amount)} ${mergeTarget.unit} you have: ${formatAmount(mergedTotal)} ${mergeTarget.unit} total`
-                      : `Adds to the ${formatAmount(mergeTarget.amount)} ${mergeTarget.unit} you already have`}
+                      ? `Adds to the ${formatAmount(mergeTarget.quantity.amount)} ${mergeTarget.quantity.unit} you have: ${formatAmount(mergedTotal)} ${mergeTarget.quantity.unit} total`
+                      : `Adds to the ${formatAmount(mergeTarget.quantity.amount)} ${mergeTarget.quantity.unit} you already have`}
                 </Text>
               </View>
             )}
@@ -314,7 +318,7 @@ export default function PantryItemScreen() {
         )}
 
         {/* Keeps the row in the pantry with "OUT", so it's clear it needs buying */}
-        {editing && editing.amount > 0 && (
+        {editing && editing.quantity.amount > 0 && (
           <Pressable style={styles.runOutButton} onPress={markRunOut} accessibilityRole="button">
             <Ionicons name="remove-circle-outline" size={20} color={Colors.danger} />
             <View style={{ flex: 1 }}>
@@ -323,7 +327,7 @@ export default function PantryItemScreen() {
             </View>
           </Pressable>
         )}
-        {editing && editing.amount === 0 && (
+        {editing && editing.quantity.amount === 0 && (
           <View style={styles.outNote}>
             <Ionicons name="alert-circle-outline" size={18} color={Colors.danger} />
             <Text style={styles.outNoteText}>Out of stock. Set an amount above to restock it.</Text>
@@ -352,7 +356,7 @@ export default function PantryItemScreen() {
                   <IngredientIcon ingredient={ingredient} small />
                   <View style={{ flex: 1 }}>
                     <Text style={styles.matchName}>{ingredient.name}</Text>
-                    <Text style={styles.muted}>{ingredient.category}</Text>
+                    <Text style={styles.muted}>{ingredient.ingredientCategory}</Text>
                   </View>
                   <Ionicons name="add-circle-outline" size={22} color={Colors.textMuted} />
                 </Pressable>
@@ -405,7 +409,7 @@ function IngredientIcon({ ingredient, small }: { ingredient: Ingredient; small?:
   return (
     <View style={[styles.icon, { width: size, height: size, borderRadius: size / 2 }]}>
       <Ionicons
-        name={CATEGORY_ICONS[ingredient.category]}
+        name={CATEGORY_ICONS[ingredient.ingredientCategory]}
         size={small ? 16 : 20}
         color={Colors.primaryDark}
       />
@@ -489,7 +493,7 @@ function CustomIngredient({
 }) {
   // null until the user types, so the field starts from the search text but can be cleared
   const [name, setName] = useState<string | null>(null);
-  const [category, setCategory] = useState<IngredientCategory>("Other");
+  const [category, setCategory] = useState<INGREDIENT_CATEGORY>(INGREDIENT_CATEGORY.OTHER);
   const [group, setGroup] = useState(0);
 
   // Starts from what was typed in the search box
@@ -500,9 +504,9 @@ function CustomIngredient({
 
   const create = () => {
     if (!canCreate) return;
-    onCreate(createIngredient(trimmed, UNIT_GROUPS[group].units, category));
+    onCreate(createIngredient(trimmed, MeasurementTypes[UNIT_GROUPS[group].units[0]], category));
     setName(null);
-    setCategory("Other");
+    setCategory(INGREDIENT_CATEGORY.OTHER);
     setGroup(0);
   };
 
@@ -532,7 +536,7 @@ function CustomIngredient({
 
           <Text style={styles.fieldLabel}>Category</Text>
           <ChipRow>
-            {INGREDIENT_CATEGORIES.map((c) => (
+            {Object.values(INGREDIENT_CATEGORY).map((c) => (
               <Chip key={c} label={c} active={c === category} onPress={() => setCategory(c)} />
             ))}
           </ChipRow>

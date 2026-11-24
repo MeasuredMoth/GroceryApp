@@ -1,70 +1,24 @@
-import { Ingredient, ingredientType, quantityFormats } from "data/recipe/ingredient";
-import { MealPlan } from "data/recipe/meal-plan"
-import { Recipe } from "data/recipe/recipe";
+import { ingredients } from "@/data/ingredientsData"
+import { createMeal, PlanItem, validatePlanItem } from "../data/recipe/meal-plan"
+import { createQuantity } from "../data/recipe/quantity"
+import { INGREDIENT_CATEGORY, LITERAL_UNIT, MEAL_TYPE, MEASUREMENT_TYPE, METRIC_UNIT } from "../data/util/types"
+import { createIngredient, Ingredient } from "../data/recipe/ingredient"
 
-test("Setting name of MealPlan", () => {
-    let plan = new MealPlan("Week")
-
-    expect(plan.getName()).toBe("Week");
+test("Create meal-plan", () => {
+    expect(createMeal(MEAL_TYPE.BREAKFAST, "12:00").time).toBe("12:00")
+    expect(
+        createMeal(
+            MEAL_TYPE.LUNCH, "18:00", 
+            [{ingredientId: "apple", quantity: createQuantity(100, LITERAL_UNIT.PIECE)}]
+    ).items.length).toBe(1)
+    expect(createMeal(MEAL_TYPE.DINNER, "22:00", [] ,"Eat nothing.").note).toBe("Eat nothing.");
 })
 
-test("Setting name of MealPlan to nothing", () => {
-    let plan = new MealPlan("Week");
+test("Validate item", () => {
+    let ingredient: Ingredient = createIngredient("apple", [MEASUREMENT_TYPE.COUNT], INGREDIENT_CATEGORY.FRUIT);
 
-    plan.setName("");
+    expect(validatePlanItem({ingredientId: "apple", quantity: createQuantity(1, LITERAL_UNIT.PIECE)}, (id: string) => { return ingredient })).toBe(null);
+    expect(validatePlanItem({ingredientId: "apple", quantity: createQuantity(1, LITERAL_UNIT.PIECE)}, (id: string) => { return undefined})).toMatch(/Unknown/);
+    expect(validatePlanItem({ingredientId: "apple", quantity: createQuantity(1, METRIC_UNIT.GRAM)}, (id: string) => { return ingredient })).toMatch(/measured/);
 
-    expect(plan.getName()).toBe("Week");
 })
-
-test("Adding recipes to meal plan.", () => {
-    let recipes: Recipe[] = [
-        new Recipe("Cooked Chicken", [
-            new Ingredient("Chicken", {amount: 1, unit: "piece"}, ingredientType.PROTIEN)
-        ]),
-        new Recipe("Cooked Rice", [
-            new Ingredient("Rice", {amount: 100, unit: "g"}, ingredientType.CARB)
-        ]),
-        new Recipe("Apple Pie", [
-            new Ingredient("Flour", {amount: 1, unit: "kg"}, ingredientType.CARB), 
-            new Ingredient("Apple", {amount: 100, unit: "g"},ingredientType.FRUIT)
-        ])
-    ]
-
-    let plan = new MealPlan("Week", recipes);
-
-    let jsonCompare = {
-        "Week": {
-            "Cooked Chicken": {
-                "Chicken": {
-                    "quantity": {amount: 1, unit: "piece"},
-                    "type": ingredientType.PROTIEN,
-                    "system": "literal",
-                },
-            },
-            "Cooked Rice": {
-                "Rice": {
-                    "quantity": {amount: 100, unit: "g"},
-                    "type": ingredientType.CARB,
-                    "system": "metric",
-                },
-            },
-            "Apple Pie": {
-                "Flour": {
-                    "quantity": {amount: 1, unit: "kg"},
-                    "type": ingredientType.CARB,
-                    "system": "metric",
-                },
-                "Apple": {
-                    "quantity": {amount: 100, unit: "g"},
-                    "type": ingredientType.FRUIT,
-                    "system": "metric",
-                }
-            }
-        }
-    }
-
-    let data = plan.getJSON();
-
-    expect(JSON.parse(data)).toStrictEqual(jsonCompare)
-})
-    

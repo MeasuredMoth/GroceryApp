@@ -1,21 +1,21 @@
 // Everything the app saves on the device, and the checks applied when reading it back.
 // No Expo or React imports in this file, so it can be unit tested with Jest.
 
-import { Ingredient, INGREDIENT_CATEGORIES, IngredientCategory } from "../recipe/ingredient";
+import { createIngredientItem } from "../items/ingredientItem";
+import { createIngredient, Ingredient } from "../recipe/ingredient";
 import {
   createEmptyPlan,
   DayOverride,
   Meal,
-  MEAL_TYPES,
-  MealType,
   Plan,
   PlanItem,
-  WEEKDAYS,
 } from "../recipe/meal-plan";
 import { PantryEntry } from "../recipe/pantry";
-import { Recipe, RecipeCategory } from "../recipe/recipe";
-import { isUnit, Unit } from "../unit";
-import { DateKey, toDateKey } from "../util";
+import { createQuantity, Quantity } from "../recipe/quantity";
+import { Recipe } from "../recipe/recipe";
+import { INGREDIENT_CATEGORY, MEAL_TYPE, MEASUREMENT_TYPE, RECIPE_CATEGORY, UNITS, WEEKDAYS } from "../util/types";
+import { isUnit } from "../util/unit";
+import { toDateKey, DateKey } from "../util/util";
 
 /** Bump this when the saved shape changes in a way old files can't be read as. */
 export const DATA_VERSION = 1;
@@ -41,7 +41,6 @@ export interface Defaults {
 // Ticks older than this are dropped on load, so the file doesn't grow forever
 const KEEP_DONE_DAYS = 90;
 
-const RECIPE_CATEGORIES: readonly RecipeCategory[] = ["Breakfast", "Lunch", "Dinner", "Snack", "Dessert"];
 const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/;
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
 
@@ -108,21 +107,21 @@ function readIngredient(raw: unknown): Ingredient | null {
   if (!isObject(raw) || !isText(raw.id) || !isText(raw.name)) return null;
 
   const allowedUnits = readList(raw.allowedUnits, (unit) =>
-    typeof unit === "string" && isUnit(unit) ? unit : null,
+    typeof unit === "string" && Object.values(MEASUREMENT_TYPE).includes(unit as MEASUREMENT_TYPE) ? unit as MEASUREMENT_TYPE : null,
   );
   if (allowedUnits.length === 0) return null;
 
-  const category = INGREDIENT_CATEGORIES.includes(raw.category as IngredientCategory)
-    ? (raw.category as IngredientCategory)
-    : "Other";
-  return { id: raw.id, name: raw.name, allowedUnits, category };
+  const category = Object.values(INGREDIENT_CATEGORY).includes(raw.ingredientCategory as INGREDIENT_CATEGORY)
+    ? (raw.ingredientCategory as INGREDIENT_CATEGORY)
+    : INGREDIENT_CATEGORY.OTHER;
+  return createIngredient(raw.name, allowedUnits, category, raw.id);
 }
 
 function readPlanItem(raw: unknown): PlanItem | null {
   if (!isObject(raw) || !isText(raw.ingredientId)) return null;
-  if (typeof raw.amount !== "number" || !Number.isFinite(raw.amount) || raw.amount <= 0) return null;
-  if (typeof raw.unit !== "string" || !isUnit(raw.unit)) return null;
-  return { ingredientId: raw.ingredientId, amount: raw.amount, unit: raw.unit };
+  const quantity = readQuantity(raw.quantity)
+  if (!quantity) return null;
+  return { ingredientId: raw.ingredientId, quantity: quantity};
 }
 
 function readRecipe(raw: unknown): Recipe | null {
@@ -131,10 +130,11 @@ function readRecipe(raw: unknown): Recipe | null {
   const recipe: Recipe = {
     id: raw.id,
     name: raw.name,
-    category: RECIPE_CATEGORIES.includes(raw.category as RecipeCategory)
-      ? (raw.category as RecipeCategory)
-      : "Dinner",
+    category: Object.keys(RECIPE_CATEGORY).includes(raw.category as string)
+      ? (raw.category as RECIPE_CATEGORY)
+      : RECIPE_CATEGORY.DINNER,
     items: readList(raw.items, readPlanItem),
+    image: undefined
   };
   // Only photos with a uri survive a restart. A bundled image is a number that changes between builds.
   if (isObject(raw.image) && isText(raw.image.uri)) recipe.image = { uri: raw.image.uri };
@@ -143,16 +143,16 @@ function readRecipe(raw: unknown): Recipe | null {
 
 function readMeal(raw: unknown): Meal | null {
   if (!isObject(raw) || !isText(raw.id)) return null;
-  if (!MEAL_TYPES.includes(raw.type as MealType)) return null;
+  if (!Object.values(MEAL_TYPE).includes(raw.type as MEAL_TYPE)) return null;
   if (typeof raw.time !== "string" || !TIME.test(raw.time)) return null;
 
   const meal: Meal = {
     id: raw.id,
-    type: raw.type as MealType,
+    type: raw.type as MEAL_TYPE,
     time: raw.time,
     items: readList(raw.items, readPlanItem),
   };
-  if (isText(raw.note)) meal.note = raw.note;
+  meal.note = isText(raw.note) ? raw.note : undefined;
   return meal;
 }
 
@@ -181,7 +181,8 @@ function readPlan(raw: unknown): Plan {
   if (!isObject(raw)) return plan;
 
   if (isObject(raw.template)) {
-    for (const day of WEEKDAYS) plan.template[day] = readList(raw.template[day], readMeal);
+    for (const day of Object.values(WEEKDAYS)) 
+      plan.template[day] = readList(raw.template[day], readMeal);
   }
   if (isObject(raw.overrides)) {
     for (const [key, value] of Object.entries(raw.overrides)) {
@@ -194,14 +195,13 @@ function readPlan(raw: unknown): Plan {
 
 function readPantryEntry(raw: unknown): PantryEntry | null {
   if (!isObject(raw) || !isText(raw.id) || !isText(raw.ingredientId)) return null;
-  if (typeof raw.amount !== "number" || !Number.isFinite(raw.amount) || raw.amount < 0) return null;
-  if (typeof raw.unit !== "string" || !isUnit(raw.unit)) return null;
+  const quantity = readQuantity(raw.quantity);
+  if (!quantity) return null;
 
   const entry: PantryEntry = {
     id: raw.id,
     ingredientId: raw.ingredientId,
-    amount: raw.amount,
-    unit: raw.unit as Unit,
+    quantity: quantity,
   };
   if (typeof raw.expiresOn === "string" && DATE_KEY.test(raw.expiresOn)) entry.expiresOn = raw.expiresOn;
   return entry;
@@ -220,6 +220,13 @@ function readDone(raw: unknown, now: Date): DoneLog {
     if (value === true && DATE_KEY.test(date) && key[10] === ":" && date >= oldest) done[key] = true;
   }
   return done;
+}
+
+function readQuantity(raw: unknown): Quantity | null {
+  if (!isObject(raw)) return null;
+  if (typeof raw.amount !== "number" || !isFinite(raw.amount)) return null;
+  if (typeof raw.unit !== "string" || !isUnit(raw.unit) || raw.amount < 0) return null;
+  return createQuantity(raw.amount, raw.unit as UNITS)
 }
 
 /**
@@ -246,3 +253,4 @@ export function sanitizeAppData(raw: unknown, defaults: Defaults, now: Date = ne
 export function serializeAppData(data: AppData): string {
   return JSON.stringify({ version: DATA_VERSION, ...data }, null, 2);
 }
+

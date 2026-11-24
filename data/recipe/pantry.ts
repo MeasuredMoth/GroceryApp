@@ -1,6 +1,9 @@
-import { allowsUnit, Ingredient } from "./ingredient";
-import { canConvert, convert, Quantity, Unit } from "../unit";
-import { DateKey, makeId } from "../util";
+import { UNITS } from "../util/types";
+import { DateKey, makeId } from "../util/util";
+import { Ingredient, isValidQuantity } from "./ingredient";
+import { Quantity } from "./quantity";
+import { canConvert,  } from "../util/unit";
+
 
 /**
  * One purchase of an ingredient. The same ingredient may appear in several
@@ -10,8 +13,7 @@ import { DateKey, makeId } from "../util";
 export interface PantryEntry {
   id: string;
   ingredientId: string;
-  amount: number; // 0 is allowed: keeps "you're out of oats" instead of deleting the row
-  unit: Unit;
+  quantity: Quantity;
   expiresOn?: DateKey; // "YYYY-MM-DD"
 }
 
@@ -23,14 +25,13 @@ export function createPantryEntry(
   if (!Number.isFinite(quantity.amount) || quantity.amount < 0) {
     throw new Error("Amount can't be negative");
   }
-  if (!allowsUnit(ingredient, quantity.unit)) {
+  if (!isValidQuantity(ingredient, quantity)) {
     throw new Error(`${ingredient.name} can't be stored in ${quantity.unit}`);
   }
   return {
     id: makeId("pantry"),
     ingredientId: ingredient.id,
-    amount: quantity.amount,
-    unit: quantity.unit,
+    quantity: quantity,
     expiresOn,
   };
 }
@@ -55,16 +56,17 @@ export function mergeIntoPantry(pantry: PantryEntry[], entry: PantryEntry): Pant
     (e) =>
       e.ingredientId === entry.ingredientId &&
       sameExpiry(e.expiresOn, entry.expiresOn) &&
-      canConvert(entry.unit, e.unit),
+      canConvert(entry.quantity.unit, e.quantity.unit),
   );
   if (match) {
-    const added = convert({ amount: entry.amount, unit: entry.unit }, match.unit)!;
-    const amount = Number((match.amount + added.amount).toFixed(4));
-    return others.map((e) => (e.id === match.id ? { ...match, amount } : e));
+    const converted = entry.quantity.convertToUnit(match.quantity.unit)!;
+    const amount = Number((match.quantity.amount + converted.amount).toFixed(4));
+    converted.amount = amount;
+    return others.map((e) => (e.id === match.id ? { ...match, quantity: converted } : e));
   }
 
   if (!isEdit) {
-    const empty = others.find((e) => e.ingredientId === entry.ingredientId && e.amount === 0);
+    const empty = others.find((e) => e.ingredientId === entry.ingredientId && e.quantity.amount === 0);
     if (empty) return pantry.map((e) => (e.id === empty.id ? { ...entry, id: empty.id } : e));
     return [...pantry, entry];
   }

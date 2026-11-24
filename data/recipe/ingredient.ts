@@ -1,65 +1,48 @@
-import { Quantity, Unit } from "../unit";
-import { makeId } from "../util";
+import { Quantity } from "./quantity";
+import { INGREDIENT_CATEGORY, MEASUREMENT_TYPE } from "../util/types";
+import { makeId } from "../util/util";
+import { getMeasureTypeFromUnit } from "../util/unit";
 
-// Re-exported so existing imports of Unit / Quantity / parseQuantity from "./ingredient" keep working.
-export * from "../unit";
-
-export type IngredientCategory =
-  "Proteins"
-  | "Carbs"
-  | "Vegetables"
-  | "Dairy"
-  | "Fruit"
-  | "Other";
-export const INGREDIENT_CATEGORIES: readonly IngredientCategory[] = [
-  "Proteins",
-  "Carbs",
-  "Vegetables",
-  "Dairy",
-  "Fruit",
-  "Other",
-];
-
-/**
- * An ingredient is only a name plus the units it can be stored/measured in.
- * No quantities here: those live in PlanItem, RecipeItem and PantryEntry.
- */
 export interface Ingredient {
-  id: string;
-  name: string;
-  allowedUnits: Unit[]; // e.g. eggs: ["piece"], oats: ["g", "kg"]
-  category: IngredientCategory;
+    id: string;
+    name: string;
+    allowedUnits: MEASUREMENT_TYPE[]; 
+    ingredientCategory: INGREDIENT_CATEGORY;
 }
 
 export function createIngredient(
   name: string,
-  allowedUnits: Unit[],
-  category: IngredientCategory = "Other",
-  id: string = makeId("ing"),
+  allowedUnits: MEASUREMENT_TYPE[],
+  ingredientCategory: INGREDIENT_CATEGORY,
+  id: string = "",
 ): Ingredient {
-  const trimmed = name.trim();
-  if (trimmed === "") throw new Error("An ingredient needs a name");
-  if (allowedUnits.length === 0) {
-    throw new Error(`${trimmed} needs at least one allowed unit`);
-  }
-  return {
-    id,
-    name: trimmed,
-    allowedUnits: Array.from(new Set(allowedUnits)),
-    category,
-  };
+    const trimmed = name.trim();
+
+    if (trimmed === "") 
+        throw new Error("An ingredient needs a name.");
+    if (allowedUnits.length === 0) 
+        throw new Error(`${trimmed} needs at least one allowed unit.`);
+
+    if (id == "")
+      id = makeId(name);
+
+    return {
+        id,
+        name,
+        allowedUnits,
+        ingredientCategory
+    }
 }
 
-export function allowsUnit(ingredient: Ingredient, unit: Unit): boolean {
-  return ingredient.allowedUnits.includes(unit);
-}
-
-/** True when the amount is positive and the ingredient can be measured in that unit. */
 export function isQuantityAllowed(
   ingredient: Ingredient,
-  q: Quantity,
+  quantity: Quantity,
 ): boolean {
   return (
-    Number.isFinite(q.amount) && q.amount > 0 && allowsUnit(ingredient, q.unit)
+    Number.isFinite(quantity.amount) && quantity.amount > 0 && isValidQuantity(ingredient, quantity)
   );
+}
+
+export function isValidQuantity(ingredient: Ingredient, quantity: Quantity){
+  return ingredient.allowedUnits.some(u => getMeasureTypeFromUnit(quantity.unit).includes(u));
 }
