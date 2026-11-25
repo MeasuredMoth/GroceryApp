@@ -40,3 +40,33 @@ test("Extract items from recipe", () => {
     expect(recipeItems.at(1)?.quantity.amount).toBe(50);
     expect(recipeItems.at(2)?.quantity.unit).toBe(IMPERIAL_UNITS.OUNCE);
 })
+test("A recipe is for one serving unless told otherwise", () => {
+    expect(createRecipe("Toast").servings).toBe(1);
+    expect(createRecipe("Lasagna", [], { servings: 4 }).servings).toBe(4);
+    expect(() => createRecipe("Lasagna", [], { servings: 0 })).toThrow(/Servings/);
+    expect(() => createRecipe("Lasagna", [], { servings: 1.5 })).toThrow(/Servings/);
+})
+
+test("Items are scaled to the number of servings", () => {
+    const recipe = createRecipe(
+        "Pancakes",
+        [
+            { ingredientId: "flour", quantity: createQuantity(200, METRIC_UNIT.GRAM) },
+            { ingredientId: "eggs", quantity: createQuantity(2, LITERAL_UNIT.PIECE) },
+            { ingredientId: "milk", quantity: createQuantity(100, METRIC_UNIT.MILILITER) },
+        ],
+        { servings: 2 },
+    )
+
+    const triple = recipeToItems(recipe, 6);
+    expect(triple.map((i) => i.quantity.amount)).toEqual([600, 6, 300]);
+    expect(triple[1].quantity.unit).toBe(LITERAL_UNIT.PIECE);
+
+    // Rounded to 2 decimals
+    expect(recipeToItems(createRecipe("Thirds", [recipe.items[2]], { servings: 3 }), 1)[0].quantity.amount).toBe(33.33);
+
+    // The recipe itself is untouched
+    expect(recipe.items[0].quantity.amount).toBe(200);
+    // Without a count it uses the recipe's own servings
+    expect(recipeToItems(recipe)[0].quantity.amount).toBe(200);
+})

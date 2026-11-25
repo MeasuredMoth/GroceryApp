@@ -12,8 +12,8 @@ import { MEAL_TYPE } from "../../data/util/types";
 interface DayScreenProps {
   date: Date;
   plan: Plan;
-  onAdd: (meal: MEAL_TYPE) => void;
-  onRemoveItem: (meal: Meal, index: number) => void;
+  onAdd?: (meal: MEAL_TYPE) => void;
+  onRemoveItem?: (meal: Meal, index: number) => void;
   isDone?: (meal: Meal) => boolean;
   onToggleDone?: (meals: Meal[]) => void;
 }

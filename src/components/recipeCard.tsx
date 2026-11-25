@@ -49,11 +49,13 @@ export default function RecipeCard({ recipe, onPress, onMenuPress }: Props) {
           {/* <View style={styles.meta}>
             <Ionicons name="flame-outline" size={14} color={Colors.textMuted} />
             <Text style={styles.metaText}>{recipe.getKcal()} kcal</Text>
-          </View>
+          </View> */}
           <View style={styles.meta}>
             <Ionicons name="people-outline" size={14} color={Colors.textMuted} />
-            <Text style={styles.metaText}>{recipe.getServingsString()}</Text>
-          </View> */}
+            <Text style={styles.metaText}>
+              {recipe.servings} {recipe.servings === 1 ? "serving" : "servings"}
+            </Text>
+          </View>
         </View>
       </View>
     </Pressable>

@@ -10,7 +10,7 @@ import { DEFAULT_SETTINGS, planNotifications } from "../src/notifications/planne
 // Wednesday, Nov 4 2026 at 10:00 local time
 const NOW = new Date(2026, 10, 4, 10, 0);
 
-const milk = createIngredient("Milk", [MEASUREMENT_TYPE.VOLUME], INGREDIENT_CATEGORY.DIARY, "milk");
+const milk = createIngredient("Milk", [MEASUREMENT_TYPE.VOLUME], INGREDIENT_CATEGORY.DAIRY, "milk");
 const oats = createIngredient("Oats", [MEASUREMENT_TYPE.MASS], INGREDIENT_CATEGORY.CARB, "oats");
 const banana = createIngredient("Banana", [MEASUREMENT_TYPE.COUNT], INGREDIENT_CATEGORY.FRUIT, "banana");
 const items = [{ ingredientId: "milk", quantity: createQuantity(200, METRIC_UNIT.MILILITER) }];

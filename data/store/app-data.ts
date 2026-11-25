@@ -12,7 +12,7 @@ import {
 } from "../recipe/meal-plan";
 import { PantryEntry } from "../recipe/pantry";
 import { createQuantity, Quantity } from "../recipe/quantity";
-import { Recipe } from "../recipe/recipe";
+import { isValidServings, Recipe } from "../recipe/recipe";
 import { INGREDIENT_CATEGORY, MEAL_TYPE, MEASUREMENT_TYPE, RECIPE_CATEGORY, UNITS, WEEKDAYS } from "../util/types";
 import { isUnit } from "../util/unit";
 import { toDateKey, DateKey } from "../util/util";
@@ -103,6 +103,12 @@ function readList<T>(raw: unknown, read: (entry: unknown) => T | null): T[] {
   });
 }
 
+// Category names saved by older versions of the app, and what they are called now
+const LEGACY_CATEGORIES: Record<string, INGREDIENT_CATEGORY> = {
+  PROTEIN: INGREDIENT_CATEGORY.PROTEIN,
+  Diary: INGREDIENT_CATEGORY.DAIRY,
+};
+
 function readIngredient(raw: unknown): Ingredient | null {
   if (!isObject(raw) || !isText(raw.id) || !isText(raw.name)) return null;
 
@@ -111,8 +117,9 @@ function readIngredient(raw: unknown): Ingredient | null {
   );
   if (allowedUnits.length === 0) return null;
 
-  const category = Object.values(INGREDIENT_CATEGORY).includes(raw.ingredientCategory as INGREDIENT_CATEGORY)
-    ? (raw.ingredientCategory as INGREDIENT_CATEGORY)
+  const savedCategory = LEGACY_CATEGORIES[raw.ingredientCategory as string] ?? raw.ingredientCategory;
+  const category = Object.values(INGREDIENT_CATEGORY).includes(savedCategory as INGREDIENT_CATEGORY)
+    ? (savedCategory as INGREDIENT_CATEGORY)
     : INGREDIENT_CATEGORY.OTHER;
   return createIngredient(raw.name, allowedUnits, category, raw.id);
 }
@@ -130,10 +137,12 @@ function readRecipe(raw: unknown): Recipe | null {
   const recipe: Recipe = {
     id: raw.id,
     name: raw.name,
-    category: Object.keys(RECIPE_CATEGORY).includes(raw.category as string)
+    category: Object.values(RECIPE_CATEGORY).includes(raw.category as RECIPE_CATEGORY)
       ? (raw.category as RECIPE_CATEGORY)
       : RECIPE_CATEGORY.DINNER,
     items: readList(raw.items, readPlanItem),
+    // Recipes saved before servings existed are for one serving
+    servings: isValidServings(raw.servings) ? raw.servings : 1,
     image: undefined
   };
   // Only photos with a uri survive a restart. A bundled image is a number that changes between builds.

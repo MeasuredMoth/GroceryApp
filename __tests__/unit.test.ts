@@ -1,6 +1,6 @@
 import { createQuantity } from "../data/recipe/quantity";
 import { IMPERIAL_UNITS, LITERAL_UNIT, MEASUREMENT_SYSTEM, MEASUREMENT_TYPE, METRIC_UNIT } from "../data/util/types";
-import { formatQuantity, getMeasureTypeFromUnit, getSystemFromUnit, isUnit, parseQuantity } from "../data/util/unit";
+import { formatQuantity, getMeasureTypeFromUnit, getPossibleUnitsFromType, getSystemFromUnit, isUnit, parseQuantity } from "../data/util/unit";
 
 test("creating quantity from parseQuantity.", () => {
     expect(parseQuantity("10 g")?.amount).toBe(10);
@@ -45,3 +45,12 @@ test("Format quantity", () => {
     expect(formatQuantity(createQuantity(20, LITERAL_UNIT.PIECE))).toBe("20 piece");
     expect(formatQuantity(createQuantity(50, IMPERIAL_UNITS.CUP))).toBe("50 cup");
 })
+test("Units for an ingredient measured by mass and volume are listed once each", () => {
+    const units = getPossibleUnitsFromType([MEASUREMENT_TYPE.MASS, MEASUREMENT_TYPE.VOLUME]);
+    expect(new Set(units).size).toBe(units.length);
+    expect(getPossibleUnitsFromType([MEASUREMENT_TYPE.VOLUME])).toEqual(
+        expect.arrayContaining([METRIC_UNIT.LITER, METRIC_UNIT.MILILITER, METRIC_UNIT.KILOLITER]),
+    );
+    expect(getPossibleUnitsFromType([MEASUREMENT_TYPE.VOLUME])).not.toContain(METRIC_UNIT.GRAM);
+    expect(getPossibleUnitsFromType([MEASUREMENT_TYPE.VOLUME])).not.toContain(METRIC_UNIT.KILOGRAM);
+});

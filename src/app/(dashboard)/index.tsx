@@ -25,9 +25,7 @@ import {
   editMeal,
   EditScope,
   Meal,
-  MEAL_TYPES,
   mealsFor,
-  MealType,
   weekdayOf,
 } from "../../../data/recipe/meal-plan";
 import { Recipe, recipeToItems } from "../../../data/recipe/recipe";
@@ -40,16 +38,17 @@ import { Banner } from "@/components/bannerWithButton";
 import RecipePickerModal from "@/components/recipePickerModal";
 import { doneKey } from "../../../data/store/app-data";
 import { setMealsDone, updatePlan, useAppData } from "@/storage/appStore";
+import { MEAL_TYPE } from "../../../data/util/types";
+import { Href, router } from "expo-router";
 
 //TODO
 //1. Removing the possibility to add ingredients or recipes from the today tab: that can only be possible in the mealplan tab
 
 //the core job is helping someone follow and manage a plan they already have, day by day.
 
-const MEALS = MEAL_TYPES;
 
 // Time given to a meal created from the picker. Meal times become editable later.
-const DEFAULT_TIMES: Record<MealType, string> = {
+const DEFAULT_TIMES: Record<MEAL_TYPE, string> = {
   Breakfast: "08:00",
   Lunch: "12:30",
   Dinner: "19:00",
@@ -78,7 +77,7 @@ const TODAY_INDEX = 30;
 export default function Index() {
   //  Will be changed with the user's name
   const userName = "Lorenzo";
-  const [pickerFor, setPickerFor] = useState<MealType | null>(null);
+  const [pickerFor, setPickerFor] = useState<MEAL_TYPE | null>(null);
 
   const [selected, setSelected] = useState(TODAY_INDEX);
   const [pageWidth, setPageWidth] = useState(0);
@@ -92,8 +91,8 @@ export default function Index() {
 
   // Adds a recipe's ingredients to the meal of that type on the selected date.
   // TODO: ask "just this day" or "every <weekday>" instead of always using "day".
-  const addRecipe = (type: MealType, recipe: Recipe, scope: EditScope) => {
-    const items = recipeToItems(recipe);
+  const addRecipe = (type: MEAL_TYPE, recipe: Recipe, scope: EditScope, servings: number) => {
+    const items = recipeToItems(recipe, servings);
     updatePlan((p) => {
       const existing = mealsFor(p, date).find((m) => m.type === type);
       return existing
@@ -167,7 +166,7 @@ export default function Index() {
           <RecipePickerModal
             type={pickerFor}
             weekday={weekdayOf(date)}
-            onPick={(r, scope) => pickerFor && addRecipe(pickerFor, r, scope)}
+            onPick={(r, scope, servings) => pickerFor && addRecipe(pickerFor, r, scope, servings)}
             onClose={() => setPickerFor(null)}
           />
         </View>
@@ -178,6 +177,7 @@ export default function Index() {
               title="Add ingredient"
               subtitle="Save it to your ingredient database"
               icon={<Ionicons name="add" size={20} color="white" />}
+              onPress={() => router.push("/ingredient-new" as Href)}
             />
           </View>
 
@@ -193,6 +193,7 @@ export default function Index() {
                 />
               }
               variant="blue"
+              onPress={() => router.push("/recipe-new" as Href)}
             />
           </View>
         </View>

@@ -3,6 +3,7 @@ import {
   FlatList,
   Modal,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -15,15 +16,17 @@ import { Colors } from "@/constants/Colors";
 import { useAppData } from "@/storage/appStore";
 import { EditScope, PlanItem } from "../../data/recipe/meal-plan";
 import { Ingredient } from "../../data/recipe/ingredient";
-import { Recipe } from "../../data/recipe/recipe";
-import { MEAL_TYPE } from "../../data/util/types";
+import { Recipe, recipeToItems } from "../../data/recipe/recipe";
+import { MEAL_TYPE, UNITS } from "../../data/util/types";
 import { createQuantity } from "../../data/recipe/quantity";
-import { DefaultUnit, MeasurementTypes } from "../../data/util/unit";
+import { DefaultUnit, getPossibleUnitsFromType } from "../../data/util/unit";
+import { ServingsStepper } from "@/components/servingsStepper";
+import { UnitDropdown } from "@/components/unitDropdown";
 
 type Props = {
   type: MEAL_TYPE | null; // null = closed
   weekday: string; // "Monday", used in the "every Monday" option
-  onPick: (recipe: Recipe, scope: EditScope) => void;
+  onPick: (recipe: Recipe, scope: EditScope, servings: number) => void; // servings to scale the recipe to
   onPickIngredient?: (item: PlanItem, scope: EditScope) => void; // omit to hide the Ingredient option
   onClose: () => void;
 };
@@ -38,13 +41,17 @@ export default function RecipePickerModal({
   onClose,
 }: Props) {
   const { recipes, ingredients } = useAppData();
+  const nameOf = (id: string) => ingredients.find((i) => i.id === id)?.name ?? id;
   const [scope, setScope] = useState<EditScope>("day");
   const [mode, setMode] = useState<Mode>("recipe");
   const [search, setSearch] = useState("");
   // Step 2 of the ingredient flow: the chosen ingredient plus its amount and unit
   const [chosen, setChosen] = useState<Ingredient | null>(null);
   const [amountText, setAmountText] = useState("");
-  const [unit, setUnit] = useState<typeof DefaultUnit[Ingredient["allowedUnits"][number]] | null>(null);
+  const [unit, setUnit] = useState<UNITS | null>(null);
+  // Step 2 of the recipe flow: the chosen recipe and how many servings to make
+  const [pickedRecipe, setPickedRecipe] = useState<Recipe | null>(null);
+  const [servings, setServings] = useState(1);
 
   const reset = () => {
     setScope("day");
@@ -53,6 +60,8 @@ export default function RecipePickerModal({
     setChosen(null);
     setAmountText("");
     setUnit(null);
+    setPickedRecipe(null);
+    setServings(1);
   };
 
   const close = () => {
@@ -61,7 +70,13 @@ export default function RecipePickerModal({
   };
 
   const pickRecipe = (recipe: Recipe) => {
-    onPick(recipe, scope);
+    setPickedRecipe(recipe);
+    setServings(recipe.servings);
+  };
+
+  const confirmRecipe = () => {
+    if (!pickedRecipe) return;
+    onPick(pickedRecipe, scope, servings);
     reset();
   };
 
@@ -116,7 +131,7 @@ export default function RecipePickerModal({
             />
           </View>
 
-          {onPickIngredient && !chosen && (
+          {onPickIngredient && !chosen && !pickedRecipe && (
             <View style={styles.segment}>
               <SegmentButton
                 label="Recipe"
@@ -131,7 +146,43 @@ export default function RecipePickerModal({
             </View>
           )}
 
-          {mode === "recipe" || !onPickIngredient ? (
+          {pickedRecipe ? (
+            // Recipe step 2: how many servings, with the amounts worked out
+            <ScrollView contentContainerStyle={styles.amountStep}>
+              <Pressable style={styles.back} onPress={() => setPickedRecipe(null)} hitSlop={8}>
+                <Ionicons name="chevron-back" size={18} color={Colors.primaryDark} />
+                <Text style={styles.backText}>Back</Text>
+              </Pressable>
+
+              <Text style={styles.chosenName}>{pickedRecipe.name}</Text>
+              <Text style={styles.rowSub}>
+                Recipe makes {pickedRecipe.servings} {pickedRecipe.servings === 1 ? "serving" : "servings"}
+              </Text>
+
+              <View style={styles.servingsRow}>
+                <Text style={styles.label}>How many servings?</Text>
+                <ServingsStepper value={servings} onChange={setServings} />
+              </View>
+
+              <View style={styles.preview}>
+                {recipeToItems(pickedRecipe, servings).map((item, i) => (
+                  <View key={`${item.ingredientId}-${i}`} style={styles.previewRow}>
+                    <Text style={styles.previewName}>{nameOf(item.ingredientId)}</Text>
+                    <Text style={styles.previewAmount}>
+                      {item.quantity.amount} {item.quantity.unit}
+                    </Text>
+                  </View>
+                ))}
+                {pickedRecipe.items.length === 0 && (
+                  <Text style={styles.empty}>This recipe has no ingredients</Text>
+                )}
+              </View>
+
+              <Pressable style={styles.confirm} onPress={confirmRecipe}>
+                <Text style={styles.confirmText}>Add to {type}</Text>
+              </Pressable>
+            </ScrollView>
+          ) : mode === "recipe" || !onPickIngredient ? (
             <FlatList
               data={recipes}
               keyExtractor={(r) => r.id}
@@ -139,6 +190,9 @@ export default function RecipePickerModal({
               renderItem={({ item }) => (
                 <Pressable style={styles.row} onPress={() => pickRecipe(item)}>
                   <Text style={styles.rowText}>{item.name}</Text>
+                  <Text style={styles.rowSub}>
+                    {item.servings} {item.servings === 1 ? "serving" : "servings"}
+                  </Text>
                 </Pressable>
               )}
             />
@@ -164,11 +218,11 @@ export default function RecipePickerModal({
               />
 
               <Text style={styles.label}>Unit</Text>
-              <View style={styles.chipRowWrap}>
-                {chosen.allowedUnits.map((u) => (
-                  <Chip key={u} label={u} active={unit ? MeasurementTypes[unit].includes(u) : false} onPress={() => setUnit(DefaultUnit[u])} />
-                ))}
-              </View>
+              <UnitDropdown
+                units={getPossibleUnitsFromType(chosen.allowedUnits)}
+                value={unit}
+                onChange={setUnit}
+              />
 
               <Pressable
                 style={[styles.confirm, !canAdd && styles.confirmDisabled]}
@@ -311,5 +365,29 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   confirmDisabled: { opacity: 0.4 },
+  servingsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 12,
+  },
+  preview: {
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.card,
+    borderRadius: 14,
+    overflow: "hidden",
+  },
+  previewRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Colors.border,
+  },
+  previewName: { fontSize: 15, color: Colors.primaryDark },
+  previewAmount: { fontSize: 15, fontWeight: "600", color: Colors.textDark },
   confirmText: { color: "white", fontWeight: "600", fontSize: 15 },
 });

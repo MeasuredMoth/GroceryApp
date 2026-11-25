@@ -14,13 +14,13 @@ export const ingredients: Ingredient[] = [
   createIngredient("Pumpkin", [MEASUREMENT_TYPE.MASS], INGREDIENT_CATEGORY.VEGETABLE, "pumpkin"),
 
 
-  // DIARY
-  createIngredient("Milk", [MEASUREMENT_TYPE.VOLUME], INGREDIENT_CATEGORY.DIARY, "milk"),
-  createIngredient("Butter", [MEASUREMENT_TYPE.MASS], INGREDIENT_CATEGORY.DIARY, "butter"),
-  createIngredient("Greek Yogurt", [MEASUREMENT_TYPE.MASS], INGREDIENT_CATEGORY.DIARY, "greek-yogurt"),
-  createIngredient("Parmesan", [MEASUREMENT_TYPE.MASS], INGREDIENT_CATEGORY.DIARY, "parmesan"),
-  createIngredient("Feta", [MEASUREMENT_TYPE.MASS], INGREDIENT_CATEGORY.DIARY, "feta"),
-  createIngredient("Cheese", [MEASUREMENT_TYPE.MASS], INGREDIENT_CATEGORY.DIARY, "cheese"),
+  // DAIRY
+  createIngredient("Milk", [MEASUREMENT_TYPE.VOLUME], INGREDIENT_CATEGORY.DAIRY, "milk"),
+  createIngredient("Butter", [MEASUREMENT_TYPE.MASS], INGREDIENT_CATEGORY.DAIRY, "butter"),
+  createIngredient("Greek Yogurt", [MEASUREMENT_TYPE.MASS], INGREDIENT_CATEGORY.DAIRY, "greek-yogurt"),
+  createIngredient("Parmesan", [MEASUREMENT_TYPE.MASS], INGREDIENT_CATEGORY.DAIRY, "parmesan"),
+  createIngredient("Feta", [MEASUREMENT_TYPE.MASS], INGREDIENT_CATEGORY.DAIRY, "feta"),
+  createIngredient("Cheese", [MEASUREMENT_TYPE.MASS], INGREDIENT_CATEGORY.DAIRY, "cheese"),
 
   // PROTEINS
   createIngredient("Chicken Breast", [MEASUREMENT_TYPE.MASS], INGREDIENT_CATEGORY.PROTEIN, "chicken-breast"),

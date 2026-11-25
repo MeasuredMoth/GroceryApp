@@ -15,17 +15,17 @@ import {
   hasOverride,
   Meal,
   mealsFor,
-  MealType,
   PlanItem,
   resetDay,
   weekdayOf,
 } from "../../../data/recipe/meal-plan";
 import { Recipe, recipeToItems } from "../../../data/recipe/recipe";
 import { updatePlan, useAppData } from "@/storage/appStore";
+import { MEAL_TYPE } from "../../../data/util/types";
 import Entypo from "@expo/vector-icons/Entypo";
 
 // Time given to a meal created from the picker. Meal times become editable later.
-const DEFAULT_TIMES: Record<MealType, string> = {
+const DEFAULT_TIMES: Record<MEAL_TYPE, string> = {
   Breakfast: "08:00",
   Lunch: "12:30",
   Dinner: "19:00",
@@ -52,7 +52,7 @@ export default function MealPlanTab() {
   const { plan } = useAppData();
   const [selected, setSelected] = useState(TODAY_INDEX);
   const [pageWidth, setPageWidth] = useState(0);
-  const [pickerFor, setPickerFor] = useState<MealType | null>(null);
+  const [pickerFor, setPickerFor] = useState<MEAL_TYPE | null>(null);
   const listRef = useRef<FlatList<Date>>(null);
 
   const date = DAYS[selected];
@@ -77,8 +77,8 @@ const addItems = (items: PlanItem[], scope: EditScope) => {
   setPickerFor(null);
 };
 
-const addRecipe = (recipe: Recipe, scope: EditScope) =>
-  addItems(recipeToItems(recipe), scope);
+const addRecipe = (recipe: Recipe, scope: EditScope, servings: number) =>
+  addItems(recipeToItems(recipe, servings), scope);
 
 const addIngredient = (item: PlanItem, scope: EditScope) => addItems([item], scope);
 
