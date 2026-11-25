@@ -29,7 +29,12 @@ export class DataStore {
     } catch (error) {
       console.warn("Could not read saved data, starting from the defaults", error);
     }
-    return sanitizeAppData(raw, this.defaults);
+     const result = sanitizeAppData(raw, this.defaults);
+const r = raw as any;
+console.log("ingredients saved/kept:", r?.ingredients?.length, result.ingredients.length);
+console.log("pantry saved/kept:", r?.pantry?.length, result.pantry.length);
+console.log("first saved ingredient:", JSON.stringify(r?.ingredients?.[0]));
+return result;
   }
 
   /** The current data. Treat it as read-only and make changes through update(). */

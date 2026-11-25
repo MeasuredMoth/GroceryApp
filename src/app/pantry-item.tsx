@@ -2,6 +2,7 @@
 
 import { ReactNode, useMemo, useState } from "react";
 import {
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -13,25 +14,46 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
-import Animated, { FadeIn, FadeOut, LinearTransition } from "react-native-reanimated";
+import Animated, {
+  FadeIn,
+  FadeOut,
+  LinearTransition,
+} from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import dayjs from "dayjs";
 import { Colors } from "@/constants/Colors";
-import { saveIngredient, savePantryEntry, useAppData } from "@/storage/appStore";
 import {
-  createIngredient,
-  Ingredient,
-} from "../../data/recipe/ingredient";
+  saveIngredient,
+  savePantryEntry,
+  useAppData,
+} from "@/storage/appStore";
+import { createIngredient, Ingredient } from "../../data/recipe/ingredient";
 import { createPantryEntry, PantryEntry } from "../../data/recipe/pantry";
-import { INGREDIENT_CATEGORY, LITERAL_UNIT, METRIC_UNIT, UNITS } from "../../data/util/types";
+import {
+  INGREDIENT_CATEGORY,
+  LITERAL_UNIT,
+  METRIC_UNIT,
+  UNITS,
+} from "../../data/util/types";
 import { DateKey, toDateKey } from "../../data/util/util";
-import { canConvert, ConvertableUnits, convertUnit, DefaultUnit, getPossibleUnitsFromType, MeasurementTypes, systemIsConvertable } from "../../data/util/unit";
+import {
+  canConvert,
+  ConvertableUnits,
+  convertUnit,
+  DefaultUnit,
+  getPossibleUnitsFromType,
+  MeasurementTypes,
+  systemIsConvertable,
+} from "../../data/util/unit";
 import { createQuantity } from "../../data/recipe/quantity";
 import { UnitDropdown } from "@/components/unitDropdown";
 
 /* ---------- Small helpers ---------- */
 
-const CATEGORY_ICONS: Record<INGREDIENT_CATEGORY, keyof typeof Ionicons.glyphMap> = {
+const CATEGORY_ICONS: Record<
+  INGREDIENT_CATEGORY,
+  keyof typeof Ionicons.glyphMap
+> = {
   [INGREDIENT_CATEGORY.PROTEIN]: "egg-outline",
   [INGREDIENT_CATEGORY.CARB]: "nutrition-outline",
   [INGREDIENT_CATEGORY.VEGETABLE]: "leaf-outline",
@@ -46,10 +68,12 @@ const CATEGORY_ICONS: Record<INGREDIENT_CATEGORY, keyof typeof Ionicons.glyphMap
 // What a new custom ingredient can be measured in
 const UNIT_GROUPS: { label: string; units: UNITS[] }[] = [
   { label: "Weight (g, kg)", units: [METRIC_UNIT.GRAM, METRIC_UNIT.KILOGRAM] },
-  { label: "Pieces", units: [METRIC_UNIT.LITER, METRIC_UNIT.MILILITER] },
-  { label: "Volume (ml, l)", units: [LITERAL_UNIT.PIECE] },
+  {
+    label: "Volume (ml, l)",
+    units: [METRIC_UNIT.LITER, METRIC_UNIT.MILILITER],
+  },
+  { label: "Pieces", units: [LITERAL_UNIT.PIECE] },
 ];
-
 
 const EXPIRY_SHORTCUTS = [
   { label: "3 days", days: 3 },
@@ -94,23 +118,38 @@ export default function PantryItemScreen() {
   const isEdit = editing !== undefined;
 
   const [search, setSearch] = useState("");
-  const [selectedId, setSelectedId] = useState<string | null>(editing?.ingredientId ?? null);
-  const [amountText, setAmountText] = useState(editing ? formatAmount(editing.quantity.amount) : "");
-  const [unit, setUnit] = useState<UNITS | null>(editing?.quantity.unit ?? null);
-  const [expiresOn, setExpiresOn] = useState<DateKey | undefined>(editing?.expiresOn);
+  const [selectedId, setSelectedId] = useState<string | null>(
+    editing?.ingredientId ?? null,
+  );
+  const [amountText, setAmountText] = useState(
+    editing ? formatAmount(editing.quantity.amount) : "",
+  );
+  const [unit, setUnit] = useState<UNITS | null>(
+    editing?.quantity.unit ?? null,
+  );
+  const [expiresOn, setExpiresOn] = useState<DateKey | undefined>(
+    editing?.expiresOn,
+  );
   const [creating, setCreating] = useState(false);
 
   const selected = ingredients.find((i) => i.id === selectedId) ?? null;
 
   // An entry saved in a unit the ingredient no longer allows can still be edited in that unit
   const units: UNITS[] = selected
-    ? Array.from(new Set([ ...getPossibleUnitsFromType(selected.allowedUnits), ...(editing?.quantity ? [editing.quantity.unit] : [])]))
+    ? Array.from(
+        new Set([
+          ...getPossibleUnitsFromType(selected.allowedUnits),
+          ...(editing?.quantity ? [editing.quantity.unit] : []),
+        ]),
+      )
     : [];
 
   const matches = useMemo(() => {
     const query = search.trim().toLowerCase();
     return ingredients
-      .filter((i) => i.id !== selectedId && i.name.toLowerCase().includes(query))
+      .filter(
+        (i) => i.id !== selectedId && i.name.toLowerCase().includes(query),
+      )
       .slice(0, query ? MAX_MATCHES : ingredients.length);
   }, [ingredients, search, selectedId]);
 
@@ -124,13 +163,16 @@ export default function PantryItemScreen() {
 
   const amount = parseAmount(amountText);
   // Editing can set the amount to 0 ("I'm out of it"), a new entry needs something in it
-  const amountOk = Number.isFinite(amount) && (isEdit ? amount >= 0 : amount > 0);
+  const amountOk =
+    Number.isFinite(amount) && (isEdit ? amount >= 0 : amount > 0);
   const canSave = selected !== null && unit !== null && amountOk;
 
   const step = (direction: 1 | -1) => {
     if (!unit) return;
     const current = Number.isFinite(amount) ? amount : 0;
-    setAmountText(formatAmount(Math.max(0, current + direction * stepFor(unit))));
+    setAmountText(
+      formatAmount(Math.max(0, current + direction * stepFor(unit))),
+    );
   };
 
   // When adding, the row this will be summed into (same ingredient and expiry date), so the user knows
@@ -144,22 +186,40 @@ export default function PantryItemScreen() {
         )
       : undefined;
   const mergedTotal =
-    mergeTarget && unit && amountOk && systemIsConvertable(unit, mergeTarget.quantity.unit)
-      ? mergeTarget.quantity.amount + convertUnit(unit as ConvertableUnits, mergeTarget.quantity.unit as ConvertableUnits, amount)
+    mergeTarget &&
+    unit &&
+    amountOk &&
+    systemIsConvertable(unit, mergeTarget.quantity.unit)
+      ? mergeTarget.quantity.amount +
+        convertUnit(
+          unit as ConvertableUnits,
+          mergeTarget.quantity.unit as ConvertableUnits,
+          amount,
+        )
       : null;
 
   const markRunOut = () => {
     if (!editing) return;
-    savePantryEntry({ ...editing, quantity: createQuantity(0, editing.quantity.unit) });
+    savePantryEntry({
+      ...editing,
+      quantity: createQuantity(0, editing.quantity.unit),
+    });
     router.back();
   };
 
   const save = () => {
     if (!selected || !unit || !amountOk) return;
     if (editing) {
-      savePantryEntry({ ...editing, ingredientId: selected.id, quantity: createQuantity(amount, unit), expiresOn });
+      savePantryEntry({
+        ...editing,
+        ingredientId: selected.id,
+        quantity: createQuantity(amount, unit),
+        expiresOn,
+      });
     } else {
-      savePantryEntry(createPantryEntry(selected, createQuantity(amount, unit), expiresOn));
+      savePantryEntry(
+        createPantryEntry(selected, createQuantity(amount, unit), expiresOn),
+      );
     }
     router.back();
   };
@@ -190,12 +250,20 @@ export default function PantryItemScreen() {
       {/* Title bar */}
       <View style={styles.titleBar}>
         <View style={styles.titleIcon}>
-          <Ionicons name="basket-outline" size={20} color={Colors.primaryDark} />
+          <Ionicons
+            name="basket-outline"
+            size={20}
+            color={Colors.primaryDark}
+          />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={styles.title}>{isEdit ? "Edit pantry item" : "Add to pantry"}</Text>
+          <Text style={styles.title}>
+            {isEdit ? "Edit pantry item" : "Add to pantry"}
+          </Text>
           <Text style={styles.subtitle}>
-            {isEdit ? "Update the amount or expiry date" : "Track inventory & fresh batches"}
+            {isEdit
+              ? "Update the amount or expiry date"
+              : "Track inventory & fresh batches"}
           </Text>
         </View>
         <Pressable
@@ -226,8 +294,16 @@ export default function PantryItemScreen() {
               autoCorrect={false}
             />
             {search !== "" && (
-              <Pressable onPress={() => setSearch("")} hitSlop={8} accessibilityLabel="Clear search">
-                <Ionicons name="close-circle" size={18} color={Colors.textMuted} />
+              <Pressable
+                onPress={() => setSearch("")}
+                hitSlop={8}
+                accessibilityLabel="Clear search"
+              >
+                <Ionicons
+                  name="close-circle"
+                  size={18}
+                  color={Colors.textMuted}
+                />
               </Pressable>
             )}
           </View>
@@ -246,30 +322,49 @@ export default function PantryItemScreen() {
                 <View style={styles.row}>
                   <Text style={styles.selectedName}>{selected.name}</Text>
                   <View style={styles.categoryChip}>
-                    <Text style={styles.categoryChipText}>{selected.ingredientCategory}</Text>
+                    <Text style={styles.categoryChipText}>
+                      {selected.ingredientCategory}
+                    </Text>
                   </View>
                 </View>
               </View>
-              <Ionicons name="checkmark-circle" size={22} color={Colors.primaryDark} />
+              <Ionicons
+                name="checkmark-circle"
+                size={22}
+                color={Colors.primaryDark}
+              />
             </View>
 
             <View style={styles.amountRow}>
-              <View style={{ flex: 1 }}>
+              <View>
                 <Text style={styles.fieldLabel}>Amount</Text>
                 <View style={styles.amountBox}>
-                  <Pressable onPress={() => step(-1)} hitSlop={6} accessibilityLabel="Less">
-                    <Ionicons name="remove" size={18} color={Colors.primaryDark} />
+                  <Pressable
+                    onPress={() => step(-1)}
+                    hitSlop={6}
+                    accessibilityLabel="Less"
+                  >
+                    <Ionicons
+                      name="remove"
+                      size={18}
+                      color={Colors.primaryDark}
+                    />
                   </Pressable>
                   <TextInput
                     style={styles.amountInput}
                     value={amountText}
-                    onChangeText={setAmountText}
+                    onChangeText={(t) =>
+                      setAmountText(t.replace(/[^0-9.,]/g, ""))
+                    }
                     keyboardType="decimal-pad"
                     placeholder="0"
                     placeholderTextColor={Colors.textMuted}
-                    selectTextOnFocus
                   />
-                  <Pressable onPress={() => step(1)} hitSlop={6} accessibilityLabel="More">
+                  <Pressable
+                    onPress={() => step(1)}
+                    hitSlop={6}
+                    accessibilityLabel="More"
+                  >
                     <Ionicons name="add" size={18} color={Colors.primaryDark} />
                   </Pressable>
                 </View>
@@ -283,7 +378,9 @@ export default function PantryItemScreen() {
 
             {amountText !== "" && !amountOk && (
               <Text style={styles.error}>
-                {isEdit ? "Enter an amount of 0 or more" : "Enter an amount greater than 0"}
+                {isEdit
+                  ? "Enter an amount of 0 or more"
+                  : "Enter an amount greater than 0"}
               </Text>
             )}
 
@@ -291,7 +388,11 @@ export default function PantryItemScreen() {
 
             {mergeTarget && (
               <View style={styles.mergeNote}>
-                <Ionicons name="git-merge-outline" size={16} color={Colors.primaryDark} />
+                <Ionicons
+                  name="git-merge-outline"
+                  size={16}
+                  color={Colors.primaryDark}
+                />
                 <Text style={styles.mergeNoteText}>
                   {mergeTarget.quantity.amount === 0
                     ? `Restocks your empty ${selected.name} row`
@@ -306,18 +407,34 @@ export default function PantryItemScreen() {
 
         {/* Keeps the row in the pantry with "OUT", so it's clear it needs buying */}
         {editing && editing.quantity.amount > 0 && (
-          <Pressable style={styles.runOutButton} onPress={markRunOut} accessibilityRole="button">
-            <Ionicons name="remove-circle-outline" size={20} color={Colors.danger} />
+          <Pressable
+            style={styles.runOutButton}
+            onPress={markRunOut}
+            accessibilityRole="button"
+          >
+            <Ionicons
+              name="remove-circle-outline"
+              size={20}
+              color={Colors.danger}
+            />
             <View style={{ flex: 1 }}>
               <Text style={styles.runOutTitle}>Mark as run out</Text>
-              <Text style={styles.muted}>Keeps it in your pantry, marked as out of stock</Text>
+              <Text style={styles.muted}>
+                Keeps it in your pantry, marked as out of stock
+              </Text>
             </View>
           </Pressable>
         )}
         {editing && editing.quantity.amount === 0 && (
           <View style={styles.outNote}>
-            <Ionicons name="alert-circle-outline" size={18} color={Colors.danger} />
-            <Text style={styles.outNoteText}>Out of stock. Set an amount above to restock it.</Text>
+            <Ionicons
+              name="alert-circle-outline"
+              size={18}
+              color={Colors.danger}
+            />
+            <Text style={styles.outNoteText}>
+              Out of stock. Set an amount above to restock it.
+            </Text>
           </View>
         )}
 
@@ -325,7 +442,9 @@ export default function PantryItemScreen() {
         {!isEdit && (
           <>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>{otherMatchesTitle.toUpperCase()}</Text>
+              <Text style={styles.sectionTitle}>
+                {otherMatchesTitle.toUpperCase()}
+              </Text>
               <Text style={styles.sectionCount}>
                 {matches.length} {matches.length === 1 ? "item" : "items"}
               </Text>
@@ -343,13 +462,21 @@ export default function PantryItemScreen() {
                   <IngredientIcon ingredient={ingredient} small />
                   <View style={{ flex: 1 }}>
                     <Text style={styles.matchName}>{ingredient.name}</Text>
-                    <Text style={styles.muted}>{ingredient.ingredientCategory}</Text>
+                    <Text style={styles.muted}>
+                      {ingredient.ingredientCategory}
+                    </Text>
                   </View>
-                  <Ionicons name="add-circle-outline" size={22} color={Colors.textMuted} />
+                  <Ionicons
+                    name="add-circle-outline"
+                    size={22}
+                    color={Colors.textMuted}
+                  />
                 </Pressable>
               ))}
               {matches.length === 0 && (
-                <Text style={[styles.muted, { padding: 12 }]}>No ingredients match.</Text>
+                <Text style={[styles.muted, { padding: 12 }]}>
+                  No ingredients match.
+                </Text>
               )}
             </Animated.View>
 
@@ -369,7 +496,9 @@ export default function PantryItemScreen() {
       </ScrollView>
 
       {/* Fixed button at the bottom */}
-      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+      <View
+        style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}
+      >
         <Pressable
           style={[styles.saveButton, !canSave && styles.saveButtonDisabled]}
           onPress={save}
@@ -382,7 +511,9 @@ export default function PantryItemScreen() {
             size={20}
             color="white"
           />
-          <Text style={styles.saveButtonText}>{isEdit ? "Save changes" : "Add to pantry"}</Text>
+          <Text style={styles.saveButtonText}>
+            {isEdit ? "Save changes" : "Add to pantry"}
+          </Text>
         </Pressable>
       </View>
     </KeyboardAvoidingView>
@@ -391,10 +522,21 @@ export default function PantryItemScreen() {
 
 /* ---------- Pieces ---------- */
 
-function IngredientIcon({ ingredient, small }: { ingredient: Ingredient; small?: boolean }) {
+function IngredientIcon({
+  ingredient,
+  small,
+}: {
+  ingredient: Ingredient;
+  small?: boolean;
+}) {
   const size = small ? 32 : 40;
   return (
-    <View style={[styles.icon, { width: size, height: size, borderRadius: size / 2 }]}>
+    <View
+      style={[
+        styles.icon,
+        { width: size, height: size, borderRadius: size / 2 },
+      ]}
+    >
       <Ionicons
         name={CATEGORY_ICONS[ingredient.ingredientCategory]}
         size={small ? 16 : 20}
@@ -411,7 +553,9 @@ function ExpiryField({
   value: DateKey | undefined;
   onChange: (value: DateKey | undefined) => void;
 }) {
-  const daysLeft = value ? dayjs(value).diff(dayjs().startOf("day"), "day") : null;
+  const daysLeft = value
+    ? dayjs(value).diff(dayjs().startOf("day"), "day")
+    : null;
   const hint =
     daysLeft === null
       ? "(Optional)"
@@ -429,16 +573,39 @@ function ExpiryField({
         <View style={{ flex: 1 }} />
         {value ? (
           <>
-            <Pressable onPress={() => onChange(addDays(value, -1))} hitSlop={8} accessibilityLabel="One day earlier">
-              <Ionicons name="chevron-back" size={18} color={Colors.primaryDark} />
+            <Pressable
+              onPress={() => onChange(addDays(value, -1))}
+              hitSlop={8}
+              accessibilityLabel="One day earlier"
+            >
+              <Ionicons
+                name="chevron-back"
+                size={18}
+                color={Colors.primaryDark}
+              />
             </Pressable>
-            <Text style={styles.expiryDate}>{dayjs(value).format("MMM D, YYYY")}</Text>
-            <Pressable onPress={() => onChange(addDays(value, 1))} hitSlop={8} accessibilityLabel="One day later">
-              <Ionicons name="chevron-forward" size={18} color={Colors.primaryDark} />
+            <Text style={styles.expiryDate}>
+              {dayjs(value).format("MMM D, YYYY")}
+            </Text>
+            <Pressable
+              onPress={() => onChange(addDays(value, 1))}
+              hitSlop={8}
+              accessibilityLabel="One day later"
+            >
+              <Ionicons
+                name="chevron-forward"
+                size={18}
+                color={Colors.primaryDark}
+              />
             </Pressable>
           </>
         ) : null}
-        <Text style={[styles.muted, daysLeft !== null && daysLeft < 0 && { color: Colors.danger }]}>
+        <Text
+          style={[
+            styles.muted,
+            daysLeft !== null && daysLeft < 0 && { color: Colors.danger },
+          ]}
+        >
           {hint}
         </Text>
       </View>
@@ -456,8 +623,14 @@ function ExpiryField({
           </Pressable>
         ))}
         {value && (
-          <Pressable style={styles.shortcut} onPress={() => onChange(undefined)} accessibilityRole="button">
-            <Text style={[styles.shortcutText, { color: Colors.textMuted }]}>None</Text>
+          <Pressable
+            style={styles.shortcut}
+            onPress={() => onChange(undefined)}
+            accessibilityRole="button"
+          >
+            <Text style={[styles.shortcutText, { color: Colors.textMuted }]}>
+              None
+            </Text>
           </Pressable>
         )}
       </View>
@@ -480,18 +653,28 @@ function CustomIngredient({
 }) {
   // null until the user types, so the field starts from the search text but can be cleared
   const [name, setName] = useState<string | null>(null);
-  const [category, setCategory] = useState<INGREDIENT_CATEGORY>(INGREDIENT_CATEGORY.OTHER);
+  const [category, setCategory] = useState<INGREDIENT_CATEGORY>(
+    INGREDIENT_CATEGORY.OTHER,
+  );
   const [group, setGroup] = useState(0);
 
   // Starts from what was typed in the search box
   const shownName = name ?? initialName;
   const trimmed = shownName.trim();
-  const duplicate = existing.some((i) => i.name.toLowerCase() === trimmed.toLowerCase());
+  const duplicate = existing.some(
+    (i) => i.name.toLowerCase() === trimmed.toLowerCase(),
+  );
   const canCreate = trimmed !== "" && !duplicate;
 
   const create = () => {
     if (!canCreate) return;
-    onCreate(createIngredient(trimmed, MeasurementTypes[UNIT_GROUPS[group].units[0]], category));
+    onCreate(
+      createIngredient(
+        trimmed,
+        MeasurementTypes[UNIT_GROUPS[group].units[0]],
+        category,
+      ),
+    );
     setName(null);
     setCategory(INGREDIENT_CATEGORY.OTHER);
     setGroup(0);
@@ -499,7 +682,11 @@ function CustomIngredient({
 
   return (
     <Animated.View layout={LinearTransition} style={styles.customCard}>
-      <Pressable style={styles.row} onPress={onToggle} accessibilityRole="button">
+      <Pressable
+        style={styles.row}
+        onPress={onToggle}
+        accessibilityRole="button"
+      >
         <View style={styles.titleIcon}>
           <Ionicons name="add" size={18} color={Colors.primaryDark} />
         </View>
@@ -507,36 +694,63 @@ function CustomIngredient({
           <Text style={styles.matchName}>Can't find it?</Text>
           <Text style={styles.muted}>Create a new custom ingredient</Text>
         </View>
-        <Ionicons name={open ? "chevron-up" : "chevron-down"} size={18} color={Colors.textMuted} />
+        <Ionicons
+          name={open ? "chevron-up" : "chevron-down"}
+          size={18}
+          color={Colors.textMuted}
+        />
       </Pressable>
 
       {open && (
-        <Animated.View entering={FadeIn.duration(200)} exiting={FadeOut.duration(150)} style={{ gap: 10, marginTop: 12 }}>
+        <Animated.View
+          entering={FadeIn.duration(200)}
+          exiting={FadeOut.duration(150)}
+          style={{ gap: 10, marginTop: 12 }}
+        >
           <TextInput
             style={styles.textField}
             value={shownName}
             onChangeText={setName}
             placeholder="Ingredient name"
             placeholderTextColor={Colors.textMuted}
+            returnKeyType="done"
+            onSubmitEditing={() => Keyboard.dismiss()}
           />
-          {duplicate && <Text style={styles.error}>{trimmed} is already in your ingredients</Text>}
+          {duplicate && (
+            <Text style={styles.error}>
+              {trimmed} is already in your ingredients
+            </Text>
+          )}
 
           <Text style={styles.fieldLabel}>Category</Text>
           <ChipRow>
             {Object.values(INGREDIENT_CATEGORY).map((c) => (
-              <Chip key={c} label={c} active={c === category} onPress={() => setCategory(c)} />
+              <Chip
+                key={c}
+                label={c}
+                active={c === category}
+                onPress={() => setCategory(c)}
+              />
             ))}
           </ChipRow>
 
           <Text style={styles.fieldLabel}>Measured in</Text>
           <ChipRow>
             {UNIT_GROUPS.map((g, i) => (
-              <Chip key={g.label} label={g.label} active={i === group} onPress={() => setGroup(i)} />
+              <Chip
+                key={g.label}
+                label={g.label}
+                active={i === group}
+                onPress={() => setGroup(i)}
+              />
             ))}
           </ChipRow>
 
           <Pressable
-            style={[styles.createButton, !canCreate && styles.saveButtonDisabled]}
+            style={[
+              styles.createButton,
+              !canCreate && styles.saveButtonDisabled,
+            ]}
             onPress={create}
             disabled={!canCreate}
             accessibilityRole="button"
@@ -553,7 +767,15 @@ function ChipRow({ children }: { children: ReactNode }) {
   return <View style={styles.chipRow}>{children}</View>;
 }
 
-function Chip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
+function Chip({
+  label,
+  active,
+  onPress,
+}: {
+  label: string;
+  active: boolean;
+  onPress: () => void;
+}) {
   return (
     <Pressable
       style={[styles.chip, active && styles.chipActive]}
@@ -561,7 +783,9 @@ function Chip({ label, active, onPress }: { label: string; active: boolean; onPr
       accessibilityRole="button"
       accessibilityState={{ selected: active }}
     >
-      <Text style={[styles.chipText, active && styles.chipTextActive]}>{label}</Text>
+      <Text style={[styles.chipText, active && styles.chipTextActive]}>
+        {label}
+      </Text>
     </Pressable>
   );
 }
@@ -632,10 +856,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 2,
   },
-  categoryChipText: { fontSize: 11, fontWeight: "600", color: Colors.primaryDark },
-  icon: { backgroundColor: Colors.primarySoft, alignItems: "center", justifyContent: "center" },
+  categoryChipText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: Colors.primaryDark,
+  },
+  icon: {
+    backgroundColor: Colors.primarySoft,
+    alignItems: "center",
+    justifyContent: "center",
+  },
 
-  amountRow: { flexDirection: "row", gap: 12 },
+  amountRow: { gap: 14 }, // was flexDirection: "row"
   fieldLabel: { fontSize: 12, color: Colors.textMuted, marginBottom: 6 },
   amountBox: {
     flexDirection: "row",
@@ -656,6 +888,18 @@ const styles = StyleSheet.create({
     color: Colors.textDark,
     paddingVertical: 0,
   },
+
+  unitWrap: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  unitChip: {
+    minWidth: 56,
+    height: 36,
+    paddingHorizontal: 14,
+    borderRadius: 999,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: Colors.background,
+  },
+  unitChipActive: { backgroundColor: Colors.primaryDark },
 
   expiryBox: {
     borderWidth: 1,
@@ -681,7 +925,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 4,
   },
-  sectionTitle: { fontSize: 11, fontWeight: "700", color: Colors.textMuted, letterSpacing: 0.5 },
+  sectionTitle: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: Colors.textMuted,
+    letterSpacing: 0.5,
+  },
   sectionCount: { fontSize: 11, color: Colors.textMuted },
   matchList: {
     backgroundColor: Colors.card,
@@ -758,7 +1007,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
-  chipActive: { backgroundColor: Colors.primaryDark, borderColor: Colors.primaryDark },
+  chipActive: {
+    backgroundColor: Colors.primaryDark,
+    borderColor: Colors.primaryDark,
+  },
   chipText: { fontSize: 13, color: Colors.primaryDark },
   chipTextActive: { color: "white" },
   createButton: {
