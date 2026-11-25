@@ -1,5 +1,12 @@
 import { useRef, useState } from "react";
-import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  FlatList,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import dayjs from "dayjs";
 import Screen from "@/components/Screen";
 import Header from "@/components/header";
@@ -65,26 +72,37 @@ export default function MealPlanTab() {
     listRef.current?.scrollToIndex({ index, animated: false });
   };
 
-const addItems = (items: PlanItem[], scope: EditScope) => {
-  if (!pickerFor) return;
-  const type = pickerFor;
-  updatePlan((p) => {
-    const existing = mealsFor(p, date).find((m) => m.type === type);
-    return existing
-      ? editMeal(p, date, { ...existing, items: [...existing.items, ...items] }, scope)
-      : addMeal(p, date, createMeal(type, DEFAULT_TIMES[type], items), scope);
-  });
-  setPickerFor(null);
-};
+  const addItems = (items: PlanItem[], scope: EditScope) => {
+    if (!pickerFor) return;
+    const type = pickerFor;
+    updatePlan((p) => {
+      const existing = mealsFor(p, date).find((m) => m.type === type);
+      return existing
+        ? editMeal(
+            p,
+            date,
+            { ...existing, items: [...existing.items, ...items] },
+            scope,
+          )
+        : addMeal(p, date, createMeal(type, DEFAULT_TIMES[type], items), scope);
+    });
+    setPickerFor(null);
+  };
 
-const addRecipe = (recipe: Recipe, scope: EditScope) =>
-  addItems(recipeToItems(recipe), scope);
+  const addRecipe = (recipe: Recipe, scope: EditScope) =>
+    addItems(recipeToItems(recipe), scope);
 
-const addIngredient = (item: PlanItem, scope: EditScope) => addItems([item], scope);
+  const addIngredient = (item: PlanItem, scope: EditScope) =>
+    addItems([item], scope);
 
   const removeItem = (d: Date, meal: Meal, index: number) => {
     updatePlan((p) =>
-      editMeal(p, d, { ...meal, items: meal.items.filter((_, i) => i !== index) }, "day"),
+      editMeal(
+        p,
+        d,
+        { ...meal, items: meal.items.filter((_, i) => i !== index) },
+        "day",
+      ),
     );
   };
 
@@ -98,17 +116,25 @@ const addIngredient = (item: PlanItem, scope: EditScope) => addItems([item], sco
         />
       </View>
 
-      <DaySelector days={week} selected={selected % 7} onSelect={(i) => goTo(weekStart + i)} />
+      <DaySelector
+        days={week}
+        selected={selected % 7}
+        onSelect={(i) => goTo(weekStart + i)}
+      />
 
       {hasOverride(plan, date) && (
         <Pressable onPress={() => updatePlan((p) => resetDay(p, date))}>
           <Text style={styles.reset}>
-            Changed for this day only. Tap to go back to every {weekdayOf(date)}.
+            Changed for this day only. Tap to go back to every {weekdayOf(date)}
+            .
           </Text>
         </Pressable>
       )}
 
-      <View style={styles.pager} onLayout={(e) => setPageWidth(e.nativeEvent.layout.width)}>
+      <View
+        style={styles.pager}
+        onLayout={(e) => setPageWidth(e.nativeEvent.layout.width)}
+      >
         {pageWidth > 0 && (
           <FlatList
             ref={listRef}
@@ -120,9 +146,15 @@ const addIngredient = (item: PlanItem, scope: EditScope) => addItems([item], sco
             pagingEnabled
             showsHorizontalScrollIndicator={false}
             initialScrollIndex={TODAY_INDEX}
-            getItemLayout={(_, i) => ({ length: pageWidth, offset: pageWidth * i, index: i })}
+            getItemLayout={(_, i) => ({
+              length: pageWidth,
+              offset: pageWidth * i,
+              index: i,
+            })}
             scrollEventThrottle={16}
-            onScroll={(e) => setSelected(Math.round(e.nativeEvent.contentOffset.x / pageWidth))}
+            onScroll={(e) =>
+              setSelected(Math.round(e.nativeEvent.contentOffset.x / pageWidth))
+            }
             renderItem={({ item }) => (
               <ScrollView
                 style={{ width: pageWidth }}
@@ -141,20 +173,25 @@ const addIngredient = (item: PlanItem, scope: EditScope) => addItems([item], sco
         )}
       </View>
 
-   <RecipePickerModal
-  type={pickerFor}
-  weekday={weekdayOf(date)}
-  onPick={addRecipe}
-  onPickIngredient={addIngredient}
-  onClose={() => setPickerFor(null)}
-/>
+      <RecipePickerModal
+        type={pickerFor}
+        weekday={weekdayOf(date)}
+        onPick={addRecipe}
+        onPickIngredient={addIngredient}
+        onClose={() => setPickerFor(null)}
+      />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
   headerContainer: { paddingHorizontal: 16, paddingBottom: 12 },
-  reset: { color: "#0f4d3a", fontSize: 13, paddingHorizontal: 16, paddingTop: 10 },
+  reset: {
+    color: "#0f4d3a",
+    fontSize: 13,
+    paddingHorizontal: 16,
+    paddingTop: 10,
+  },
   pager: { flex: 1, marginTop: 16 },
   page: { paddingHorizontal: 16, paddingBottom: 24 },
 });
