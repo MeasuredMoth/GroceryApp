@@ -12,7 +12,6 @@ type IngredientRowProps = {
   valueSub?: string;          // right side, small: "Fridge"
   icon?: ReactNode;           // goes inside the circle on the left
   onPress?: () => void;
-  trailing?: ReactNode; // goes after the value, e.g. a remove button
 };
 
 export default function IngredientRow({
@@ -24,7 +23,6 @@ export default function IngredientRow({
   valueSub,
   icon,
   onPress,
-  trailing,
 }: IngredientRowProps) {
   return (
     <Pressable style={styles.row} onPress={onPress}>
@@ -50,7 +48,6 @@ export default function IngredientRow({
           {valueSub ? <Text style={styles.valueSub}>{valueSub}</Text> : null}
         </View>
       ) : null}
-        {trailing}
     </Pressable>
   );
 }

@@ -25,8 +25,6 @@ const CATEGORIES = [
   "Other",
 ];
 
-//TODO check that when adding a new ingredient and so adding the allowed units, you can only add those units in the pantry
-
 type Row = { entry: PantryEntry; ingredient: Ingredient };
 
 // Removed rows fade out quickly, then the rows below glide up. No spring, so nothing bounces.

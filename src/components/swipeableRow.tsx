@@ -16,6 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
 
 const BUTTON_WIDTH = 76;
+const ACTIONS_WIDTH = BUTTON_WIDTH * 2;
 const RADIUS = 16;
 
 let openRow: SwipeableMethods | null = null;
@@ -28,15 +29,15 @@ export function closeOpenRow() {
 
 type Props = {
   children: ReactNode;
-  onEdit?: () => void; // omit to show only Remove
+  onEdit: () => void;
   onDelete: () => void;
-  radius?: number;
 };
 
-export default function SwipeableRow({ children, onEdit, onDelete, radius }: Props) {
+export default function SwipeableRow({ children, onEdit, onDelete }: Props) {
   const ref = useRef<SwipeableMethods>(null);
-  const actionsWidth = BUTTON_WIDTH * (onEdit ? 2 : 1);
 
+  // Edit closes the row, so it's back in place after the edit screen.
+  // Remove leaves it open: the row fades out where it is instead of sliding back while fading.
   const run = (action: () => void, close: boolean) => {
     if (close) ref.current?.close();
     openRow = null;
@@ -47,9 +48,9 @@ export default function SwipeableRow({ children, onEdit, onDelete, radius }: Pro
     <ReanimatedSwipeable
       ref={ref}
       friction={1.5}
-      rightThreshold={actionsWidth / 3}
+      rightThreshold={ACTIONS_WIDTH / 3}
       overshootRight={false}
-      containerStyle={[styles.container, radius !== undefined && { borderRadius: radius }]}
+      containerStyle={styles.container}
       onSwipeableWillOpen={() => {
         if (openRow && openRow !== ref.current) openRow.close();
         openRow = ref.current;
@@ -58,12 +59,7 @@ export default function SwipeableRow({ children, onEdit, onDelete, radius }: Pro
         if (openRow === ref.current) openRow = null;
       }}
       renderRightActions={(progress) => (
-        <Actions
-          progress={progress}
-          width={actionsWidth}
-          onEdit={onEdit ? () => run(onEdit, true) : undefined}
-          onDelete={() => run(onDelete, false)}
-        />
+        <Actions progress={progress} onEdit={() => run(onEdit, true)} onDelete={() => run(onDelete, false)} />
       )}
     >
       {children}
@@ -71,18 +67,16 @@ export default function SwipeableRow({ children, onEdit, onDelete, radius }: Pro
   );
 }
 
-
 function Actions({
   progress,
-  width,
   onEdit,
   onDelete,
 }: {
   progress: SharedValue<number>;
-  width: number;
-  onEdit?: () => void;
+  onEdit: () => void;
   onDelete: () => void;
-}) {  // Hidden while closed, so the red can't peek out around the row's rounded corners
+}) {
+  // Hidden while closed, so the red can't peek out around the row's rounded corners
   const visible = useAnimatedStyle(() => ({
     opacity: progress.value > 0.01 ? 1 : 0,
   }));
@@ -94,21 +88,19 @@ function Actions({
   }));
 
   return (
-    <Animated.View style={[styles.actions, { width }, visible]}>
-      {onEdit && (
-        <Pressable
-          style={[styles.button, styles.edit]}
-          onPress={onEdit}
-          accessibilityRole="button"
-          accessibilityLabel="Edit"
-        >
-          <Animated.View style={[styles.buttonContent, appear]}>
-            <Ionicons name="pencil" size={20} color={Colors.primaryDark} />
-            <Text style={[styles.label, { color: Colors.primaryDark }]}>Edit</Text>
-          </Animated.View>
-        </Pressable>
-      )}
-            <Pressable
+    <Animated.View style={[styles.actions, visible]}>
+      <Pressable
+        style={[styles.button, styles.edit]}
+        onPress={onEdit}
+        accessibilityRole="button"
+        accessibilityLabel="Edit"
+      >
+        <Animated.View style={[styles.buttonContent, appear]}>
+          <Ionicons name="pencil" size={20} color={Colors.primaryDark} />
+          <Text style={[styles.label, { color: Colors.primaryDark }]}>Edit</Text>
+        </Animated.View>
+      </Pressable>
+      <Pressable
         style={[styles.button, styles.remove]}
         onPress={onDelete}
         accessibilityRole="button"
@@ -123,11 +115,10 @@ function Actions({
   );
 }
 
-
 const styles = StyleSheet.create({
   // Rounded and clipped, so the buttons share the row's card shape
   container: { borderRadius: RADIUS, overflow: "hidden" },
-  actions: { flexDirection: "row" },
+  actions: { flexDirection: "row", width: ACTIONS_WIDTH },
   button: { width: BUTTON_WIDTH, alignItems: "center", justifyContent: "center" },
   buttonContent: { alignItems: "center", gap: 4 },
   edit: { backgroundColor: Colors.primarySoft },
