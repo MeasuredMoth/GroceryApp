@@ -27,6 +27,7 @@ import { INGREDIENT_CATEGORY, LITERAL_UNIT, METRIC_UNIT, UNITS } from "../../dat
 import { DateKey, toDateKey } from "../../data/util/util";
 import { canConvert, ConvertableUnits, convertUnit, DefaultUnit, getPossibleUnitsFromType, MeasurementTypes, systemIsConvertable } from "../../data/util/unit";
 import { createQuantity } from "../../data/recipe/quantity";
+import { UnitDropdown } from "@/components/unitDropdown";
 
 /* ---------- Small helpers ---------- */
 
@@ -34,7 +35,7 @@ const CATEGORY_ICONS: Record<INGREDIENT_CATEGORY, keyof typeof Ionicons.glyphMap
   [INGREDIENT_CATEGORY.PROTEIN]: "egg-outline",
   [INGREDIENT_CATEGORY.CARB]: "nutrition-outline",
   [INGREDIENT_CATEGORY.VEGETABLE]: "leaf-outline",
-  [INGREDIENT_CATEGORY.DIARY]: "water-outline",
+  [INGREDIENT_CATEGORY.DAIRY]: "water-outline",
   [INGREDIENT_CATEGORY.FRUIT]: "color-fill-outline",
   [INGREDIENT_CATEGORY.GRAIN]: "cube-outline",
   [INGREDIENT_CATEGORY.FAT]: "cube-outline",
@@ -156,7 +157,7 @@ export default function PantryItemScreen() {
   const save = () => {
     if (!selected || !unit || !amountOk) return;
     if (editing) {
-      savePantryEntry({ ...editing, ingredientId: selected.id, quantity: createQuantity(0, editing.quantity.unit) , expiresOn });
+      savePantryEntry({ ...editing, ingredientId: selected.id, quantity: createQuantity(amount, unit), expiresOn });
     } else {
       savePantryEntry(createPantryEntry(selected, createQuantity(amount, unit), expiresOn));
     }
@@ -274,23 +275,9 @@ export default function PantryItemScreen() {
                 </View>
               </View>
 
-              <View style={{ flex: 1.3 }}>
+              <View style={{ flex: 1 }}>
                 <Text style={styles.fieldLabel}>Unit</Text>
-                <View style={styles.segment}>
-                  {units.map((u) => (
-                    <Pressable
-                      key={u}
-                      style={[styles.segmentItem, u === unit && styles.segmentItemActive]}
-                      onPress={() => setUnit(u)}
-                      accessibilityRole="button"
-                      accessibilityState={{ selected: u === unit }}
-                    >
-                      <Text style={[styles.segmentText, u === unit && styles.segmentTextActive]}>
-                        {u}
-                      </Text>
-                    </Pressable>
-                  ))}
-                </View>
+                <UnitDropdown units={units} value={unit} onChange={setUnit} />
               </View>
             </View>
 
@@ -669,17 +656,6 @@ const styles = StyleSheet.create({
     color: Colors.textDark,
     paddingVertical: 0,
   },
-  segment: {
-    flexDirection: "row",
-    backgroundColor: Colors.background,
-    borderRadius: 10,
-    padding: 3,
-    height: 40,
-  },
-  segmentItem: { flex: 1, alignItems: "center", justifyContent: "center", borderRadius: 8 },
-  segmentItemActive: { backgroundColor: Colors.primaryDark },
-  segmentText: { fontSize: 13, color: Colors.textMuted, fontWeight: "600" },
-  segmentTextActive: { color: "white" },
 
   expiryBox: {
     borderWidth: 1,

@@ -6,7 +6,7 @@
 //
 // Changing (saved to the file straight away):
 //   updatePlan((plan) => addMeal(plan, date, meal, "day"));
-//   saveIngredient(createIngredient("Tofu", ["g", "kg"], "Proteins"));
+//   saveIngredient(createIngredient("Tofu", [MEASUREMENT_TYPE.MASS], INGREDIENT_CATEGORY.PROTEIN));
 //   deleteRecipe(recipe.id);
 
 import { useSyncExternalStore } from "react";

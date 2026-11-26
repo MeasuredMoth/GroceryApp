@@ -15,6 +15,9 @@ export default function RootLayout() {
       <Stack.Screen name="settings" options={{ title: "Settings", headerBackButtonDisplayMode: "minimal"}} />
       {/* Add / edit pantry item, slides up as a sheet */}
       <Stack.Screen name="pantry-item" options={{ presentation: "modal", headerShown: false }} />
+      {/* New ingredient / new recipe, opened from the Today tab */}
+      <Stack.Screen name="ingredient-new" options={{ presentation: "modal", headerShown: false }} />
+      <Stack.Screen name="recipe-new" options={{ presentation: "modal", headerShown: false }} />
     </Stack>
     </GestureHandlerRootView>
   );

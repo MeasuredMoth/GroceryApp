@@ -19,7 +19,7 @@ import { createQuantity } from "../data/recipe/quantity";
 const NOW = new Date(2026, 10, 4, 10, 0);
 
 const oats = createIngredient("Oats", [MEASUREMENT_TYPE.MASS], INGREDIENT_CATEGORY.CARB, "oats");
-const milk = createIngredient("Milk", [MEASUREMENT_TYPE.VOLUME], INGREDIENT_CATEGORY.DIARY, "milk");
+const milk = createIngredient("Milk", [MEASUREMENT_TYPE.VOLUME], INGREDIENT_CATEGORY.DAIRY, "milk");
 const porridge = createRecipe("Porridge", [{ ingredientId: "oats", quantity: createQuantity(80, METRIC_UNIT.GRAM) }], {
     id: "recipe-porridge",
     category: RECIPE_CATEGORY.DINNER,
@@ -181,7 +181,7 @@ test("Bad entries are dropped without losing the good ones", () => {
         { id: "salt", name: "Salt", allowedUnits: ["count"], ingredientCategory: "Other" },
     ]);
     expect(data.recipes).toEqual([
-        { id: "r1", name: "Mix", category: "Dinner", image: undefined, items: [{ ingredientId: "oats", quantity: { amount: 80, system: "Metric", unit: "g" } }] },
+        { id: "r1", name: "Mix", category: "Dinner", servings: 1, image: undefined, items: [{ ingredientId: "oats", quantity: { amount: 80, system: "Metric", unit: "g" } }] },
     ]);
     expect(data.pantry).toEqual([{ id: "p1", ingredientId: "milk", quantity: {amount: 0, system: "Metric", unit: "l" } }]);
 })
@@ -230,3 +230,39 @@ test("Saving an item replaces the one with the same id, or adds it", () => {
     expect(removeById(list, "oats")).toEqual([milk]);
     expect(list).toEqual([oats, milk]);
 })
+
+test("A recipe's category survives saving and reading back", () => {
+    const pancakes = createRecipe("Pancakes", [{ ingredientId: "milk", quantity: createQuantity(1, METRIC_UNIT.LITER) }], {
+        category: RECIPE_CATEGORY.BREAKFAST,
+    });
+    const saved = serializeAppData({ ...createAppData(defaults), recipes: [pancakes] });
+
+    const data = sanitizeAppData(JSON.parse(saved), defaults, NOW);
+
+    expect(data.recipes[0].category).toBe(RECIPE_CATEGORY.BREAKFAST);
+});
+
+test("Servings are kept, and older recipes without them are for one serving", () => {
+    const stew = createRecipe("Stew", [], { servings: 4, id: "stew" });
+    const oldStew = { ...stew, id: "old-stew" } as Partial<typeof stew>;
+    delete oldStew.servings; // saved before servings existed
+    const saved = JSON.parse(serializeAppData({ ...createAppData(defaults), recipes: [oldStew as typeof stew, stew] }));
+
+    const data = sanitizeAppData(saved, defaults, NOW);
+
+    expect(data.recipes.map((r) => r.servings)).toEqual([1, 4]);
+});
+
+test("Ingredients saved with the old PROTEIN and Diary categories are read as Protein and Dairy", () => {
+    const raw = { ingredients: [
+        { id: "tofu", name: "Tofu", allowedUnits: ["mass"], ingredientCategory: "PROTEIN" },
+        { id: "feta", name: "Feta", allowedUnits: ["mass"], ingredientCategory: "Diary" },
+    ] };
+
+    const data = sanitizeAppData(raw, defaults, NOW);
+
+    expect(data.ingredients[0].ingredientCategory).toBe(INGREDIENT_CATEGORY.PROTEIN);
+    expect(INGREDIENT_CATEGORY.PROTEIN).toBe("Protein");
+    expect(data.ingredients[1].ingredientCategory).toBe(INGREDIENT_CATEGORY.DAIRY);
+    expect(INGREDIENT_CATEGORY.DAIRY).toBe("Dairy");
+});

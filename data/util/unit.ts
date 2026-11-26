@@ -34,9 +34,9 @@ export const ValidTypeUnits: Record<MEASUREMENT_TYPE, UNITS[]> = {
         IMPERIAL_UNITS.POUND,
     ],
     [MEASUREMENT_TYPE.VOLUME]: [
-        METRIC_UNIT.KILOGRAM,
+        METRIC_UNIT.KILOLITER,
         METRIC_UNIT.LITER,
-        METRIC_UNIT.MILLIGRAM,
+        METRIC_UNIT.MILILITER,
         
         IMPERIAL_UNITS.CUP,
         IMPERIAL_UNITS.OUNCE,
@@ -133,10 +133,11 @@ export function convertUnit(from: ConvertableUnits, to: ConvertableUnits, amount
     return (UnitConversions[from] / UnitConversions[to]) * amount;
 }
 
+/** Every unit the measurement types allow, without duplicates (cup is both mass and volume). */
 export function getPossibleUnitsFromType(types: MEASUREMENT_TYPE[]): UNITS[] {
-    let units = []
+    const units = new Set<UNITS>();
     for (const type of types)
-        units.push(...ValidTypeUnits[type]);
+        ValidTypeUnits[type].forEach((u) => units.add(u));
 
-    return units;
+    return [...units];
 }
