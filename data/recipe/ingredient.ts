@@ -4,10 +4,10 @@ import { makeId } from "../util/util";
 import { getMeasureTypeFromUnit } from "../util/unit";
 
 export interface Ingredient {
-    id: string;
-    name: string;
-    allowedUnits: MEASUREMENT_TYPE[]; 
-    ingredientCategory: INGREDIENT_CATEGORY;
+  id: string;
+  name: string;
+  allowedUnits: MEASUREMENT_TYPE[];
+  ingredientCategory: INGREDIENT_CATEGORY;
 }
 
 export function createIngredient(
@@ -16,22 +16,20 @@ export function createIngredient(
   ingredientCategory: INGREDIENT_CATEGORY,
   id: string = "",
 ): Ingredient {
-    const trimmed = name.trim();
+  const trimmed = name.trim();
 
-    if (trimmed === "") 
-        throw new Error("An ingredient needs a name.");
-    if (allowedUnits.length === 0) 
-        throw new Error(`${trimmed} needs at least one allowed unit.`);
+  if (trimmed === "") throw new Error("An ingredient needs a name.");
+  if (allowedUnits.length === 0)
+    throw new Error(`${trimmed} needs at least one allowed unit.`);
 
-    if (id == "")
-      id = makeId(name);
+  if (id == "") id = makeId(trimmed);
 
-    return {
-        id,
-        name,
-        allowedUnits,
-        ingredientCategory
-    }
+  return {
+    id,
+    name: trimmed, // FIX: was the untrimmed name
+    allowedUnits,
+    ingredientCategory,
+  };
 }
 
 export function isQuantityAllowed(
@@ -39,10 +37,14 @@ export function isQuantityAllowed(
   quantity: Quantity,
 ): boolean {
   return (
-    Number.isFinite(quantity.amount) && quantity.amount > 0 && isValidQuantity(ingredient, quantity)
+    Number.isFinite(quantity.amount) &&
+    quantity.amount > 0 &&
+    isValidQuantity(ingredient, quantity)
   );
 }
 
-export function isValidQuantity(ingredient: Ingredient, quantity: Quantity){
-  return ingredient.allowedUnits.some(u => getMeasureTypeFromUnit(quantity.unit).includes(u));
+export function isValidQuantity(ingredient: Ingredient, quantity: Quantity) {
+  return ingredient.allowedUnits.some((u) =>
+    getMeasureTypeFromUnit(quantity.unit).includes(u),
+  );
 }
