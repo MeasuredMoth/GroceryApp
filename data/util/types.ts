@@ -52,6 +52,18 @@ export enum INGREDIENT_CATEGORY {
   OTHER = "Other",
 }
 
+/** Store section used to group the shopping list. Separate from INGREDIENT_CATEGORY, which is nutritional. */
+export enum AISLE {
+  PRODUCE = "Produce",
+  MEAT_FISH = "Meat & Fish",
+  DAIRY = "Dairy",
+  DRY_GOODS = "Dry goods",
+  CANNED = "Canned",
+  SPICES = "Spices",
+  FROZEN = "Frozen",
+  OTHER = "Other",
+}
+
 export enum RECIPE_CATEGORY {
   BREAKFAST = "Breakfast",
   LUNCH = "Lunch",

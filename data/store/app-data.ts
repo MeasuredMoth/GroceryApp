@@ -2,7 +2,11 @@
 // No Expo or React imports in this file, so it can be unit tested with Jest.
 
 import { createIngredientItem } from "../items/ingredientItem";
-import { createIngredient, Ingredient } from "../recipe/ingredient";
+import {
+  createIngredient,
+  Ingredient,
+  ShoppingExtras,
+} from "../recipe/ingredient";
 import {
   createEmptyPlan,
   DayOverride,
@@ -12,8 +16,22 @@ import {
 } from "../recipe/meal-plan";
 import { PantryEntry } from "../recipe/pantry";
 import { createQuantity, Quantity } from "../recipe/quantity";
+
 import { isValidServings, Recipe } from "../recipe/recipe";
-import { INGREDIENT_CATEGORY, MEAL_TYPE, MEASUREMENT_TYPE, RECIPE_CATEGORY, UNITS, WEEKDAYS } from "../util/types";
+import {
+  PurchaseHistory,
+  ShoppingItem,
+  ShoppingList,
+} from "../recipe/shopping-list";
+import {
+  AISLE,
+  INGREDIENT_CATEGORY,
+  MEAL_TYPE,
+  MEASUREMENT_TYPE,
+  RECIPE_CATEGORY,
+  UNITS,
+  WEEKDAYS,
+} from "../util/types";
 import { isUnit } from "../util/unit";
 import { toDateKey, DateKey } from "../util/util";
 
@@ -29,13 +47,17 @@ export interface AppData {
   plan: Plan;
   pantry: PantryEntry[];
   done: DoneLog;
+  /** The current shopping list, or null before the first one is generated. Optional in old files. */
+  shoppingList: ShoppingList | null;
+  /** Pack formats the user has bought, per ingredient id. */
+  purchaseHistory: PurchaseHistory;
 }
 
 /** What a brand new install starts with. */
 export interface Defaults {
   ingredients: Ingredient[];
   recipes: Recipe[];
-  pantry?: PantryEntry[];   // optional, so existing code and tests still work
+  pantry?: PantryEntry[]; // optional, so existing code and tests still work
 }
 
 // Ticks older than this are dropped on load, so the file doesn't grow forever
@@ -55,6 +77,8 @@ export function createAppData(defaults: Defaults): AppData {
     plan: createEmptyPlan(),
     pantry: defaults.pantry ?? [],
     done: {},
+    shoppingList: null,
+    purchaseHistory: {},
   };
 }
 
@@ -67,11 +91,19 @@ export function upsertById<T extends { id: string }>(list: T[], item: T): T[] {
     : [...list, item];
 }
 
-export function removeById<T extends { id: string }>(list: T[], id: string): T[] {
+export function removeById<T extends { id: string }>(
+  list: T[],
+  id: string,
+): T[] {
   return list.filter((existing) => existing.id !== id);
 }
 
-export function setDone(done: DoneLog, date: Date, mealIds: string[], isDone: boolean): DoneLog {
+export function setDone(
+  done: DoneLog,
+  date: Date,
+  mealIds: string[],
+  isDone: boolean,
+): DoneLog {
   const next = { ...done };
   for (const id of mealIds) {
     if (isDone) next[doneKey(date, id)] = true;
@@ -113,22 +145,50 @@ function readIngredient(raw: unknown): Ingredient | null {
   if (!isObject(raw) || !isText(raw.id) || !isText(raw.name)) return null;
 
   const allowedUnits = readList(raw.allowedUnits, (unit) =>
-    typeof unit === "string" && Object.values(MEASUREMENT_TYPE).includes(unit as MEASUREMENT_TYPE) ? unit as MEASUREMENT_TYPE : null,
+    typeof unit === "string" &&
+    Object.values(MEASUREMENT_TYPE).includes(unit as MEASUREMENT_TYPE)
+      ? (unit as MEASUREMENT_TYPE)
+      : null,
   );
   if (allowedUnits.length === 0) return null;
 
-  const savedCategory = LEGACY_CATEGORIES[raw.ingredientCategory as string] ?? raw.ingredientCategory;
-  const category = Object.values(INGREDIENT_CATEGORY).includes(savedCategory as INGREDIENT_CATEGORY)
+  const savedCategory =
+    LEGACY_CATEGORIES[raw.ingredientCategory as string] ??
+    raw.ingredientCategory;
+  const category = Object.values(INGREDIENT_CATEGORY).includes(
+    savedCategory as INGREDIENT_CATEGORY,
+  )
     ? (savedCategory as INGREDIENT_CATEGORY)
     : INGREDIENT_CATEGORY.OTHER;
-  return createIngredient(raw.name, allowedUnits, category, raw.id);
+
+  // Optional shopping data. Each field is checked on its own, a bad one is dropped (never fails the load).
+  const extras: ShoppingExtras = {};
+  if (Object.values(AISLE).includes(raw.aisle as AISLE))
+    extras.aisle = raw.aisle as AISLE;
+  if (typeof raw.pieceWeight === "number" && raw.pieceWeight > 0)
+    extras.pieceWeight = raw.pieceWeight;
+  if (typeof raw.density === "number" && raw.density > 0)
+    extras.density = raw.density;
+  if (typeof raw.packaged === "boolean") extras.packaged = raw.packaged;
+  if (typeof raw.staple === "boolean") extras.staple = raw.staple;
+  const defaultPackSize = readQuantity(raw.defaultPackSize);
+  if (defaultPackSize && defaultPackSize.amount > 0)
+    extras.defaultPackSize = defaultPackSize;
+  if (
+    typeof raw.shoppingUnit === "string" &&
+    isUnit(raw.shoppingUnit) &&
+    raw.shoppingUnit !== "pinch"
+  )
+    extras.shoppingUnit = raw.shoppingUnit as UNITS;
+
+  return createIngredient(raw.name, allowedUnits, category, raw.id, extras);
 }
 
 function readPlanItem(raw: unknown): PlanItem | null {
   if (!isObject(raw) || !isText(raw.ingredientId)) return null;
-  const quantity = readQuantity(raw.quantity)
+  const quantity = readQuantity(raw.quantity);
   if (!quantity) return null;
-  return { ingredientId: raw.ingredientId, quantity: quantity};
+  return { ingredientId: raw.ingredientId, quantity: quantity };
 }
 
 function readRecipe(raw: unknown): Recipe | null {
@@ -137,16 +197,19 @@ function readRecipe(raw: unknown): Recipe | null {
   const recipe: Recipe = {
     id: raw.id,
     name: raw.name,
-    category: Object.values(RECIPE_CATEGORY).includes(raw.category as RECIPE_CATEGORY)
+    category: Object.values(RECIPE_CATEGORY).includes(
+      raw.category as RECIPE_CATEGORY,
+    )
       ? (raw.category as RECIPE_CATEGORY)
       : RECIPE_CATEGORY.DINNER,
     items: readList(raw.items, readPlanItem),
     // Recipes saved before servings existed are for one serving
     servings: isValidServings(raw.servings) ? raw.servings : 1,
-    image: undefined
+    image: undefined,
   };
   // Only photos with a uri survive a restart. A bundled image is a number that changes between builds.
-  if (isObject(raw.image) && isText(raw.image.uri)) recipe.image = { uri: raw.image.uri };
+  if (isObject(raw.image) && isText(raw.image.uri))
+    recipe.image = { uri: raw.image.uri };
   return recipe;
 }
 
@@ -190,7 +253,7 @@ function readPlan(raw: unknown): Plan {
   if (!isObject(raw)) return plan;
 
   if (isObject(raw.template)) {
-    for (const day of Object.values(WEEKDAYS)) 
+    for (const day of Object.values(WEEKDAYS))
       plan.template[day] = readList(raw.template[day], readMeal);
   }
   if (isObject(raw.overrides)) {
@@ -203,7 +266,8 @@ function readPlan(raw: unknown): Plan {
 }
 
 function readPantryEntry(raw: unknown): PantryEntry | null {
-  if (!isObject(raw) || !isText(raw.id) || !isText(raw.ingredientId)) return null;
+  if (!isObject(raw) || !isText(raw.id) || !isText(raw.ingredientId))
+    return null;
   const quantity = readQuantity(raw.quantity);
   if (!quantity) return null;
 
@@ -212,7 +276,8 @@ function readPantryEntry(raw: unknown): PantryEntry | null {
     ingredientId: raw.ingredientId,
     quantity: quantity,
   };
-  if (typeof raw.expiresOn === "string" && DATE_KEY.test(raw.expiresOn)) entry.expiresOn = raw.expiresOn;
+  if (typeof raw.expiresOn === "string" && DATE_KEY.test(raw.expiresOn))
+    entry.expiresOn = raw.expiresOn;
   return entry;
 }
 
@@ -226,7 +291,13 @@ function readDone(raw: unknown, now: Date): DoneLog {
   for (const [key, value] of Object.entries(raw)) {
     const date = key.slice(0, 10);
     // Date keys sort the same way as the dates they stand for
-    if (value === true && DATE_KEY.test(date) && key[10] === ":" && date >= oldest) done[key] = true;
+    if (
+      value === true &&
+      DATE_KEY.test(date) &&
+      key[10] === ":" &&
+      date >= oldest
+    )
+      done[key] = true;
   }
   return done;
 }
@@ -234,27 +305,117 @@ function readDone(raw: unknown, now: Date): DoneLog {
 function readQuantity(raw: unknown): Quantity | null {
   if (!isObject(raw)) return null;
   if (typeof raw.amount !== "number" || !isFinite(raw.amount)) return null;
-  if (typeof raw.unit !== "string" || !isUnit(raw.unit) || raw.amount < 0) return null;
-  return createQuantity(raw.amount, raw.unit as UNITS)
+  if (typeof raw.unit !== "string" || !isUnit(raw.unit) || raw.amount < 0)
+    return null;
+  return createQuantity(raw.amount, raw.unit as UNITS);
+}
+
+function readShoppingItem(raw: unknown): ShoppingItem | null {
+  if (!isObject(raw) || !isText(raw.id)) return null;
+  const needed = readQuantity(raw.needed);
+  const toBuy = readQuantity(raw.toBuy);
+  if (!needed || !toBuy) return null;
+
+  const item: ShoppingItem = {
+    id: raw.id,
+    ingredientId: isText(raw.ingredientId) ? raw.ingredientId : null,
+    needed,
+    toBuy,
+    sources: readList(raw.sources, (s) =>
+      isObject(s) &&
+      typeof s.date === "string" &&
+      DATE_KEY.test(s.date) &&
+      isText(s.mealId)
+        ? { date: s.date, mealId: s.mealId }
+        : null,
+    ),
+    checked: raw.checked === true,
+    manual: raw.manual === true,
+  };
+  if (isText(raw.label)) item.label = raw.label;
+  if (
+    typeof raw.packs === "number" &&
+    Number.isInteger(raw.packs) &&
+    raw.packs > 0
+  )
+    item.packs = raw.packs;
+  const pack = readQuantity(raw.pack);
+  if (pack) item.pack = pack;
+  const leftover = readQuantity(raw.leftover);
+  if (leftover) item.leftover = leftover;
+  if (
+    typeof raw.checkedAmount === "number" &&
+    isFinite(raw.checkedAmount) &&
+    raw.checkedAmount >= 0
+  )
+    item.checkedAmount = raw.checkedAmount;
+  return item;
+}
+
+function readShoppingList(raw: unknown): ShoppingList | null {
+  if (
+    !isObject(raw) ||
+    typeof raw.startDate !== "string" ||
+    !DATE_KEY.test(raw.startDate)
+  )
+    return null;
+  const days =
+    typeof raw.days === "number" && Number.isInteger(raw.days) && raw.days >= 1
+      ? raw.days
+      : 7;
+  return {
+    startDate: raw.startDate,
+    days,
+    items: readList(raw.items, readShoppingItem),
+  };
+}
+
+function readPurchaseHistory(raw: unknown): PurchaseHistory {
+  const history: PurchaseHistory = {};
+  if (!isObject(raw)) return history;
+  for (const [ingredientId, value] of Object.entries(raw)) {
+    const formats = readList(value, (f) => {
+      if (!isObject(f)) return null;
+      const pack = readQuantity(f.pack);
+      if (!pack || pack.amount <= 0) return null;
+      if (typeof f.count !== "number" || !(f.count >= 1)) return null;
+      if (typeof f.lastBought !== "string" || !DATE_KEY.test(f.lastBought))
+        return null;
+      return { pack, count: Math.floor(f.count), lastBought: f.lastBought };
+    });
+    if (formats.length > 0) history[ingredientId] = formats;
+  }
+  return history;
 }
 
 /**
  * Turns whatever was read from disk into valid app data.
  * `raw` is the parsed file, or anything else (undefined, a string...) when there is nothing usable.
  */
-export function sanitizeAppData(raw: unknown, defaults: Defaults, now: Date = new Date()): AppData {
+export function sanitizeAppData(
+  raw: unknown,
+  defaults: Defaults,
+  now: Date = new Date(),
+): AppData {
   if (!isObject(raw)) return createAppData(defaults);
 
   return {
     // The defaults only stand in for a list that was never saved. A saved empty list stays
     // empty, otherwise deleting every recipe would bring the starter recipes back.
-    ingredients: Array.isArray(raw.ingredients) ? readList(raw.ingredients, readIngredient) : defaults.ingredients,
-    recipes: Array.isArray(raw.recipes) ? readList(raw.recipes, readRecipe) : defaults.recipes,
+    ingredients: Array.isArray(raw.ingredients)
+      ? readList(raw.ingredients, readIngredient)
+      : defaults.ingredients,
+    recipes: Array.isArray(raw.recipes)
+      ? readList(raw.recipes, readRecipe)
+      : defaults.recipes,
     plan: readPlan(raw.plan),
     pantry: Array.isArray(raw.pantry)
-  ? readList(raw.pantry, readPantryEntry)
-  : (defaults.pantry ?? []),
+      ? readList(raw.pantry, readPantryEntry)
+      : (defaults.pantry ?? []),
     done: readDone(raw.done, now),
+    // Files saved before the shopping list existed simply have no list and no history
+    shoppingList: readShoppingList(raw.shoppingList),
+    purchaseHistory: readPurchaseHistory(raw.purchaseHistory),
   };
 }
 
@@ -262,4 +423,3 @@ export function sanitizeAppData(raw: unknown, defaults: Defaults, now: Date = ne
 export function serializeAppData(data: AppData): string {
   return JSON.stringify({ version: DATA_VERSION, ...data }, null, 2);
 }
-
