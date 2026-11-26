@@ -9,20 +9,26 @@ import {
 } from "../recipe/ingredient";
 import {
   createEmptyPlan,
+  mealsFor,
   DayOverride,
   Meal,
   Plan,
   PlanItem,
 } from "../recipe/meal-plan";
 import { PantryEntry } from "../recipe/pantry";
+import {
+  ConsumptionLog,
+  PantryDeduction,
+  consumeItems,
+  restoreDeductions,
+} from "../recipe/pantry-usage";
 import { createQuantity, Quantity } from "../recipe/quantity";
-
-import { isValidServings, Recipe } from "../recipe/recipe";
 import {
   PurchaseHistory,
   ShoppingItem,
   ShoppingList,
 } from "../recipe/shopping-list";
+import { isValidServings, Recipe } from "../recipe/recipe";
 import {
   AISLE,
   INGREDIENT_CATEGORY,
@@ -51,6 +57,8 @@ export interface AppData {
   shoppingList: ShoppingList | null;
   /** Pack formats the user has bought, per ingredient id. */
   purchaseHistory: PurchaseHistory;
+  /** What each ticked meal took from the pantry, so un-ticking it can put it back. */
+  consumed: ConsumptionLog;
 }
 
 /** What a brand new install starts with. */
@@ -79,6 +87,7 @@ export function createAppData(defaults: Defaults): AppData {
     done: {},
     shoppingList: null,
     purchaseHistory: {},
+    consumed: {},
   };
 }
 
@@ -110,6 +119,44 @@ export function setDone(
     else delete next[doneKey(date, id)];
   }
   return next;
+}
+
+/**
+ * Ticks (isDone = true) or un-ticks meals of one date AND updates the pantry:
+ *  - ticking takes the meal's ingredients out of the pantry and remembers what it took;
+ *  - un-ticking puts exactly that back.
+ * Ticking an already ticked meal, or un-ticking one that isn't, changes nothing, so nothing is
+ * deducted twice. Meals ticked before this existed have no record, so un-ticking them restores nothing.
+ * Returns the parts of AppData that changed, for store.update:
+ *   store.update((d) => applyMealsDone(d, date, mealIds, isDone))
+ */
+export function applyMealsDone(
+  data: AppData,
+  date: Date,
+  mealIds: string[],
+  isDone: boolean,
+): Pick<AppData, "done" | "pantry" | "consumed"> {
+  const meals = mealsFor(data.plan, date);
+  const consumed: ConsumptionLog = { ...data.consumed };
+  let pantry = data.pantry;
+
+  for (const id of mealIds) {
+    const key = doneKey(date, id);
+    const wasDone = data.done[key] === true;
+
+    if (isDone && !wasDone) {
+      const meal = meals.find((m) => m.id === id);
+      if (!meal) continue;
+      const result = consumeItems(pantry, meal.items, data.ingredients);
+      pantry = result.pantry;
+      if (result.taken.length > 0) consumed[key] = result.taken;
+    } else if (!isDone && wasDone) {
+      const taken = consumed[key];
+      if (taken) pantry = restoreDeductions(pantry, taken, data.ingredients);
+      delete consumed[key];
+    }
+  }
+  return { done: setDone(data.done, date, mealIds, isDone), pantry, consumed };
 }
 
 /* ---------- Reading saved data ---------- */
@@ -352,6 +399,31 @@ function readShoppingItem(raw: unknown): ShoppingItem | null {
   return item;
 }
 
+/** Only keeps records of meals that are still ticked, so the log never outlives the done log. */
+function readConsumed(raw: unknown, done: DoneLog): ConsumptionLog {
+  const log: ConsumptionLog = {};
+  if (!isObject(raw)) return log;
+  for (const [key, value] of Object.entries(raw)) {
+    if (done[key] !== true) continue;
+    const taken = readList(value, (d): PantryDeduction | null => {
+      if (!isObject(d) || !isText(d.entryId) || !isText(d.ingredientId))
+        return null;
+      const quantity = readQuantity(d.quantity);
+      if (!quantity || quantity.amount <= 0) return null;
+      const deduction: PantryDeduction = {
+        entryId: d.entryId,
+        ingredientId: d.ingredientId,
+        quantity,
+      };
+      if (typeof d.expiresOn === "string" && DATE_KEY.test(d.expiresOn))
+        deduction.expiresOn = d.expiresOn;
+      return deduction;
+    });
+    if (taken.length > 0) log[key] = taken;
+  }
+  return log;
+}
+
 function readShoppingList(raw: unknown): ShoppingList | null {
   if (
     !isObject(raw) ||
@@ -399,6 +471,7 @@ export function sanitizeAppData(
 ): AppData {
   if (!isObject(raw)) return createAppData(defaults);
 
+  const done = readDone(raw.done, now);
   return {
     // The defaults only stand in for a list that was never saved. A saved empty list stays
     // empty, otherwise deleting every recipe would bring the starter recipes back.
@@ -412,7 +485,8 @@ export function sanitizeAppData(
     pantry: Array.isArray(raw.pantry)
       ? readList(raw.pantry, readPantryEntry)
       : (defaults.pantry ?? []),
-    done: readDone(raw.done, now),
+    done,
+    consumed: readConsumed(raw.consumed, done),
     // Files saved before the shopping list existed simply have no list and no history
     shoppingList: readShoppingList(raw.shoppingList),
     purchaseHistory: readPurchaseHistory(raw.purchaseHistory),

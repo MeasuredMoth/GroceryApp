@@ -11,7 +11,12 @@
 
 import { useSyncExternalStore } from "react";
 import { File, Paths } from "expo-file-system";
-import { AppData, removeById, setDone, upsertById } from "../../data/store/app-data";
+import {
+  AppData,
+  applyMealsDone,
+  removeById,
+  upsertById,
+} from "../../data/store/app-data";
 import { DataStore, StorageBackend } from "../../data/store/data-store";
 import { Ingredient } from "../../data/recipe/ingredient";
 import { Plan } from "../../data/recipe/meal-plan";
@@ -20,7 +25,6 @@ import { Recipe } from "../../data/recipe/recipe";
 import { ingredients as starterIngredients } from "../data/ingredientsData";
 import { recipes as starterRecipes } from "../data/recipesData";
 import { pantry as starterPantry } from "../data/pantryData";
-
 
 // Created on use because the file system isn't available when rendering for web
 function dataFile() {
@@ -56,9 +60,12 @@ export function updatePlan(change: (plan: Plan) => Plan) {
   appStore.update((data) => ({ plan: change(data.plan) }));
 }
 
-/** Ticks (or unticks) meals as eaten on that date. */
+/**
+ * Ticks (or unticks) meals as eaten on that date, and updates the pantry with it:
+ * ticking takes the meal's ingredients out of the pantry, unticking puts them back.
+ */
 export function setMealsDone(date: Date, mealIds: string[], done: boolean) {
-  appStore.update((data) => ({ done: setDone(data.done, date, mealIds, done) }));
+  appStore.update((data) => applyMealsDone(data, date, mealIds, done));
 }
 
 // The save functions add the item, or replace the one with the same id.
@@ -66,11 +73,15 @@ export function setMealsDone(date: Date, mealIds: string[], done: boolean) {
 // added, and a meal that still names a deleted ingredient is for the screens to handle.
 
 export function saveIngredient(ingredient: Ingredient) {
-  appStore.update((data) => ({ ingredients: upsertById(data.ingredients, ingredient) }));
+  appStore.update((data) => ({
+    ingredients: upsertById(data.ingredients, ingredient),
+  }));
 }
 
 export function deleteIngredient(id: string) {
-  appStore.update((data) => ({ ingredients: removeById(data.ingredients, id) }));
+  appStore.update((data) => ({
+    ingredients: removeById(data.ingredients, id),
+  }));
 }
 
 export function saveRecipe(recipe: Recipe) {
