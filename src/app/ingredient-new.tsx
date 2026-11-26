@@ -33,16 +33,36 @@ export default function NewIngredientScreen() {
   const insets = useSafeAreaInsets();
 
   const [name, setName] = useState(params.name ?? "");
+<<<<<<< HEAD
   const [category, setCategory] = useState<INGREDIENT_CATEGORY>(INGREDIENT_CATEGORY.OTHER);
   const [measures, setMeasures] = useState<MEASUREMENT_TYPE[]>([MEASUREMENT_TYPE.MASS]);
 
   const trimmed = name.trim();
   const duplicate = ingredients.some((i) => i.name.toLowerCase() === trimmed.toLowerCase());
+=======
+  const [category, setCategory] = useState<INGREDIENT_CATEGORY>(
+    INGREDIENT_CATEGORY.OTHER,
+  );
+  const [measures, setMeasures] = useState<MEASUREMENT_TYPE[]>([
+    MEASUREMENT_TYPE.MASS,
+  ]);
+
+  const trimmed = name.trim();
+  const duplicate = ingredients.some(
+    (i) => i.name.toLowerCase() === trimmed.toLowerCase(),
+  );
+>>>>>>> 8999f28 (Squashed commit of the following:)
   const canSave = trimmed !== "" && !duplicate && measures.length > 0;
 
   const toggleMeasure = (type: MEASUREMENT_TYPE) =>
     setMeasures((current) =>
+<<<<<<< HEAD
       current.includes(type) ? current.filter((t) => t !== type) : [...current, type],
+=======
+      current.includes(type)
+        ? current.filter((t) => t !== type)
+        : [...current, type],
+>>>>>>> 8999f28 (Squashed commit of the following:)
     );
 
   const save = () => {
@@ -58,11 +78,25 @@ export default function NewIngredientScreen() {
     >
       <View style={styles.titleBar}>
         <View style={styles.titleIcon}>
+<<<<<<< HEAD
           <Ionicons name="nutrition-outline" size={20} color={Colors.primaryDark} />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={styles.title}>New ingredient</Text>
           <Text style={styles.subtitle}>Save it to your ingredient database</Text>
+=======
+          <Ionicons
+            name="nutrition-outline"
+            size={20}
+            color={Colors.primaryDark}
+          />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.title}>New ingredient</Text>
+          <Text style={styles.subtitle}>
+            Save it to your ingredient database
+          </Text>
+>>>>>>> 8999f28 (Squashed commit of the following:)
         </View>
         <Pressable
           onPress={() => router.back()}
@@ -78,6 +112,10 @@ export default function NewIngredientScreen() {
       <ScrollView
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
+<<<<<<< HEAD
+=======
+        keyboardDismissMode="on-drag"
+>>>>>>> 8999f28 (Squashed commit of the following:)
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.card}>
@@ -88,17 +126,37 @@ export default function NewIngredientScreen() {
             onChangeText={setName}
             placeholder="e.g. Tofu"
             placeholderTextColor={Colors.textMuted}
+<<<<<<< HEAD
             autoFocus={!params.name}
             returnKeyType="done"
           />
           {duplicate && <Text style={styles.error}>{trimmed} is already in your ingredients</Text>}
+=======
+            returnKeyType="done"
+          />
+
+          {duplicate && (
+            <Text style={styles.error}>
+              {trimmed} is already in your ingredients
+            </Text>
+          )}
+>>>>>>> 8999f28 (Squashed commit of the following:)
         </View>
 
         <View style={styles.card}>
           <Text style={styles.fieldLabel}>Category</Text>
           <ChipRow>
             {Object.values(INGREDIENT_CATEGORY).map((c) => (
+<<<<<<< HEAD
               <FormChip key={c} label={c} active={c === category} onPress={() => setCategory(c)} />
+=======
+              <FormChip
+                key={c}
+                label={c}
+                active={c === category}
+                onPress={() => setCategory(c)}
+              />
+>>>>>>> 8999f28 (Squashed commit of the following:)
             ))}
           </ChipRow>
         </View>
@@ -115,11 +173,23 @@ export default function NewIngredientScreen() {
               />
             ))}
           </ChipRow>
+<<<<<<< HEAD
           {measures.length === 0 && <Text style={styles.error}>Pick at least one</Text>}
         </View>
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+=======
+          {measures.length === 0 && (
+            <Text style={styles.error}>Pick at least one</Text>
+          )}
+        </View>
+      </ScrollView>
+
+      <View
+        style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 12) }]}
+      >
+>>>>>>> 8999f28 (Squashed commit of the following:)
         <Pressable
           style={[styles.saveButton, !canSave && styles.saveButtonDisabled]}
           onPress={save}
