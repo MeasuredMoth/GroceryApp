@@ -27,6 +27,8 @@ import {
   PurchaseHistory,
   ShoppingItem,
   ShoppingList,
+  TripPantryChange,
+  TripRecord,
 } from "../recipe/shopping-list";
 import { isValidServings, Recipe } from "../recipe/recipe";
 import {
@@ -59,6 +61,8 @@ export interface AppData {
   purchaseHistory: PurchaseHistory;
   /** What each ticked meal took from the pantry, so un-ticking it can put it back. */
   consumed: ConsumptionLog;
+  /** The last finished shopping trip, so it can be undone for a while. */
+  lastTrip: TripRecord | null;
 }
 
 /** What a brand new install starts with. */
@@ -88,6 +92,7 @@ export function createAppData(defaults: Defaults): AppData {
     shoppingList: null,
     purchaseHistory: {},
     consumed: {},
+    lastTrip: null,
   };
 }
 
@@ -425,6 +430,40 @@ function readConsumed(raw: unknown, done: DoneLog): ConsumptionLog {
   return log;
 }
 
+function readTripRecord(raw: unknown): TripRecord | null {
+  if (
+    !isObject(raw) ||
+    typeof raw.finishedAt !== "string" ||
+    !isFinite(Date.parse(raw.finishedAt))
+  )
+    return null;
+  const list = readShoppingList(raw.list);
+  if (!list) return null;
+  const added = readList(raw.added, (c): TripPantryChange | null => {
+    if (!isObject(c) || !isText(c.entryId) || !isText(c.ingredientId))
+      return null;
+    const quantity = readQuantity(c.quantity);
+    if (!quantity || quantity.amount <= 0) return null;
+    return {
+      entryId: c.entryId,
+      ingredientId: c.ingredientId,
+      quantity,
+      created: c.created === true,
+    };
+  });
+  const count =
+    typeof raw.count === "number" && raw.count >= 0
+      ? Math.floor(raw.count)
+      : added.length;
+  return {
+    finishedAt: raw.finishedAt,
+    list,
+    history: readPurchaseHistory(raw.history),
+    added,
+    count,
+  };
+}
+
 function readShoppingList(raw: unknown): ShoppingList | null {
   if (
     !isObject(raw) ||
@@ -491,6 +530,7 @@ export function sanitizeAppData(
     // Files saved before the shopping list existed simply have no list and no history
     shoppingList: readShoppingList(raw.shoppingList),
     purchaseHistory: readPurchaseHistory(raw.purchaseHistory),
+    lastTrip: readTripRecord(raw.lastTrip),
   };
 }
 

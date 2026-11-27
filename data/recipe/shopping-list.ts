@@ -515,6 +515,41 @@ export function changePack(
   };
 }
 
+/** What finishing a trip did to ONE pantry entry. Kept so the trip can be undone. */
+export interface TripPantryChange {
+  entryId: string;
+  ingredientId: string;
+  /** The amount added to that entry, in the entry's own unit. */
+  quantity: Quantity;
+  /** The trip created the entry (it did not exist before). */
+  created: boolean;
+}
+
+/** Everything needed to undo the last finished trip. */
+export interface TripRecord {
+  /** ISO timestamp. */
+  finishedAt: string;
+  /** The list exactly as it was before finishing (checked items included). */
+  list: ShoppingList;
+  /** The pack history before the trip taught it new formats. */
+  history: PurchaseHistory;
+  added: TripPantryChange[];
+  /** How many items went into the pantry. */
+  count: number;
+}
+
+/** A trip can only be undone for this long, after that the pantry has moved on too much. */
+export const TRIP_UNDO_HOURS = 24;
+
+export function canRevertTrip(
+  trip: TripRecord | null,
+  now: Date = new Date(),
+): trip is TripRecord {
+  if (!trip) return false;
+  const age = now.getTime() - Date.parse(trip.finishedAt);
+  return age >= 0 && age <= TRIP_UNDO_HOURS * 3_600_000; // an unreadable date gives NaN, so false
+}
+
 /**
  * Ends the trip:
  *  - every checked item that is an ingredient goes into the pantry in the amount bought
@@ -522,7 +557,7 @@ export function changePack(
  *  - each checked packaged item teaches its pack format to the purchase history;
  *  - checked items leave the list, unchecked ones stay (carried over to the next trip).
  * Free-text manual items ("toilet paper") are just removed, there is no ingredient to stock.
- * Returns new data, nothing is changed in place.
+ * Returns new data, nothing is changed in place. `trip` is what revertTrip needs to undo it.
  */
 export function finishTrip(
   list: ShoppingList,
@@ -535,12 +570,13 @@ export function finishTrip(
   history: PurchaseHistory;
   list: ShoppingList;
   added: number;
+  trip: TripRecord;
 } {
   const byId = new Map(ingredients.map((i) => [i.id, i]));
   const today = toDateKey(date);
   let nextPantry = pantry;
   let nextHistory = history;
-  let added = 0;
+  const changes: TripPantryChange[] = [];
 
   for (const item of list.items) {
     if (!item.checked) continue;
@@ -555,6 +591,7 @@ export function finishTrip(
     const quantity = [item.toBuy, asBase].find((q) => isValidQuantity(ing, q));
     if (!quantity) continue;
 
+    const before = nextPantry;
     nextPantry = mergeIntoPantry(nextPantry, {
       id: makeId("pantry"),
       ingredientId: ing.id,
@@ -562,13 +599,82 @@ export function finishTrip(
     });
     if (item.pack && !item.manual)
       nextHistory = recordPurchase(nextHistory, ing.id, item.pack, today);
-    added++;
+
+    // mergeIntoPantry changes exactly one entry (it sums into one, refills an empty one or adds one)
+    const touched = nextPantry.find((e) => !before.includes(e));
+    const inEntryUnit = touched
+      ? convertFor(ing, quantity, touched.quantity.unit)
+      : null;
+    if (touched && inEntryUnit !== null) {
+      changes.push({
+        entryId: touched.id,
+        ingredientId: ing.id,
+        quantity: createQuantity(r6(inEntryUnit), touched.quantity.unit),
+        created: !before.some((e) => e.id === touched.id),
+      });
+    }
   }
 
   return {
     pantry: nextPantry,
     history: nextHistory,
     list: { ...list, items: list.items.filter((i) => !i.checked) },
-    added,
+    added: changes.length,
+    trip: {
+      finishedAt: date.toISOString(),
+      list,
+      history,
+      added: changes,
+      count: changes.length,
+    },
   };
+}
+
+/**
+ * Undoes finishTrip:
+ *  - takes back exactly what the trip added to each pantry entry. Anything that changed since (meals
+ *    ticked, other entries edited) is kept. Amounts never go below 0, and entries the trip created
+ *    are removed once empty. An entry deleted in the meantime is skipped.
+ *  - the pack history goes back to what it was before the trip;
+ *  - the checked items come back on the list, still checked. Items added or changed on the list
+ *    since the trip are kept.
+ */
+export function revertTrip(
+  trip: TripRecord,
+  pantry: PantryEntry[],
+  ingredients: Ingredient[],
+  current: ShoppingList | null,
+): { pantry: PantryEntry[]; history: PurchaseHistory; list: ShoppingList } {
+  const byId = new Map(ingredients.map((i) => [i.id, i]));
+  let next = pantry;
+  const createdIds = new Set<string>();
+
+  for (const change of trip.added) {
+    if (change.created) createdIds.add(change.entryId);
+    const entry = next.find(
+      (e) => e.id === change.entryId && e.ingredientId === change.ingredientId,
+    );
+    const ing = byId.get(change.ingredientId);
+    if (!entry || !ing) continue;
+    const back = convertFor(ing, change.quantity, entry.quantity.unit);
+    if (back === null) continue;
+    const left = Math.max(0, r6(entry.quantity.amount - back));
+    next = next.map((e) =>
+      e.id === entry.id
+        ? { ...e, quantity: createQuantity(left, entry.quantity.unit) }
+        : e,
+    );
+  }
+  next = next.filter((e) => !(createdIds.has(e.id) && e.quantity.amount === 0));
+
+  const now = current?.items ?? [];
+  const tripIds = new Set(trip.list.items.map((i) => i.id));
+  const items = [
+    // Items that were unchecked stayed on the list during the trip: keep their current version
+    ...trip.list.items.map((i) =>
+      i.checked ? i : (now.find((c) => c.id === i.id) ?? i),
+    ),
+    ...now.filter((c) => !tripIds.has(c.id)),
+  ];
+  return { pantry: next, history: trip.history, list: { ...trip.list, items } };
 }

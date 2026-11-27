@@ -26,14 +26,17 @@ import { Recipe } from "../../data/recipe/recipe";
 import { Quantity } from "../../data/recipe/quantity";
 import {
   addManualItem,
+  canRevertTrip,
   changePack,
   finishTrip,
+  revertTrip,
   generateShoppingList,
   setChecked,
   ShoppingList,
   SkippedLine,
 } from "../../data/recipe/shopping-list";
 import { toDateKey } from "../../data/util/util";
+import { isQuantityAllowed } from "../../data/recipe/ingredient";
 import { ingredients as starterIngredients } from "../data/ingredientsData";
 import { recipes as starterRecipes } from "../data/recipesData";
 import { pantry as starterPantry } from "../data/pantryData";
@@ -152,23 +155,43 @@ export function toggleShoppingItem(id: string) {
   });
 }
 
-/** Adds something by hand. If the name matches an ingredient it is linked to it (aisle, pantry on finish). */
+const emptyList = (): ShoppingList => ({
+  startDate: toDateKey(new Date()),
+  days: DEFAULT_SHOPPING_DAYS,
+  items: [],
+});
+
+/** Adds a free-text item ("toilet paper") that isn't an ingredient. It is just removed when the trip finishes. */
 export function addShoppingItem(label: string) {
   const text = label.trim();
   if (text === "") return;
-  appStore.update((data) => {
-    const list: ShoppingList = data.shoppingList ?? {
-      startDate: toDateKey(new Date()),
-      days: DEFAULT_SHOPPING_DAYS,
-      items: [],
-    };
-    const match = data.ingredients.find(
-      (i) => i.name.toLowerCase() === text.toLowerCase(),
-    );
-    return {
-      shoppingList: addManualItem(list, text, undefined, match?.id ?? null),
-    };
-  });
+  appStore.update((data) => ({
+    shoppingList: addManualItem(data.shoppingList ?? emptyList(), text),
+  }));
+}
+
+/**
+ * Adds an ingredient from the app's ingredient list, in the amount and unit the user chose.
+ * It is grouped by the ingredient's aisle and goes into the pantry when the trip finishes.
+ * Returns false if the unit isn't one the ingredient allows.
+ */
+export function addShoppingIngredient(
+  ingredientId: string,
+  quantity: Quantity,
+): boolean {
+  const ingredient = appStore
+    .get()
+    .ingredients.find((i) => i.id === ingredientId);
+  if (!ingredient || !isQuantityAllowed(ingredient, quantity)) return false;
+  appStore.update((data) => ({
+    shoppingList: addManualItem(
+      data.shoppingList ?? emptyList(),
+      "",
+      quantity,
+      ingredientId,
+    ),
+  }));
+  return true;
 }
 
 /** Only manual items can be removed. Generated ones come back, because the plan still needs them. */
@@ -220,7 +243,31 @@ export function finishShoppingTrip(): number {
     pantry: result.pantry,
     purchaseHistory: result.history,
     shoppingList: result.list,
+    lastTrip: result.trip, // remembered so it can be undone
   }));
   regenerateShoppingList(); // the items left over are recomputed against the fuller pantry
   return result.added;
+}
+
+/**
+ * Undoes the last finished trip (see revertTrip). Returns false if there is none to undo
+ * or it is too old (TRIP_UNDO_HOURS).
+ */
+export function undoShoppingTrip(): boolean {
+  const data = appStore.get();
+  if (!canRevertTrip(data.lastTrip)) return false;
+  const result = revertTrip(
+    data.lastTrip,
+    data.pantry,
+    data.ingredients,
+    data.shoppingList,
+  );
+  appStore.update(() => ({
+    pantry: result.pantry,
+    purchaseHistory: result.history,
+    shoppingList: result.list,
+    lastTrip: null,
+  }));
+  regenerateShoppingList(); // brings the list in step with the plan again
+  return true;
 }
