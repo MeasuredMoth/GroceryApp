@@ -51,12 +51,13 @@ const DashBoardLayout = () => {
         options={{
           title: "Pantry",
           tabBarIcon: ({ color }) => (
-            <Feather name="archive" size={24} color={color} />          ),
+            <Feather name="archive" size={24} color={color} />
+          ),
         }}
       />
 
       <Tabs.Screen
-        name="shoppinglist"
+        name="shoppingListTab"
         options={{
           title: "Shopping List",
           tabBarIcon: ({ color }) => (

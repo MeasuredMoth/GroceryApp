@@ -1,7 +1,7 @@
 import { createQuantity, Quantity } from "./quantity";
-import { Ingredient } from "./ingredient";
+import { Ingredient, isValidQuantity } from "./ingredient";
 import { Meal, Plan, mealsFor } from "./meal-plan";
-import { PantryEntry } from "./pantry";
+import { PantryEntry, mergeIntoPantry } from "./pantry";
 import {
   AISLE,
   LITERAL_UNIT,
@@ -46,6 +46,8 @@ export interface ShoppingItem {
   pack?: Quantity;
   /** Bought minus needed, in the base unit. This is what ends up spare in the pantry. */
   leftover?: Quantity;
+  /** The user picked this pack size by hand. Regeneration keeps it instead of using the learned one. */
+  packLocked?: boolean;
   sources: ShoppingSource[];
   checked: boolean;
   /** toBuy.amount at the moment it was checked. Lets a later plan change un-check an item that now needs more. */
@@ -223,9 +225,11 @@ function buildItem(
   base: UNITS,
   sources: ShoppingSource[],
   history: PurchaseHistory,
+  forcedPack?: Quantity,
 ): ShoppingItem {
-  // Packaged: whole packs of the learned (or default) format. Loose: the shopping unit, rounded up.
-  const pack = ing.packaged ? preferredPack(ing, history) : null;
+  // Packaged: whole packs of the chosen, learned or default format. Loose: the shopping unit, rounded up.
+  const pack =
+    forcedPack ?? (ing.packaged ? preferredPack(ing, history) : null);
   const packBase = pack ? convertFor(ing, pack, base) : null;
 
   let toBuy: Quantity;
@@ -335,6 +339,12 @@ export function generateShoppingList(input: GenerateInput): {
     }
   }
 
+  const previousByIngredient = new Map(
+    (previous?.items ?? [])
+      .filter((i) => !i.manual && i.ingredientId)
+      .map((i) => [i.ingredientId!, i]),
+  );
+
   // 3 + 4 + 5: pantry, staples, packs
   const generated: ShoppingItem[] = [];
   for (const [ingredientId, need] of needs) {
@@ -351,15 +361,14 @@ export function generateShoppingList(input: GenerateInput): {
     if (ing.staple && have > 0) continue;
     const remaining = need.base - have;
     if (remaining <= EPS) continue;
-    generated.push(buildItem(ing, remaining, base, need.sources, history));
+    const locked = previousByIngredient.get(ingredientId);
+    const forced = locked?.packLocked ? locked.pack : undefined;
+    const item = buildItem(ing, remaining, base, need.sources, history, forced);
+    if (forced && item.pack) item.packLocked = true;
+    generated.push(item);
   }
 
   // 6: merge with the previous list
-  const previousByIngredient = new Map(
-    (previous?.items ?? [])
-      .filter((i) => !i.manual && i.ingredientId)
-      .map((i) => [i.ingredientId!, i]),
-  );
   const items = generated.map((item) => {
     const old = previousByIngredient.get(item.id);
     if (!old?.checked) return item;
@@ -471,4 +480,95 @@ export function groupByAisle(
         .sort((a, b) => itemName(a, byId).localeCompare(itemName(b, byId))),
     }))
     .filter((group) => group.items.length > 0);
+}
+
+/* ============================== Check-off and finishing the trip ============================== */
+
+/**
+ * The user bought a different pack than the list assumed ("1 kg, not 500 g").
+ * Recomputes how many packs cover the need. The pack is locked, so regenerating keeps it.
+ * Returns null if the pack can't be used for this ingredient (can't be converted to its base unit).
+ */
+export function changePack(
+  item: ShoppingItem,
+  ing: Ingredient,
+  newPack: Quantity,
+): ShoppingItem | null {
+  if (item.manual || !(newPack.amount > 0)) return null;
+  const base = baseUnitOf(ing);
+  const packBase = convertFor(ing, newPack, base);
+  if (!packBase || packBase <= 0) return null;
+
+  const rebuilt = buildItem(
+    ing,
+    item.needed.amount,
+    base,
+    item.sources,
+    {},
+    newPack,
+  );
+  return {
+    ...rebuilt,
+    packLocked: true,
+    checked: item.checked,
+    checkedAmount: item.checked ? rebuilt.toBuy.amount : undefined,
+  };
+}
+
+/**
+ * Ends the trip:
+ *  - every checked item that is an ingredient goes into the pantry in the amount bought
+ *    (the whole packs, so the leftover is in the pantry too);
+ *  - each checked packaged item teaches its pack format to the purchase history;
+ *  - checked items leave the list, unchecked ones stay (carried over to the next trip).
+ * Free-text manual items ("toilet paper") are just removed, there is no ingredient to stock.
+ * Returns new data, nothing is changed in place.
+ */
+export function finishTrip(
+  list: ShoppingList,
+  pantry: PantryEntry[],
+  ingredients: Ingredient[],
+  history: PurchaseHistory,
+  date: Date,
+): {
+  pantry: PantryEntry[];
+  history: PurchaseHistory;
+  list: ShoppingList;
+  added: number;
+} {
+  const byId = new Map(ingredients.map((i) => [i.id, i]));
+  const today = toDateKey(date);
+  let nextPantry = pantry;
+  let nextHistory = history;
+  let added = 0;
+
+  for (const item of list.items) {
+    if (!item.checked) continue;
+    const ing = item.ingredientId ? byId.get(item.ingredientId) : undefined;
+    if (!ing) continue;
+
+    // What was bought, in a unit the pantry accepts for this ingredient
+    const asBase = createQuantity(
+      r6(item.needed.amount + (item.leftover?.amount ?? 0)),
+      item.needed.unit,
+    );
+    const quantity = [item.toBuy, asBase].find((q) => isValidQuantity(ing, q));
+    if (!quantity) continue;
+
+    nextPantry = mergeIntoPantry(nextPantry, {
+      id: makeId("pantry"),
+      ingredientId: ing.id,
+      quantity,
+    });
+    if (item.pack && !item.manual)
+      nextHistory = recordPurchase(nextHistory, ing.id, item.pack, today);
+    added++;
+  }
+
+  return {
+    pantry: nextPantry,
+    history: nextHistory,
+    list: { ...list, items: list.items.filter((i) => !i.checked) },
+    added,
+  };
 }

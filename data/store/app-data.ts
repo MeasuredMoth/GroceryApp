@@ -380,6 +380,7 @@ function readShoppingItem(raw: unknown): ShoppingItem | null {
     manual: raw.manual === true,
   };
   if (isText(raw.label)) item.label = raw.label;
+  if (raw.packLocked === true) item.packLocked = true;
   if (
     typeof raw.packs === "number" &&
     Number.isInteger(raw.packs) &&

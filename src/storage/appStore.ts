@@ -14,6 +14,7 @@ import { File, Paths } from "expo-file-system";
 import {
   AppData,
   applyMealsDone,
+  doneKey,
   removeById,
   upsertById,
 } from "../../data/store/app-data";
@@ -22,6 +23,17 @@ import { Ingredient } from "../../data/recipe/ingredient";
 import { Plan } from "../../data/recipe/meal-plan";
 import { mergeIntoPantry, PantryEntry } from "../../data/recipe/pantry";
 import { Recipe } from "../../data/recipe/recipe";
+import { Quantity } from "../../data/recipe/quantity";
+import {
+  addManualItem,
+  changePack,
+  finishTrip,
+  generateShoppingList,
+  setChecked,
+  ShoppingList,
+  SkippedLine,
+} from "../../data/recipe/shopping-list";
+import { toDateKey } from "../../data/util/util";
 import { ingredients as starterIngredients } from "../data/ingredientsData";
 import { recipes as starterRecipes } from "../data/recipesData";
 import { pantry as starterPantry } from "../data/pantryData";
@@ -99,4 +111,116 @@ export function savePantryEntry(entry: PantryEntry) {
 
 export function deletePantryEntry(id: string) {
   appStore.update((data) => ({ pantry: removeById(data.pantry, id) }));
+}
+
+/* ---------- Shopping list ---------- */
+
+/** How many days the list covers until the user picks another number. */
+export const DEFAULT_SHOPPING_DAYS = 7;
+
+/**
+ * Rebuilds the list from the meal plan and the pantry (check marks and manual items are kept).
+ * Call it when the shopping tab opens and whenever the plan, pantry or done meals change.
+ * Pass `days` to change how many days are covered. Only saves when the list really changed.
+ * Returns the plan lines that couldn't be used, so the screen can tell the user.
+ */
+export function regenerateShoppingList(days?: number): SkippedLine[] {
+  const data = appStore.get();
+  const { list, skipped } = generateShoppingList({
+    plan: data.plan,
+    startDate: new Date(),
+    days: days ?? data.shoppingList?.days ?? DEFAULT_SHOPPING_DAYS,
+    ingredients: data.ingredients,
+    pantry: data.pantry,
+    history: data.purchaseHistory,
+    isDone: (date, meal) => data.done[doneKey(date, meal.id)] === true,
+    previous: data.shoppingList,
+  });
+  if (JSON.stringify(list) !== JSON.stringify(data.shoppingList)) {
+    appStore.update(() => ({ shoppingList: list }));
+  }
+  return skipped;
+}
+
+/** Crosses an item off, or puts it back. */
+export function toggleShoppingItem(id: string) {
+  appStore.update((data) => {
+    const item = data.shoppingList?.items.find((i) => i.id === id);
+    return data.shoppingList && item
+      ? { shoppingList: setChecked(data.shoppingList, id, !item.checked) }
+      : {};
+  });
+}
+
+/** Adds something by hand. If the name matches an ingredient it is linked to it (aisle, pantry on finish). */
+export function addShoppingItem(label: string) {
+  const text = label.trim();
+  if (text === "") return;
+  appStore.update((data) => {
+    const list: ShoppingList = data.shoppingList ?? {
+      startDate: toDateKey(new Date()),
+      days: DEFAULT_SHOPPING_DAYS,
+      items: [],
+    };
+    const match = data.ingredients.find(
+      (i) => i.name.toLowerCase() === text.toLowerCase(),
+    );
+    return {
+      shoppingList: addManualItem(list, text, undefined, match?.id ?? null),
+    };
+  });
+}
+
+/** Only manual items can be removed. Generated ones come back, because the plan still needs them. */
+export function removeShoppingItem(id: string) {
+  appStore.update((data) =>
+    data.shoppingList
+      ? {
+          shoppingList: {
+            ...data.shoppingList,
+            items: data.shoppingList.items.filter(
+              (i) => i.id !== id || !i.manual,
+            ),
+          },
+        }
+      : {},
+  );
+}
+
+/** The user bought a different pack size. Returns false if that size can't be used for the ingredient. */
+export function changeShoppingPack(id: string, pack: Quantity): boolean {
+  const data = appStore.get();
+  const item = data.shoppingList?.items.find((i) => i.id === id);
+  const ingredient = data.ingredients.find((i) => i.id === item?.ingredientId);
+  if (!data.shoppingList || !item || !ingredient) return false;
+
+  const changed = changePack(item, ingredient, pack);
+  if (!changed) return false;
+  appStore.update((d) => ({
+    shoppingList: d.shoppingList && {
+      ...d.shoppingList,
+      items: d.shoppingList.items.map((i) => (i.id === id ? changed : i)),
+    },
+  }));
+  return true;
+}
+
+/** Puts what was bought into the pantry, learns the pack sizes, keeps the unchecked items. Returns how many items went in. */
+export function finishShoppingTrip(): number {
+  const data = appStore.get();
+  if (!data.shoppingList) return 0;
+  const result = finishTrip(
+    data.shoppingList,
+    data.pantry,
+    data.ingredients,
+    data.purchaseHistory,
+    new Date(),
+  );
+  appStore.update(() => ({
+    pantry: result.pantry,
+    purchaseHistory: result.history,
+    shoppingList: result.list,
+  }));
+  regenerateShoppingList(); // the items left over are recomputed against the fuller pantry
+  return result.added;
 }
